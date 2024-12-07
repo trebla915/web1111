@@ -1,0 +1,95 @@
+{
+  "expo": {
+    "name": "club1111",
+    "slug": "club1111",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./src/assets/images/icon.png",
+    "scheme": "club1111",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.your.club1111",
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "This app requires access to your photo library to upload flyers.",
+        "NSCameraUsageDescription": "This app requires access to your camera to take photos for flyers.",
+        "FirebaseAppDelegateProxyEnabled": false,
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./src/assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.your.club1111",
+      "googleServicesFile": "./android/app/google-services.json",
+      "permissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.CAMERA",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.VIBRATE",
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./src/assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./src/assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "This app requires access to your photo library to upload flyers.",
+          "cameraPermission": "This app requires access to your camera to take photos for flyers."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "firebase": {
+        "apiKey": "AIzaSyDmtbl2N3TYe8W0PIPuOrznfIRskg5faXg",
+        "authDomain": "club-1111.firebaseapp.com",
+        "projectId": "club-1111",
+        "storageBucket": "club-1111.firebasestorage.app",
+        "appId": "1:332423980332:web:92e54c1b9b684a83ceb889",
+        "measurementId": "G-CLEHQV0F7S",
+        "messagingSenderId": "332423980332"
+      },
+      "stripePublishableKey": "pk_test_51NEBjVKOxQ53TMC9Ipt75rB7hdYPAUO3KapIcw6rBkAgBF5MnZSsTa9pSc2U46XaTuPHa6GZOSPWVifgqZcRgsfi003XJsKzYp",
+      "expoConfig": {},
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "e3775235-7f75-42c8-906e-8171c4a1e54b"
+      }
+    }
+  }
+}
