@@ -11,10 +11,10 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.your.club1111",
-      "googleServicesFile": "./GoogleService-Info.plist",
+      "googleServicesFile": "./src/config/GoogleService-Info.plist",
       "infoPlist": {
-        "NSPhotoLibraryUsageDescription": "This app requires access to your photo library to upload flyers.",
-        "NSCameraUsageDescription": "This app requires access to your camera to take photos for flyers.",
+        "NSPhotoLibraryUsageDescription": "This app requires access to your photo library to upload images.",
+        "NSCameraUsageDescription": "This app requires access to your camera to take photos.",
         "FirebaseAppDelegateProxyEnabled": false,
         "UIBackgroundModes": [
           "remote-notification"
@@ -24,10 +24,10 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#000"
       },
       "package": "com.your.club1111",
-      "googleServicesFile": "./android/app/google-services.json",
+      "googleServicesFile": "./src/config/google-services.json",
       "permissions": [
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
@@ -47,10 +47,10 @@
       [
         "expo-splash-screen",
         {
-          "image": "./src/assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "image": "./src/assets/images/splash.png",
+          "enableFullScreenImage_legacy": true,
+          "resizeMode": "cover",
+          "backgroundColor": "#000000"          
         }
       ],
       [

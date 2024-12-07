@@ -3,10 +3,10 @@ module.exports = function (api) {
 
   return {
     presets: [
-      'babel-preset-expo', // Includes support for Expo Router and JSX automatic runtime
+      'babel-preset-expo', 
     ],
     plugins: [
-      // Module resolver for path aliases
+      
       [
         'module-resolver',
         {
@@ -32,7 +32,7 @@ module.exports = function (api) {
         },
       ],
 
-      // Reanimated plugin (must be last)
+     
       'react-native-reanimated/plugin',
     ],
   };

@@ -15,6 +15,11 @@ defaultConfig.resolver.sourceExts = [
   'web.jsx', // Include all the web-specific extensions
 ];
 
+// Ensure 'cjs' is added if not already included
+if (!defaultConfig.resolver.sourceExts.includes('cjs')) {
+  defaultConfig.resolver.sourceExts.push('cjs');
+}
+
 // Map 'react-native' imports to 'react-native-web' for web builds
 defaultConfig.resolver.extraNodeModules = {
   ...defaultConfig.resolver.extraNodeModules,
