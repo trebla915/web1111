@@ -16,7 +16,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { auth } from "../../src/config/firebase.native";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, deleteUser } from "firebase/auth";
 import { createUser } from "../../src/utils/users";
 import { TouchableOpacity } from "react-native";
 
@@ -45,6 +45,9 @@ export default function Register() {
   const handleRegister = async () => {
     setError("");
   
+    // Regular expression for basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  
     if (!fullName) {
       setError("Full Name is required!");
       return;
@@ -52,6 +55,11 @@ export default function Register() {
   
     if (!email) {
       setError("Email is required!");
+      return;
+    }
+  
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address!");
       return;
     }
   
@@ -76,20 +84,18 @@ export default function Register() {
   
       // Create user in the backend
       await createUser({
+        id: user.uid, // Firebase UID
         email,
         name: fullName,
         role: "user", // Default role
       });
-      
-
   
       Alert.alert("Success", "Account Created Successfully!", [
         { text: "OK", onPress: () => router.push("/(auth)/Login") },
       ]);
     } catch (err: any) {
-      console.error("Registration Error:", err); // Optional: Log to a monitoring service in production
+      console.error("Registration Error:", err);
   
-      // Map Firebase error codes to user-friendly messages
       let errorMessage = "An unexpected error occurred. Please try again.";
       switch (err.code) {
         case "auth/email-already-in-use":
@@ -102,7 +108,7 @@ export default function Register() {
           errorMessage = "The password is too weak. Please use a stronger password.";
           break;
         default:
-          errorMessage = err.message || errorMessage; // Fallback to Firebase message or default
+          errorMessage = err.message || errorMessage;
           break;
       }
   

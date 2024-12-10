@@ -39,9 +39,9 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent overlay
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', 
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 1000, // Ensures it's on top of all other components
+    zIndex: 1000, 
   },
 });

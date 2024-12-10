@@ -22,16 +22,19 @@ interface UserData {
 
 // Updated interface for reservation details
 interface ReservationDetails extends Partial<Reservation> {
-  eventDate?: string; // Optional event date
-  eventName?: string; // Add eventName to align with backend
-  name?: string; // Optional user name
-  email?: string; // Optional user email
-  tableId?: string; // Optional table ID
-  tableNumber?: number; // Optional table number
-  guestCount?: number; // Optional guest count
-  bottles?: { id: string; name: string; price: number }[]; // List of selected bottles
-  mixers?: { id: string; name: string; price: number }[]; // List of selected mixers
+  eventDate?: string;
+  eventName?: string;
+  name?: string;
+  email?: string;
+  tableId?: string;
+  tableNumber?: number;
+  tablePrice?: number;
+  capacity?: number; // Add the capacity field here
+  guestCount?: number;
+  bottles?: { id: string; name: string; price: number }[];
+  mixers?: { id: string; name: string; price: number }[];
 }
+
 
 // Interface for the UserContext
 interface UserContextType {

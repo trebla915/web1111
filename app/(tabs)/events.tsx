@@ -5,7 +5,6 @@ import {
   Image,
   FlatList,
   Alert,
-  TouchableOpacity,
   RefreshControl,
   StyleSheet,
   TextInput,
@@ -16,6 +15,8 @@ import { formatToMMDDYYYY } from '../../src/utils/dateFormatter';
 import { Event } from '../../src/utils/types';
 import { Linking } from 'react-native';
 import { useLoading } from '../../src/contexts/LoadingContext'; // Use global loading context
+import Icon from 'react-native-vector-icons/Ionicons';
+import { Pressable } from 'react-native';
 
 const EventsScreen: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
@@ -33,8 +34,8 @@ const EventsScreen: React.FC = () => {
     try {
       const fetchedEvents = await fetchAllEvents();
 
-      // Sort events by date (earliest first)
-      const sortedEvents = fetchedEvents.sort((a, b) => {
+      // Sort events by date (earliest first) and avoid mutating state directly
+      const sortedEvents = [...fetchedEvents].sort((a, b) => {
         const dateA = new Date(a.date || 0).getTime();
         const dateB = new Date(b.date || 0).getTime();
         return dateA - dateB; // Ascending order
@@ -42,8 +43,8 @@ const EventsScreen: React.FC = () => {
 
       setEvents(sortedEvents);
       setFilteredEvents(sortedEvents); // Set filtered events to match sorted events
-    } catch (err) {
-      console.error('Error fetching events:', err);
+    } catch (err: any) {
+      console.error('Error fetching events:', err.message || err);
       setError('Failed to load events. Please try again later.');
     } finally {
       setLoading(false); // Hide global loader
@@ -113,18 +114,26 @@ const EventsScreen: React.FC = () => {
         <Text style={styles.title}>{item.title}</Text>
         {item.date && <Text style={styles.dateText}>Date: {formatToMMDDYYYY(item.date)}</Text>}
         <View style={styles.actions}>
-          <TouchableOpacity
-            style={[styles.button, styles.reserveButton]}
+          <Pressable
+            style={({ pressed }) => [
+              styles.button,
+              styles.reserveButton,
+              pressed && styles.buttonPressed,
+            ]}
             onPress={() => handleTablePress(item)}
           >
             <Text style={styles.buttonText}>Reserve Table</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.button, styles.ticketButton]}
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [
+              styles.button,
+              styles.ticketButton,
+              pressed && styles.buttonPressed,
+            ]}
             onPress={() => handleTicketPress(item.ticketLink)}
           >
             <Text style={styles.buttonText}>Tickets</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </View>
     </View>
@@ -132,12 +141,16 @@ const EventsScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <TextInput
-        style={styles.searchInput}
-        placeholder="Search events..."
-        value={searchQuery}
-        onChangeText={handleSearch}
-      />
+      <View style={styles.searchContainer}>
+        <Icon name="search" size={20} color="#ccc" style={styles.searchIcon} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search events..."
+          placeholderTextColor="#ccc"
+          value={searchQuery}
+          onChangeText={handleSearch}
+        />
+      </View>
       {error ? (
         <Text style={styles.errorText}>{error}</Text>
       ) : (
@@ -147,6 +160,8 @@ const EventsScreen: React.FC = () => {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={fetchEvents} />}
+          initialNumToRender={10} // Optimize FlatList rendering
+          windowSize={5} // Control how many screens worth of content is kept in memory
         />
       )}
     </View>
@@ -211,19 +226,31 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
   },
+  buttonPressed: {
+    opacity: 0.7,
+  },
   errorText: {
     color: 'red',
     textAlign: 'center',
     fontSize: 16,
     marginTop: 20,
   },
-  searchInput: {
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1c1c1c',
     borderRadius: 5,
     paddingHorizontal: 10,
     marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+  },
+  searchIcon: {
+    marginRight: 8, // Add spacing between the icon and the text input
+  },
+  searchInput: {
+    flex: 1,
+    height: 40,
     color: '#fff',
   },
 });

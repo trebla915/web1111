@@ -13,16 +13,17 @@ export type BackendTable = {
   number: number;
   reserved: boolean;
   reservationId?: string;
-  capacity: number;
+  capacity: number; // Matches the backend-defined capacity
   eventId: string;
+  price: number; // Include price field from the backend
 };
 
 export type FrontendTable = BackendTable & {
-  cx?: number;
-  cy?: number;
+  cx?: number; // Optional for table position
+  cy?: number; // Optional for table position
 };
 
-export type Table = FrontendTable;
+export type Table = FrontendTable; // Unified type for frontend usage
 
 export type Bottle = {
   id: string;
@@ -50,16 +51,18 @@ export type Reservation = {
   id: string;
   eventId: string;
   tableId: string;
-  tableNumber?: number;
+  tableNumber?: number; // Optional to store the table number
   userId: string;
-  reservationTime?: string; // Update to match backend field
+  reservationTime?: string; // Updated to match backend format
   createdAt: string;
-  guestCount: number;
+  guestCount: number; // Reflects the number of guests
+  capacity?: number; // Reflects the table capacity, fetched from backend
   bottles?: Bottle[];
   mixers?: Mixer[];
-  eventName?: string;
-  totalCost?: number;
-  eventDate?: string;
+  eventName?: string; // Optional name of the event
+  totalCost?: number; // Calculated total cost of the reservation
+  eventDate?: string; // Optional event date
+  tablePrice?: number; // Price of the selected table
 };
 
 export type User = {
@@ -68,19 +71,19 @@ export type User = {
   email: string;
   phone?: string;
   avatar?: string;
-  reservations?: string[] | Reservation[]; 
+  reservations?: string[] | Reservation[]; // Reflects both reservation IDs or detailed objects
   role: string;
 };
 
-// Updated BottleCatalog to ensure consistency with backend, no `quantityAvailable`
+// Updated BottleCatalog for consistency with backend
 export interface BottleCatalog {
-  id: string; // Make `id` required for consistency
+  id: string; // Required for identification
   name: string;
   imageUrl: string; // Image URL for the catalog entry
   price: number;
-  }
+}
 
 export type MergedBottle = BottleCatalog & {
   isInEvent: boolean; // Whether the bottle is part of the event
-  eventData?: BackendBottle; // Use `undefined` to denote absence instead of `null`
+  eventData?: BackendBottle; // Use undefined to denote absence instead of null
 };

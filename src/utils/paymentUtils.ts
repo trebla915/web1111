@@ -53,7 +53,7 @@ export const createPaymentIntent = async (
 
     // Prepare request body for backend
     const requestBody = {
-      amount: totalAmount,
+      amount: Math.round(totalAmount), // Ensure amount is an integer in cents
       metadata: normalizedMetadata,
       reservationDetails: {
         userId: reservationDetails.userId,
@@ -89,26 +89,67 @@ export const createPaymentIntent = async (
 
 /**
  * Format cost breakdown for a PaymentIntent.
- * Computes costs for guests, bottles, mixers, and a fixed deposit.
+ * Computes costs for table, bottles, mixers, and service fees.
  *
- * @param reservationDetails - Reservation details.
+ * @param reservationDetails - Reservation details including table and items.
  * @returns An object with the formatted cost breakdown.
  */
 export const formatCostBreakdown = (reservationDetails: {
-  guestCount?: number;
+  tablePrice?: number;
   bottles?: Array<{ price: number }>;
   mixers?: Array<{ price: number }>;
-}): { guests: number; bottles: number; mixers: number; deposit: number } => {
-  const guestCost = (reservationDetails.guestCount || 0) * 50; // $50 per guest
+}): {
+  table: number;
+  bottles: number;
+  mixers: number;
+  serviceFee: number;
+  subtotal: number;
+  total: number;
+} => {
+  const tableCost = reservationDetails.tablePrice || 0;
   const bottlesCost =
     reservationDetails.bottles?.reduce((total, bottle) => total + (bottle.price || 0), 0) || 0;
   const mixersCost =
     reservationDetails.mixers?.reduce((total, mixer) => total + (mixer.price || 0), 0) || 0;
 
+  const subtotal = tableCost + bottlesCost + mixersCost;
+  const serviceFee = subtotal * 0.029 + 0.3; // 2.9% + $0.30 fixed fee
+  const total = subtotal + serviceFee;
+
   return {
-    guests: guestCost,
+    table: tableCost,
     bottles: bottlesCost,
     mixers: mixersCost,
-    deposit: 100, // Fixed deposit for every reservation
+    serviceFee,
+    subtotal,
+    total,
   };
+};
+
+/**
+ * Utility to calculate and display total cost breakdown.
+ * Includes table price, bottles, mixers, and service fee.
+ *
+ * @param reservationDetails - The reservation details.
+ * @returns A formatted breakdown of all costs.
+ */
+export const calculateTotalCost = (reservationDetails: {
+  tablePrice?: number;
+  bottles?: Array<{ price: number }>;
+  mixers?: Array<{ price: number }>;
+}): { total: number; breakdown: string } => {
+  const { table, bottles, mixers, serviceFee, subtotal, total } = formatCostBreakdown(
+    reservationDetails
+  );
+
+  const breakdown = `
+    Table: $${table.toFixed(2)}
+    Bottles: $${bottles.toFixed(2)}
+    Mixers: $${mixers.toFixed(2)}
+    Service Fee: $${serviceFee.toFixed(2)}
+    Subtotal: $${subtotal.toFixed(2)}
+    Total: $${total.toFixed(2)}
+  `;
+
+  return { total, breakdown };
 };

@@ -5,10 +5,11 @@ import { FrontendTable } from '../../src/utils/types';
 
 type ClubLayoutProps = {
   tables: FrontendTable[];
-  onTableSelect: (tableId: string) => void;
+  onTableSelect: (tableId: string, tablePrice: number) => void;
+  showTablePrice?: boolean; // New prop to toggle price display
 };
 
-const ClubLayout: React.FC<ClubLayoutProps> = ({ tables, onTableSelect }) => {
+const ClubLayout: React.FC<ClubLayoutProps> = ({ tables, onTableSelect, showTablePrice = false }) => {
   const windowWidth = Dimensions.get('window').width;
   const windowHeight = Dimensions.get('window').height;
 
@@ -21,13 +22,7 @@ const ClubLayout: React.FC<ClubLayoutProps> = ({ tables, onTableSelect }) => {
       {/* Title Included Inside the Layout */}
       <Svg height={windowHeight * 0.65} width={windowWidth * 0.95} viewBox="0 0 800 1000">
         {/* Title */}
-        <Text
-          x="50%"
-          y="30"
-          fontSize="24"
-          fill="#fff"
-          textAnchor="middle"
-        >
+        <Text x="50%" y="30" fontSize="24" fill="#fff" textAnchor="middle">
           Select a Table
         </Text>
 
@@ -45,23 +40,34 @@ const ClubLayout: React.FC<ClubLayoutProps> = ({ tables, onTableSelect }) => {
               y={150 + index * 100} // Staggered y-coordinate for each table
               width={80}
               height={60}
-              fill={table.reserved ? "#888" : "#fff"} // Gray for reserved tables, white for available
+              fill={table.reserved ? '#888' : '#fff'} // Gray for reserved tables, white for available
               opacity={table.reserved ? 0.7 : 1}
               onPress={() => {
                 if (!table.reserved) {
-                  onTableSelect(table.id);
+                  onTableSelect(table.id, table.price); // Pass table price
                 }
               }}
             />
             <Text
-              x={140} // Position text in the center of the rectangle horizontally
-              y={150 + index * 100 + 40} // Position text vertically in the center of the rectangle
+              x={140}
+              y={150 + index * 100 + 40}
               fontSize="16"
-              fill={table.reserved ? "#D3D3D3" : "#000"}
+              fill={table.reserved ? '#D3D3D3' : '#000'}
               textAnchor="middle"
             >
               {table.number}
             </Text>
+            {showTablePrice && (
+              <Text
+                x={140}
+                y={150 + index * 100 + 60}
+                fontSize="12"
+                fill="#FFD700" // Gold color for price
+                textAnchor="middle"
+              >
+                ${table.price}
+              </Text>
+            )}
             {table.reserved && (
               <>
                 {/* Draw an X over reserved tables */}
@@ -91,29 +97,39 @@ const ClubLayout: React.FC<ClubLayoutProps> = ({ tables, onTableSelect }) => {
           <React.Fragment key={table.id}>
             <Rect
               x={620}
-              y={150 + index * 100} // Staggered y-coordinate for each table
+              y={150 + index * 100}
               width={80}
               height={60}
-              fill={table.reserved ? "#888" : "#fff"} // Gray for reserved tables, white for available
+              fill={table.reserved ? '#888' : '#fff'}
               opacity={table.reserved ? 0.7 : 1}
               onPress={() => {
                 if (!table.reserved) {
-                  onTableSelect(table.id);
+                  onTableSelect(table.id, table.price); // Pass table price
                 }
               }}
             />
             <Text
-              x={660} // Position text in the center of the rectangle horizontally
-              y={150 + index * 100 + 40} // Position text vertically in the center of the rectangle
+              x={660}
+              y={150 + index * 100 + 40}
               fontSize="16"
-              fill={table.reserved ? "#D3D3D3" : "#000"}
+              fill={table.reserved ? '#D3D3D3' : '#000'}
               textAnchor="middle"
             >
               {table.number}
             </Text>
+            {showTablePrice && (
+              <Text
+                x={660}
+                y={150 + index * 100 + 60}
+                fontSize="12"
+                fill="#FFD700"
+                textAnchor="middle"
+              >
+                ${table.price}
+              </Text>
+            )}
             {table.reserved && (
               <>
-                {/* Draw an X over reserved tables */}
                 <Line
                   x1={620}
                   y1={150 + index * 100}
@@ -145,12 +161,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: 20,
     backgroundColor: '#121212',
-  },
-  title: {
-    color: '#fff',
-    fontSize: 20,
-    marginBottom: 10,
-    textAlign: 'center',
   },
 });
 

@@ -12,14 +12,17 @@ import {
 import { fetchAllEvents, updateEvent, deleteEvent } from '../../src/utils/events';
 import { Event } from '../../src/utils/types';
 import CustomButton from '../../src/components/CustomButton';
+import Icon from 'react-native-vector-icons/Ionicons'; // Import the icon library
 
 const EditEvents: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
+  const [filteredEvents, setFilteredEvents] = useState<Event[]>([]); // For filtered events
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [eventTitle, setEventTitle] = useState('');
   const [eventDate, setEventDate] = useState('');
   const [ticketLink, setTicketLink] = useState('');
+  const [searchQuery, setSearchQuery] = useState(''); // State for search query
 
   useEffect(() => {
     loadEvents();
@@ -30,11 +33,24 @@ const EditEvents: React.FC = () => {
     try {
       const fetchedEvents = await fetchAllEvents();
       setEvents(fetchedEvents);
+      setFilteredEvents(fetchedEvents); // Initialize filtered events
     } catch (error) {
       console.error('Error fetching events:', error);
       Alert.alert('Error', 'Failed to load events.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    if (query.trim() === '') {
+      setFilteredEvents(events); // Show all events if search is empty
+    } else {
+      const filtered = events.filter((event) =>
+        event.title.toLowerCase().includes(query.toLowerCase())
+      );
+      setFilteredEvents(filtered);
     }
   };
 
@@ -114,9 +130,26 @@ const EditEvents: React.FC = () => {
         <ActivityIndicator size="large" color="#ffffff" />
       ) : (
         <>
+          {/* Search Bar */}
+          <View style={styles.searchContainer}>
+            <Icon name="search" size={20} color="#ccc" style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search events..."
+              placeholderTextColor="#888"
+              value={searchQuery}
+              onChangeText={handleSearch}
+            />
+          </View>
+
           <Text style={styles.label}>Select Event:</Text>
-          <ScrollView style={styles.dropdown}>
-            {events.map((event) => (
+          <ScrollView
+            style={styles.dropdown}
+            contentContainerStyle={styles.dropdownContent}
+            persistentScrollbar={true} // Keeps the scrollbar visible on Android
+            scrollIndicatorInsets={{ right: 1 }} // Positions the scrollbar closer
+          >
+            {filteredEvents.map((event) => (
               <TouchableOpacity
                 key={event.id}
                 style={[
@@ -186,6 +219,25 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     marginVertical: 8,
   },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1c1c1c',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    height: 40,
+    color: '#ffffff',
+    fontSize: 16,
+  },
   input: {
     height: 50,
     borderColor: '#333',
@@ -204,6 +256,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#333',
+  },
+  dropdownContent: {
+    paddingVertical: 5,
   },
   dropdownItem: {
     padding: 16,

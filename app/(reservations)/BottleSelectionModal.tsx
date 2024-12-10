@@ -12,9 +12,9 @@ const BottleSelectionModal: React.FC = () => {
   const { updateReservationDetails, reservationDetails } = useUser();
   const { eventId } = useLocalSearchParams();
 
-  const [bottles, setBottles] = useState<Bottle[]>([]);
+  const [bottles, setBottles] = useState<Bottle[]>([]); // All bottles for the event
   const [selectedBottles, setSelectedBottles] = useState<Bottle[]>(
-    reservationDetails?.bottles || []
+    reservationDetails?.bottles || [] // Pre-select bottles from reservation details
   );
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -24,20 +24,21 @@ const BottleSelectionModal: React.FC = () => {
       router.back();
       return;
     }
-    fetchBottles();
+    fetchBottles(); // Fetch bottles on component mount
   }, [eventId]);
 
+  // Fetch all bottles available for the event
   const fetchBottles = async () => {
     try {
       setLoading(true);
-      const fetchedBottles = await fetchAllBottlesForEvent(eventId as string); // Corrected function name
+      const fetchedBottles = await fetchAllBottlesForEvent(eventId as string);
       const formattedBottles: Bottle[] = fetchedBottles.map((bottle: BackendBottle) => ({
         id: bottle.id,
         name: bottle.name,
-        price: bottle.price || 0,
-        imageUrl: bottle.imageUrl || PLACEHOLDER_IMAGE_URL,
+        price: bottle.price || 0, // Default price if missing
+        imageUrl: bottle.imageUrl || PLACEHOLDER_IMAGE_URL, // Default image if missing
       }));
-      setBottles(formattedBottles);
+      setBottles(formattedBottles); // Update state with fetched bottles
     } catch (error) {
       Alert.alert('Error', 'Failed to fetch bottles for this event.');
     } finally {
@@ -45,29 +46,32 @@ const BottleSelectionModal: React.FC = () => {
     }
   };
 
+  // Toggle bottle selection
   const toggleBottleSelection = (bottle: Bottle) => {
     setSelectedBottles((prev) =>
       prev.find((selected) => selected.id === bottle.id)
-        ? prev.filter((selected) => selected.id !== bottle.id)
-        : [...prev, bottle]
+        ? prev.filter((selected) => selected.id !== bottle.id) // Remove if already selected
+        : [...prev, bottle] // Add if not selected
     );
   };
 
+  // Confirm the selected bottles and update reservation details
   const handleConfirmSelection = () => {
     updateReservationDetails({
       ...reservationDetails,
-      bottles: selectedBottles,
+      bottles: selectedBottles, // Pass selected bottles to reservation details
     });
-    router.back();
+    router.back(); // Navigate back
   };
 
+  // Render each bottle item
   const renderItem = (item: Bottle) => {
-    const isSelected = selectedBottles.some((bottle) => bottle.id === item.id);
+    const isSelected = selectedBottles.some((bottle) => bottle.id === item.id); // Check if selected
 
     return (
       <TouchableOpacity
         style={[styles.item, isSelected && styles.selectedItem]}
-        onPress={() => toggleBottleSelection(item)}
+        onPress={() => toggleBottleSelection(item)} // Toggle selection on press
       >
         <Image
           source={{ uri: item.imageUrl }}
@@ -90,7 +94,7 @@ const BottleSelectionModal: React.FC = () => {
         <Text style={styles.loadingText}>Loading bottles...</Text>
       ) : (
         <FlatList
-          data={bottles}
+          data={bottles} // Display bottles fetched
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => renderItem(item)}
           ListEmptyComponent={<Text style={styles.emptyText}>No bottles available</Text>}

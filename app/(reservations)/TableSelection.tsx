@@ -2,7 +2,6 @@ import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
   Alert,
@@ -10,10 +9,11 @@ import {
   Dimensions,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
-import { fetchAllTablesForEvent } from '../../src/utils/tables';  // Correct import
+import { fetchAllTablesForEvent } from '../../src/utils/tables';
 import { useUser } from '../../src/contexts/UserContext';
 import ClubLayout from './ClubLayout';
 import { FrontendTable } from '../../src/utils/types';
+import { Pressable } from 'react-native';
 
 const TableSelection: React.FC = () => {
   const router = useRouter();
@@ -28,11 +28,10 @@ const TableSelection: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch tables using a centralized utility
   const fetchTables = useCallback(async () => {
     try {
       setLoading(true);
-      const fetchedTables = await fetchAllTablesForEvent(eventId); // Use the correct function name
+      const fetchedTables = await fetchAllTablesForEvent(eventId);
       setTables(fetchedTables);
       setError(null);
     } catch (err) {
@@ -45,7 +44,6 @@ const TableSelection: React.FC = () => {
       setLoading(false);
     }
   }, [eventId]);
-  
 
   useFocusEffect(
     useCallback(() => {
@@ -59,19 +57,21 @@ const TableSelection: React.FC = () => {
       Alert.alert('Error', 'Unable to proceed. Please check your selection and try again.');
       return;
     }
-
+  
     setReservationDetails({
       id: `temp-${Date.now()}`,
       eventId,
       tableId: selectedTable.id,
-      tableNumber: selectedTable.number, // Keep it as a number
+      tableNumber: selectedTable.number,
+      capacity: selectedTable.capacity, // Include capacity from the backend
       userId: userData.id,
       reservationTime: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       guestCount: 1,
       bottles: [],
+      tablePrice: selectedTable.price, // Include table price
     });
-
+  
     router.push({
       pathname: '/(reservations)/ReservationModal',
       params: {
@@ -83,6 +83,7 @@ const TableSelection: React.FC = () => {
       },
     });
   };
+  
 
   if (loading) {
     return (
@@ -97,9 +98,15 @@ const TableSelection: React.FC = () => {
     return (
       <View style={styles.container}>
         <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={() => router.replace('/events')}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.retryButton,
+            pressed && styles.buttonPressed,
+          ]}
+          onPress={() => router.replace('/events')}
+        >
           <Text style={styles.retryButtonText}>Back to Events</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
     );
   }
@@ -115,7 +122,11 @@ const TableSelection: React.FC = () => {
         <Text style={styles.eventTitle}>{eventTitle}</Text>
         {eventDate && <Text style={styles.eventDate}>Date: {eventDate}</Text>}
       </View>
-      <ClubLayout tables={tables} onTableSelect={handleTableSelection} />
+      <ClubLayout
+        tables={tables}
+        onTableSelect={handleTableSelection}
+        showTablePrice // Ensure ClubLayout can display table prices
+      />
     </View>
   );
 };
@@ -165,6 +176,10 @@ const styles = StyleSheet.create({
   retryButtonText: {
     color: '#fff',
     fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  buttonPressed: {
+    opacity: 0.7,
   },
 });
 

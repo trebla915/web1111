@@ -26,6 +26,9 @@ const ProfileScreen: React.FC = () => {
   const [phone, setPhone] = useState(userData?.phone || "");
   const [avatar, setAvatar] = useState(userData?.avatar || "");
   const [isUploading, setIsUploading] = useState(false);
+  const [isEmailValid, setIsEmailValid] = useState(true);
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const pickAvatarImage = async () => {
     try {
@@ -52,24 +55,34 @@ const ProfileScreen: React.FC = () => {
     }
   };
 
+  const handleEmailChange = (text: string) => {
+    setEmail(text);
+    setIsEmailValid(emailRegex.test(text));
+  };
+
   const handleSave = async () => {
     if (!name || !email) {
       Alert.alert("Error", "Name and Email are required.");
       return;
     }
-  
+
+    if (!emailRegex.test(email)) {
+      Alert.alert("Error", "Please enter a valid email address.");
+      return;
+    }
+
     if (!userData) {
       Alert.alert("Error", "User data is unavailable.");
       return;
     }
-  
+
     try {
       const updates: Partial<Omit<User, "reservations">> = {};
       if (name !== userData.name) updates.name = name;
       if (email !== userData.email) updates.email = email;
       if (phone !== userData.phone) updates.phone = phone || ""; // Clear phone value if empty
       if (avatar !== userData.avatar) updates.avatar = avatar || ""; // Clear avatar value if empty
-  
+
       if (Object.keys(updates).length > 0) {
         await updateUserById(userData.id, updates);
         Alert.alert("Success", "Profile updated successfully!");
@@ -149,7 +162,7 @@ const ProfileScreen: React.FC = () => {
           style={styles.input}
           placeholder="Email"
           value={email}
-          onChangeText={setEmail}
+          onChangeText={handleEmailChange}
           placeholderTextColor="#aaa"
         />
         <TextInput
@@ -161,7 +174,11 @@ const ProfileScreen: React.FC = () => {
           keyboardType="phone-pad"
         />
 
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+        <TouchableOpacity
+          style={[styles.saveButton, { backgroundColor: isEmailValid ? "#444" : "#888" }]}
+          onPress={handleSave}
+          disabled={!isEmailValid}
+        >
           <Text style={styles.saveButtonText}>Save Changes</Text>
         </TouchableOpacity>
 
@@ -188,7 +205,6 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   saveButton: {
-    backgroundColor: "#444",
     padding: 15,
     borderRadius: 8,
     alignItems: "center",

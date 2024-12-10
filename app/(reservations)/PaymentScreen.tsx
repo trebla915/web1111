@@ -14,7 +14,28 @@ import { formatCostBreakdown } from '../../src/utils/paymentUtils';
 import { HandlePaymentFlowParams } from '../../src/types/paymentTypes';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../../src/config/firebase.native';
-import { createReservation } from '../../src/utils/reservations'; // Reservations utility
+import { createReservation } from '../../src/utils/reservations';
+import * as Linking from 'expo-linking';
+import Constants from 'expo-constants';
+
+const styles = StyleSheet.create({
+  container: { flex: 1, padding: 20, backgroundColor: '#121212' },
+  sectionTitle: { fontSize: 18, color: '#fff', marginBottom: 20 },
+  paymentButton: {
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  buttonText: { color: '#000', fontWeight: 'bold' },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#000',
+  },
+  loadingText: { color: '#fff', marginTop: 10 },
+});
 
 export default function PaymentScreen() {
   const router = useRouter();
@@ -24,7 +45,11 @@ export default function PaymentScreen() {
   const [paymentId, setPaymentId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
-  // Validation for data readiness
+  const returnURL =
+    Constants.appOwnership === 'expo'
+      ? Linking.createURL('/--/')
+      : Linking.createURL('');
+
   const isDataReady =
     !isLoading &&
     reservationDetails?.eventId &&
@@ -35,24 +60,38 @@ export default function PaymentScreen() {
     userData?.id &&
     userData?.email;
 
-  // Calculates total cost for payment
   const calculateTotal = (): number => {
-    const costBreakdown = formatCostBreakdown(reservationDetails || {});
-    return Object.values(costBreakdown).reduce((sum, cost) => sum + cost, 0);
+    if (!reservationDetails) {
+      return 0;
+    }
+
+    const tablePrice = reservationDetails?.tablePrice || 0;
+    const bottlesCost =
+      reservationDetails?.bottles?.reduce((acc, bottle) => acc + (bottle.price || 0), 0) || 0;
+    const mixersCost =
+      reservationDetails?.mixers?.reduce((acc, mixer) => acc + (mixer.price || 0), 0) || 0;
+
+    const subtotal = tablePrice + bottlesCost + mixersCost;
+    const serviceFee = subtotal * 0.029 + 0.3;
+
+    const total = subtotal + serviceFee;
+
+    return total;
   };
 
   const handlePayment = async () => {
     if (!isDataReady) {
-      Alert.alert('Incomplete Information', 'Please ensure all reservation details are loaded correctly.', [
-        { text: 'OK', onPress: () => console.log('Validation failed') },
-      ]);
+      Alert.alert(
+        'Incomplete Information',
+        'Please ensure all reservation details are loaded correctly.',
+        [{ text: 'OK', onPress: () => console.log('Validation failed') }]
+      );
       return;
     }
 
-    const totalAmount = calculateTotal() * 100; // Convert to cents for Stripe
+    const totalAmount = Math.round(calculateTotal() * 100);
 
     try {
-      // Payment data for Stripe
       const paymentParams: HandlePaymentFlowParams = {
         totalAmount,
         reservationDetails: {
@@ -66,7 +105,7 @@ export default function PaymentScreen() {
           eventDate: reservationDetails?.eventDate ?? '',
           name: userData?.name ?? 'Guest',
           email: userData?.email ?? '',
-          userId: userData?.id ?? '', // Added userId here
+          userId: userData?.id ?? '',
         },
         userData: {
           userId: userData?.id,
@@ -77,15 +116,23 @@ export default function PaymentScreen() {
           console.log('Payment succeeded');
         },
       };
-    
+
       const paymentId = await handlePaymentFlow(paymentParams);
       setPaymentId(paymentId);
       setIsProcessing(true);
-    } catch (error) {
-      console.error('Payment Error:', error);
-      Alert.alert('Payment Processing Error', 'An unexpected error occurred during payment.', [
-        { text: 'Try Again', onPress: () => setIsProcessing(false) },
-      ]);
+    } catch (err) {
+      const error = err as Error;
+
+      if (error.message === 'The payment sheet was canceled.') {
+        // Handle cancellation silently and log for debugging
+        console.log('Payment process was canceled by the user.');
+        // Optionally, navigate back or provide further instructions
+      } else {
+        console.error('Payment Error:', error.message);
+        Alert.alert('Payment Processing Error', 'An unexpected error occurred during payment.', [
+          { text: 'Try Again', onPress: () => setIsProcessing(false) },
+        ]);
+      }
     }
   };
 
@@ -99,7 +146,6 @@ export default function PaymentScreen() {
         const paymentData = docSnapshot.data();
 
         if (paymentData.status === 'succeeded') {
-          // Create reservation data separately
           const reservationPayload = {
             paymentId,
             reservationDetails: {
@@ -160,22 +206,3 @@ export default function PaymentScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#121212' },
-  sectionTitle: { fontSize: 18, color: '#fff', marginBottom: 20 },
-  paymentButton: {
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  buttonText: { color: '#000', fontWeight: 'bold' },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#000',
-  },
-  loadingText: { color: '#fff', marginTop: 10 },
-});

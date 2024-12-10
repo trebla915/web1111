@@ -4,13 +4,14 @@ import { apiClient, handleApiError } from './api'; // Import centralized axios a
 import { User } from './types'; // Assuming User type is defined
 
 // Create a new user.
+
 export const createUser = async (userData: User): Promise<User> => {
   try {
-    const response = await apiClient.post<User>('/users', userData); // Backend expects 'id' here
+    const response = await apiClient.post<User>("/users", userData); // Pass 'id' in userData
     return response.data;
   } catch (error) {
-    handleApiError(error, 'create user');
-    throw error;
+    handleApiError(error, "create user");
+    throw error; // Ensure the error is propagated for logging/debugging
   }
 };
 

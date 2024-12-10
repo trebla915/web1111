@@ -27,6 +27,8 @@ export default function ReservationModal() {
   const router = useRouter();
   const { reservationDetails, updateReservationDetails, userData } = useUser();
   const { eventTitle, eventDate, tableId, tableNumber, eventId } = useLocalSearchParams();
+
+  const tableCapacity = reservationDetails?.capacity || 8; // Default to 8 if not provided
   const [guestCount, setGuestCount] = useState<number>(reservationDetails?.guestCount || 1);
 
   const formattedEventDate = new Date(eventDate as string).toLocaleDateString('en-US', {
@@ -34,6 +36,23 @@ export default function ReservationModal() {
     day: '2-digit',
     year: 'numeric',
   });
+
+  const calculateTotalCost = () => {
+    const tablePrice = reservationDetails?.tablePrice || 0;
+    const bottlesCost =
+      reservationDetails?.bottles?.reduce((total, bottle) => total + bottle.price, 0) || 0;
+    const mixersCost =
+      reservationDetails?.mixers?.reduce((total, mixer) => total + mixer.price, 0) || 0;
+    const serviceFee = (tablePrice + bottlesCost + mixersCost) * 0.029 + 0.3;
+
+    return {
+      tablePrice,
+      bottlesCost,
+      mixersCost,
+      serviceFee,
+      total: tablePrice + bottlesCost + mixersCost + serviceFee,
+    };
+  };
 
   const handleOpenBottleModal = () => {
     if (!eventId) return showAlert('Error', 'Event ID is missing.');
@@ -54,62 +73,59 @@ export default function ReservationModal() {
 
   const handleContinueToPayment = () => {
     if (!eventId || !tableId || !guestCount)
-      return showAlert('Error', 'Missing reservation details. Please complete your selections.');
-  
-    // Update reservation details before navigating
+      return Alert.alert('Error', 'Missing reservation details. Please complete your selections.');
+
     const eventName = eventTitle as string;
-  
+
     updateReservationDetails({
       ...reservationDetails,
       guestCount,
+      capacity: tableCapacity,
       eventId: String(eventId),
       eventName,
       tableId: String(tableId),
       tableNumber: Number(tableNumber),
       eventDate: formattedEventDate,
-      name: userData?.name ?? 'Guest', // Ensure name is set
-      email: userData?.email ?? '', // Ensure email is set
+      name: userData?.name ?? 'Guest',
+      email: userData?.email ?? '',
     });
-  
-    // Prepare the payment params and ensure bottles and mixers are string arrays
-    const paymentParams = {
-      eventId: String(eventId),
-      eventTitle,
-      eventDate: formattedEventDate,
-      tableId: String(tableId),
-      tableNumber: Number(tableNumber),
-      guestCount,
-      bottles: reservationDetails?.bottles?.map((bottle) => bottle.id) || [], // Map to string array
-      mixers: reservationDetails?.mixers?.map((mixer) => mixer.id) || [], // Map to string array
-      name: userData?.name ?? 'Guest', // name
-      email: userData?.email ?? '', // email
-    };
-  
-    // Log for debugging purposes
-    console.log('Navigating to Payment Screen with the following data:', paymentParams);
-  
-    // Navigate to Payment Screen
+
     router.push({
       pathname: '/(reservations)/PaymentScreen',
-      params: paymentParams,
+      params: {
+        eventId: String(eventId),
+        eventTitle,
+        eventDate: formattedEventDate,
+        tableId: String(tableId),
+        tableNumber: Number(tableNumber),
+        guestCount,
+        capacity: tableCapacity,
+      },
     });
   };
-  
 
   const combinedItems = getCombinedItems(reservationDetails?.bottles, reservationDetails?.mixers);
+  const costBreakdown = calculateTotalCost();
 
   return (
     <View style={styles.container}>
-      {/* Event Details */}
       <View style={styles.detailsContainer}>
         <Text style={styles.eventTitle}>{eventTitle}</Text>
         <Text style={styles.eventDate}>{formattedEventDate}</Text>
         <Text style={styles.eventTable}>Table: {tableNumber}</Text>
       </View>
 
-      {/* Guest Count Section */}
+      <View style={styles.costBreakdown}>
+        <Text style={styles.costTitle}>Cost Breakdown</Text>
+        <Text style={styles.costItem}>Table Price: ${costBreakdown.tablePrice.toFixed(2)}</Text>
+        <Text style={styles.costItem}>Bottles: ${costBreakdown.bottlesCost.toFixed(2)}</Text>
+        <Text style={styles.costItem}>Mixers: ${costBreakdown.mixersCost.toFixed(2)}</Text>
+        <Text style={styles.costItem}>Service Fee: ${costBreakdown.serviceFee.toFixed(2)}</Text>
+        <Text style={styles.totalCost}>Total: ${costBreakdown.total.toFixed(2)}</Text>
+      </View>
+
       <View style={styles.guestCountContainer}>
-        <Text style={styles.guestLabel}>Number of Guests</Text>
+        <Text style={styles.guestLabel}>Select Guests Amount: </Text>
         <View style={styles.guestControl}>
           <TouchableOpacity
             onPress={() => setGuestCount((prev) => Math.max(prev - 1, 1))}
@@ -119,7 +135,7 @@ export default function ReservationModal() {
           </TouchableOpacity>
           <Text style={styles.guestCount}>{guestCount}</Text>
           <TouchableOpacity
-            onPress={() => setGuestCount((prev) => Math.min(prev + 1, 8))}
+            onPress={() => setGuestCount((prev) => Math.min(prev + 1, tableCapacity))}
             style={styles.roundButton}
           >
             <Icon name="add" size={24} color="#fff" />
@@ -127,12 +143,10 @@ export default function ReservationModal() {
         </View>
       </View>
 
-      {/* Choose Bottles Button */}
       <TouchableOpacity onPress={handleOpenBottleModal} style={styles.bottleButton}>
         <Text style={styles.bottleButtonText}>Choose Bottles</Text>
       </TouchableOpacity>
 
-      {/* Selected Items Section */}
       {combinedItems.length > 0 && (
         <View style={styles.selectedItemsContainer}>
           <Text style={styles.selectedItemsTitle}>Your setup includes:</Text>
@@ -162,7 +176,6 @@ export default function ReservationModal() {
         </View>
       )}
 
-      {/* Continue to Payment Button */}
       <TouchableOpacity onPress={handleContinueToPayment} style={styles.paymentButton}>
         <Text style={styles.paymentButtonText}>Continue to Payment</Text>
       </TouchableOpacity>
@@ -176,6 +189,10 @@ const styles = StyleSheet.create({
   eventTitle: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
   eventDate: { fontSize: 16, color: '#aaa', marginVertical: 5 },
   eventTable: { fontSize: 16, color: '#fff', marginVertical: 5 },
+  costBreakdown: { marginVertical: 20 },
+  costTitle: { fontSize: 18, fontWeight: 'bold', color: '#fff', marginBottom: 10 },
+  costItem: { fontSize: 16, color: '#aaa', marginBottom: 5 },
+  totalCost: { fontSize: 20, fontWeight: 'bold', color: '#fff', marginTop: 10 },
   guestCountContainer: { alignItems: 'center', marginBottom: 20 },
   guestLabel: { fontSize: 18, color: '#fff', marginBottom: 10 },
   guestControl: { flexDirection: 'row', alignItems: 'center' },

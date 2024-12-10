@@ -1,75 +1,68 @@
-// File: CommunityScreen.tsx
-// Summary: Handles community posts functionality including creation, editing, liking, and deleting posts.
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
-  ActivityIndicator,
   Alert,
   Image,
   TextInput,
-  TouchableOpacity,
-  Modal,
-  Button,
-} from 'react-native';
-import { db, storage } from '../../src/config/firebase.native';
+  ActivityIndicator,
+} from "react-native";
 import {
+  getFirestore,
   collection,
   query,
   orderBy,
   getDocs,
   addDoc,
-  increment,
   updateDoc,
   deleteDoc,
   doc,
-} from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import * as ImagePicker from 'expo-image-picker';
-import * as ImageManipulator from 'expo-image-manipulator';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import { useAuth } from '../../src/contexts/AuthContext';
+  arrayUnion,
+} from "firebase/firestore";
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator";
+import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "../../src/contexts/AuthContext";
+import { useUser } from "../../src/contexts/UserContext";
+import { Pressable } from "react-native";
 
-// Community Screen Component
+const db = getFirestore();
+const storage = getStorage();
+
 const CommunityScreen: React.FC = () => {
-  const { firebaseUser } = useAuth(); // Fetch current authenticated user
-  const [communityData, setCommunityData] = useState<
-    Array<{
-      id: string;
-      text: string;
-      image?: string;
-      likes: number;
-      user: { id: string; name: string; avatar: string };
-      comments: any[];
-    }>
-  >([]);
-  const [loading, setLoading] = useState(false);
-  const [newComment, setNewComment] = useState('');
+  const { firebaseUser } = useAuth();
+  const { userData } = useUser();
+  const [communityData, setCommunityData] = useState([]);
+  const [newComment, setNewComment] = useState("");
   const [newImage, setNewImage] = useState<string | null>(null);
-  const [selectedPost, setSelectedPost] = useState<any>(null); // For editing the post
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [commentText, setCommentText] = useState("");
+  const [selectedPost, setSelectedPost] = useState<string | null>(null);
 
-  // Fetch posts from Firestore
   const fetchCommunityData = async () => {
     setLoading(true);
     try {
-      const communityRef = collection(db, 'communityPosts');
-      const communityQuery = query(communityRef, orderBy('createdAt', 'desc'));
+      const communityRef = collection(db, "communityPosts");
+      const communityQuery = query(communityRef, orderBy("createdAt", "desc"));
       const querySnapshot = await getDocs(communityQuery);
 
       const fetchedData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...(doc.data() as any),
-        user: doc.data().user || { id: '', name: 'Anonymous', avatar: 'https://via.placeholder.com/50' }, // Default user info
+        user: doc.data().user || {
+          id: "Unknown User",
+          name: "Anonymous",
+          avatar: "https://via.placeholder.com/50",
+        },
       }));
 
       setCommunityData(fetchedData);
     } catch (error) {
-      console.error('Error fetching community data:', error);
-      Alert.alert('Error', 'Failed to load community data.');
+      console.error("Error fetching community data:", error);
+      Alert.alert("Error", "Failed to load community data.");
     } finally {
       setLoading(false);
     }
@@ -79,20 +72,18 @@ const CommunityScreen: React.FC = () => {
     fetchCommunityData();
   }, []);
 
-  // Image Picker and Compression
   const pickImage = async () => {
     try {
       const pickerResult = await ImagePicker.launchImageLibraryAsync();
       if (!pickerResult.canceled && pickerResult.assets.length > 0) {
         const localUri = pickerResult.assets[0].uri;
 
-        // Compress and resize the image
-        const manipulatedImage = await ImageManipulator.manipulateAsync(localUri, [{ resize: { width: 500, height: 500 } }], {
-          compress: 0.7,
-          format: ImageManipulator.SaveFormat.JPEG,
-        });
+        const manipulatedImage = await ImageManipulator.manipulateAsync(
+          localUri,
+          [{ resize: { width: 500, height: 500 } }],
+          { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+        );
 
-        // Upload image to Firebase Storage
         const filePath = `communityPosts/${Date.now()}.jpg`;
         const response = await fetch(manipulatedImage.uri);
         const blob = await response.blob();
@@ -104,33 +95,32 @@ const CommunityScreen: React.FC = () => {
         setNewImage(downloadUrl);
       }
     } catch (error) {
-      console.error('Error uploading image:', error);
-      Alert.alert('Error', 'Failed to upload image.');
+      console.error("Error uploading image:", error);
+      Alert.alert("Error", "Failed to upload image.");
     }
   };
 
-  // Add new post
   const addNewPost = async () => {
-    if (!firebaseUser) {
-      Alert.alert('Error', 'You must be logged in to create a post.');
+    if (!firebaseUser || !userData) {
+      Alert.alert("Error", "You must be logged in to create a post.");
       return;
     }
 
-    if (newComment.trim() === '') {
-      Alert.alert('Empty Post', 'Please add text to your post before submitting.');
+    if (newComment.trim() === "") {
+      Alert.alert("Empty Post", "Please add text to your post before submitting.");
       return;
     }
 
     try {
-      const communityRef = collection(db, 'communityPosts');
+      const communityRef = collection(db, "communityPosts");
       const newPost = {
         text: newComment,
         image: newImage || null,
         likes: 0,
         user: {
-          id: firebaseUser.uid,
-          name: firebaseUser.displayName || 'Anonymous',
-          avatar: firebaseUser.photoURL || 'https://via.placeholder.com/50',
+          id: userData.id,
+          name: userData.name || "Anonymous",
+          avatar: userData.avatar || "https://via.placeholder.com/50",
         },
         comments: [],
         createdAt: new Date(),
@@ -138,52 +128,165 @@ const CommunityScreen: React.FC = () => {
 
       await addDoc(communityRef, newPost);
       fetchCommunityData();
-      setNewComment('');
+      setNewComment("");
       setNewImage(null);
     } catch (error) {
-      console.error('Error posting message:', error);
-      Alert.alert('Error', 'Failed to post your message.');
+      console.error("Error posting message:", error);
+      Alert.alert("Error", "Failed to post your message.");
     }
   };
 
-  // Like Post
+  const deletePost = async (postId: string, imageUrl?: string) => {
+    try {
+      const postRef = doc(db, "communityPosts", postId);
+      await deleteDoc(postRef);
+
+      if (imageUrl) {
+        const imageRef = ref(storage, imageUrl);
+        await deleteObject(imageRef);
+      }
+
+      fetchCommunityData();
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      Alert.alert("Error", "Failed to delete the post.");
+    }
+  };
+
   const likePost = async (postId: string) => {
     try {
-      const postRef = doc(db, 'communityPosts', postId);
+      const postRef = doc(db, "communityPosts", postId);
       await updateDoc(postRef, {
-        likes: increment(1),
+        likes: 1,
       });
       fetchCommunityData();
     } catch (error) {
-      console.error('Error liking post:', error);
-      Alert.alert('Error', 'Failed to like the post.');
+      console.error("Error liking post:", error);
+      Alert.alert("Error", "Failed to like the post.");
     }
   };
 
-  // Delete Post
-  const deletePost = async (postId: string) => {
+  const addComment = async (postId: string) => {
+    if (commentText.trim() === "") {
+      Alert.alert("Error", "Comment cannot be empty.");
+      return;
+    }
+
     try {
-      const postRef = doc(db, 'communityPosts', postId);
-      await deleteDoc(postRef);
+      const postRef = doc(db, "communityPosts", postId);
+
+      await updateDoc(postRef, {
+        comments: arrayUnion({
+          user: {
+            id: userData?.id || "Anonymous",
+            name: userData?.name || "Anonymous",
+            avatar: userData?.avatar || "https://via.placeholder.com/50",
+          },
+          text: commentText,
+          createdAt: new Date(),
+        }),
+      });
+
+      setCommentText("");
       fetchCommunityData();
     } catch (error) {
-      console.error('Error deleting post:', error);
-      Alert.alert('Error', 'Failed to delete the post.');
+      console.error("Error adding comment:", error);
+      Alert.alert("Error", "Failed to add the comment.");
     }
   };
 
-  // Render UI
   return (
     <View style={styles.container}>
+      <TextInput
+        style={styles.input}
+        placeholder="Write something..."
+        placeholderTextColor="#ccc"
+        value={newComment}
+        onChangeText={setNewComment}
+      />
+      <View style={styles.actions}>
+        <Pressable
+          onPress={pickImage}
+          style={({ pressed }) => [
+            styles.imageButton,
+            pressed && styles.buttonPressed,
+          ]}
+        >
+          <Text style={styles.buttonText}>Upload Image</Text>
+        </Pressable>
+        <Pressable
+          onPress={addNewPost}
+          style={({ pressed }) => [
+            styles.postButton,
+            pressed && styles.buttonPressed,
+          ]}
+        >
+          <Text style={styles.buttonText}>Post</Text>
+        </Pressable>
+      </View>
       {loading ? (
-        <ActivityIndicator size="large" color="#fff" style={styles.loadingIndicator} />
+        <ActivityIndicator size="large" color="#fff" />
       ) : (
         <FlatList
           data={communityData}
           renderItem={({ item }) => (
             <View style={styles.card}>
-              <Text>{item.text}</Text>
+              <View style={styles.cardHeader}>
+                <View style={styles.userInfo}>
+                  <Image source={{ uri: item.user.avatar }} style={styles.userAvatar} />
+                  <Text style={styles.userName}>{item.user.name}</Text>
+                </View>
+                {item.user.id === userData?.id && (
+                  <Pressable
+                    onPress={() => deletePost(item.id, item.image)}
+                    style={({ pressed }) => pressed && { opacity: 0.5 }}
+                  >
+                    <Ionicons name="close-circle" size={24} color="#ff4444" />
+                  </Pressable>
+                )}
+              </View>
+              <Text style={styles.cardText}>{item.text}</Text>
               {item.image && <Image source={{ uri: item.image }} style={styles.cardImage} />}
+              <View style={styles.postActions}>
+                <Pressable
+                  onPress={() => likePost(item.id)}
+                  style={({ pressed }) => [
+                    styles.actionButton,
+                    pressed && styles.buttonPressed,
+                  ]}
+                >
+                  <Text style={styles.actionButtonText}>❤️ Like ({item.likes})</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => setSelectedPost(item.id)}
+                  style={({ pressed }) => [
+                    styles.actionButton,
+                    pressed && styles.buttonPressed,
+                  ]}
+                >
+                  <Text style={styles.actionButtonText}>💬 Comment</Text>
+                </Pressable>
+              </View>
+              {selectedPost === item.id && (
+                <View style={styles.commentSection}>
+                  <TextInput
+                    style={styles.commentInput}
+                    placeholder="Add a comment..."
+                    placeholderTextColor="#ccc"
+                    value={commentText}
+                    onChangeText={setCommentText}
+                  />
+                  <Pressable
+                    onPress={() => addComment(item.id)}
+                    style={({ pressed }) => [
+                      styles.postButton,
+                      pressed && styles.buttonPressed,
+                    ]}
+                  >
+                    <Text style={styles.buttonText}>Submit</Text>
+                  </Pressable>
+                </View>
+              )}
             </View>
           )}
           keyExtractor={(item) => item.id}
@@ -194,25 +297,25 @@ const CommunityScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000', padding: 20 },
-  loadingIndicator: { justifyContent: 'center', alignItems: 'center' },
-  postContainer: { backgroundColor: '#1c1c1c', padding: 15, borderRadius: 10, marginBottom: 20 },
-  input: { backgroundColor: '#2c2c2c', color: '#fff', borderRadius: 5, padding: 10, marginBottom: 10 },
-  newImagePreview: { width: 100, height: 100, borderRadius: 10, marginBottom: 10 },
-  postButtons: { flexDirection: 'row', justifyContent: 'space-between' },
-  imageButton: { backgroundColor: '#444', padding: 10, borderRadius: 5 },
-  postButton: { backgroundColor: '#444', padding: 10, borderRadius: 5 },
-  buttonText: { color: '#fff', fontWeight: 'bold', textAlign: 'center' },
-  card: { backgroundColor: '#1c1c1c', padding: 15, borderRadius: 10, marginBottom: 15 },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  userInfo: { flexDirection: 'row', alignItems: 'center' },
+  container: { flex: 1, backgroundColor: "#000", padding: 20 },
+  input: { color: "#fff", marginBottom: 10, backgroundColor: "#333", padding: 10, borderRadius: 5 },
+  actions: { flexDirection: "row", justifyContent: "space-between", marginBottom: 10 },
+  imageButton: { backgroundColor: "#444", padding: 10, borderRadius: 5, flex: 1, marginRight: 5 },
+  postButton: { backgroundColor: "#007BFF", padding: 10, borderRadius: 5, flex: 1 },
+  buttonPressed: { opacity: 0.7 },
+  buttonText: { color: "#fff", fontWeight: "bold", textAlign: "center" },
+  card: { backgroundColor: "#1c1c1c", margin: 10, padding: 15, borderRadius: 10 },
+  cardHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  userInfo: { flexDirection: "row", alignItems: "center" },
   userAvatar: { width: 40, height: 40, borderRadius: 20, marginRight: 10 },
-  userName: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  actions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  cardText: { color: '#fff', fontSize: 16, marginBottom: 10 },
-  cardImage: { width: '100%', height: 150, borderRadius: 10, marginBottom: 10 },
-  likesText: { color: '#fff', marginBottom: 10 },
-  modalContainer: { flex: 1, backgroundColor: '#000', padding: 20 },
+  userName: { color: "#fff", fontWeight: "bold" },
+  cardText: { color: "#fff", marginTop: 10 },
+  cardImage: { width: "100%", height: 200, borderRadius: 10, marginTop: 10 },
+  postActions: { flexDirection: "row", justifyContent: "center", marginTop: 10 },
+  actionButton: { flex: 1, alignItems: "center", padding: 10, marginHorizontal: 5, backgroundColor: "#333", borderRadius: 5 },
+  actionButtonText: { color: "#fff" },
+  commentSection: { marginTop: 10, padding: 10, backgroundColor: "#2c2c2c", borderRadius: 5 },
+  commentInput: { backgroundColor: "#333", color: "#fff", padding: 10, borderRadius: 5, marginBottom: 10 },
 });
 
 export default CommunityScreen;

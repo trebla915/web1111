@@ -1,14 +1,22 @@
-import axios from 'axios'; // Frontend: HTTP client for making API requests
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Frontend: Storage for authentication tokens
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
+
+// Get the API Base URL from Expo Constants
+const API_BASE_URL = Constants.expoConfig?.extra?.API_BASE_URL;
+
+if (!API_BASE_URL) {
+  console.error('API Base URL is missing. Ensure it is set in your environment.');
+  throw new Error('Missing API Base URL.');
+}
 
 /**
  * Centralized Axios instance for API calls
- * Base URL points to the backend API
  */
 const apiClient = axios.create({
-  baseURL: 'https://api-23psv7suga-uc.a.run.app', // Base URL for all API calls
+  baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json', // Set default content type
+    'Content-Type': 'application/json',
   },
 });
 
@@ -20,15 +28,15 @@ apiClient.interceptors.request.use(
     try {
       const token = await AsyncStorage.getItem('authToken'); // Retrieve token from storage
       if (token) {
-        config.headers['Authorization'] = `Bearer ${token}`; // Attach token to Authorization header
+        config.headers['Authorization'] = `Bearer ${token}`;
       }
-      return config; // Return updated config with Authorization token
+      return config;
     } catch (error) {
-      console.error('Error attaching token to request:', error); // Log errors
-      return Promise.reject(error); // Reject promise if error occurs
+      console.error('Error attaching token to request:', error);
+      return Promise.reject(error);
     }
   },
-  (error) => Promise.reject(error) // Handle errors during request interception
+  (error) => Promise.reject(error)
 );
 
 /**
@@ -36,28 +44,24 @@ apiClient.interceptors.request.use(
  * @param error - The error object from Axios
  * @param action - Description of the action being performed
  */
-const handleApiError = (error: any, action: string) => {
+const handleApiError = (error, action) => {
   if (error.response) {
-    // Log specific HTTP response error details
     console.error(`Error during ${action}:`, error.response.status, error.response.data);
-    throw new Error(error.response.data?.message || `Failed to ${action}.`); // Throw descriptive error
+    throw new Error(error.response.data?.message || `Failed to ${action}.`);
   }
-  // Log and throw unhandled errors
   console.error(`Unhandled error during ${action}:`, error.message || error);
   throw error;
 };
 
 /**
  * Function to set or remove Authorization token
- * @param token - The token to set or null to remove the Authorization header
  */
-const setAuthToken = (token: string | null) => {
+const setAuthToken = (token) => {
   if (token) {
-    apiClient.defaults.headers['Authorization'] = `Bearer ${token}`; // Set Authorization header
+    apiClient.defaults.headers['Authorization'] = `Bearer ${token}`;
   } else {
-    delete apiClient.defaults.headers['Authorization']; // Remove Authorization header
+    delete apiClient.defaults.headers['Authorization'];
   }
 };
 
-// Export all utilities and the Axios instance
 export { apiClient, handleApiError, setAuthToken };

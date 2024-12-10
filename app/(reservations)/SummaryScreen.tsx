@@ -24,15 +24,26 @@ export default function SummaryScreen() {
   };
 
   const calculateTotal = () => {
-    const bottlesTotal = reservationDetails?.bottles?.reduce(
-      (acc, bottle) => acc + (bottle.price || 0),
-      0
-    );
-    const deposit = 100;
-    return (bottlesTotal || 0) + deposit;
+    const tablePrice = reservationDetails?.tablePrice || 0;
+    const bottlesCost =
+      reservationDetails?.bottles?.reduce((acc, bottle) => acc + (bottle.price || 0), 0) || 0;
+    const mixersCost =
+      reservationDetails?.mixers?.reduce((acc, mixer) => acc + (mixer.price || 0), 0) || 0;
+
+    const subtotal = tablePrice + bottlesCost + mixersCost;
+    const serviceFee = subtotal * 0.029 + 0.3; // 2.9% + $0.30 fixed fee
+    const grandTotal = subtotal + serviceFee;
+
+    return {
+      tablePrice,
+      bottlesCost,
+      mixersCost,
+      serviceFee,
+      grandTotal,
+    };
   };
 
-  const total = calculateTotal();
+  const costBreakdown = calculateTotal();
 
   const renderContent = () => (
     <>
@@ -76,14 +87,20 @@ export default function SummaryScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Cost Breakdown</Text>
         <Text style={styles.detailText}>
-          Bottles Total: $
-          {reservationDetails?.bottles?.reduce(
-            (acc, bottle) => acc + (bottle.price || 0),
-            0
-          ) || 0}
+          Table Price: ${costBreakdown.tablePrice.toFixed(2)}
         </Text>
-        <Text style={styles.detailText}>Deposit: $100.00</Text>
-        <Text style={styles.totalText}>Grand Total: ${total.toFixed(2)}</Text>
+        <Text style={styles.detailText}>
+          Bottles Total: ${costBreakdown.bottlesCost.toFixed(2)}
+        </Text>
+        <Text style={styles.detailText}>
+          Mixers Total: ${costBreakdown.mixersCost.toFixed(2)}
+        </Text>
+        <Text style={styles.detailText}>
+          Service Fee: ${costBreakdown.serviceFee.toFixed(2)}
+        </Text>
+        <Text style={styles.totalText}>
+          Grand Total: ${costBreakdown.grandTotal.toFixed(2)}
+        </Text>
       </View>
 
       {/* Return Button */}
