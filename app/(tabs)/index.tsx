@@ -16,6 +16,7 @@ import { fetchAllEvents } from "../../src/utils/events";
 import { Event } from "../../src/utils/types";
 import { formatToMMDDYYYY } from "../../src/utils/dateFormatter";
 
+
 const screenWidth = Dimensions.get("window").width;
 
 export const HomeScreen = () => {

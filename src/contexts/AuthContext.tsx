@@ -80,6 +80,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           const token = await user.getIdToken();
           console.log('Token retrieved onAuthStateChanged:', token);
+  
+          // Store userId in AsyncStorage for later retrieval in other components
+          await AsyncStorage.setItem('userId', user.uid);
+  
           await updateToken(token);
           setAuthState({
             firebaseUser: user,
@@ -89,6 +93,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
         } catch (error) {
           console.error('Error during authentication:', error);
+  
+          // Clear stored userId in case of an error
+          await AsyncStorage.removeItem('userId');
+  
           await updateToken(null);
           setAuthState({
             firebaseUser: null,
@@ -99,6 +107,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } else {
         console.log('User signed out. Clearing token.');
+  
+        // Clear stored userId when user signs out
+        await AsyncStorage.removeItem('userId');
+  
         await updateToken(null);
         setAuthState({
           firebaseUser: null,
@@ -108,9 +120,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
       }
     });
-
+  
     return () => unsubscribe();
   }, []);
+  
 
   const signIn = async (email: string, password: string) => {
     setAuthState((prev) => ({ ...prev, isLoading: true }));

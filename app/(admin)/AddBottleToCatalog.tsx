@@ -14,7 +14,13 @@ import {
   StyleSheet,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import {fetchAllBottlesFromCatalog, addBottleToCatalog, deleteBottleFromCatalog, updateBottleInCatalog } from "../../src/utils/catalog";
+import {
+  fetchAllBottlesFromCatalog,
+  addBottleToCatalog,
+  deleteBottleFromCatalog,
+  updateBottleInCatalog,
+  uploadBottleImage, // Importing from the catalog utility
+} from "../../src/utils/catalog";
 import { BottleCatalog } from "../../src/utils/types";
 import { MaterialIcons } from "@expo/vector-icons";
 
@@ -84,6 +90,35 @@ export default function AddBottleToCatalog() {
     } catch (error) {
       console.error("Error updating bottle:", error);
       Alert.alert("Error", "Failed to update the bottle.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditImage = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets?.length) {
+        if (currentBottle) {
+          setLoading(true);
+          const newImageUrl = await uploadBottleImage(currentBottle.id, result.assets[0].uri);
+
+          if (typeof newImageUrl === "string") {
+            setModalImageUrl(newImageUrl);
+            Alert.alert("Success", "Image updated successfully!");
+          } else {
+            throw new Error("Invalid image URL returned.");
+          }
+        }
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to edit the image.");
+      console.error("Error editing image:", error);
     } finally {
       setLoading(false);
     }
@@ -273,6 +308,16 @@ export default function AddBottleToCatalog() {
               value={modalPrice}
               onChangeText={setModalPrice}
             />
+            <View style={styles.imageContainer}>
+              <Image
+                source={{ uri: modalImageUrl || "https://via.placeholder.com/150" }}
+                style={styles.bottleImageLarge}
+                resizeMode="contain"
+              />
+              <Text style={styles.textLink} onPress={handleEditImage}>
+                Edit Image
+              </Text>
+            </View>
             <TouchableOpacity
               style={styles.saveButton}
               onPress={handleSaveBottle}
@@ -407,5 +452,16 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     marginTop: 10,
+  },
+  bottleImageLarge: {
+    width: 150,
+    height: 150,
+    marginVertical: 10,
+    alignSelf: "center",
+    borderRadius: 10,
+  },
+  imageContainer: {
+    alignItems: "center",
+    marginVertical: 10,
   },
 });

@@ -1,7 +1,11 @@
 // File: src/utils/catalog.ts
+// Purpose: Handles CRUD operations for the bottle catalog and uploads bottle images to Firebase.
 
 import { apiClient, handleApiError } from './api'; // Import centralized axios and error handler
 import { BottleCatalog } from './types'; // Assuming BottleCatalog type is defined
+import { uploadImageToStorage } from './uploadImageToStorage';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '../config/firebase.native';
 
 // Add a new bottle to the catalog
 export const addBottleToCatalog = async (bottle: Omit<BottleCatalog, 'id' | 'size'>): Promise<void> => {
@@ -41,11 +45,32 @@ export const updateBottleInCatalog = async (
 
 // Delete a bottle from the catalog
 export const deleteBottleFromCatalog = async (bottleId: string): Promise<void> => {
-    try {
-      await apiClient.delete(`/catalog/${bottleId}`);
-      console.log('Bottle deleted from catalog');
-    } catch (error) {
-      handleApiError(error, 'delete bottle from catalog');
-      throw error;
-    }
-  };
+  try {
+    await apiClient.delete(`/catalog/${bottleId}`);
+    console.log('Bottle deleted from catalog');
+  } catch (error) {
+    handleApiError(error, 'delete bottle from catalog');
+    throw error;
+  }
+};
+
+// Upload bottle image and update Firestore document
+export const uploadBottleImage = async (bottleId: string, imageUri: string): Promise<string> => {
+  try {
+    const filePath = `bottle-catalog/${bottleId}_${Date.now()}.jpg`;
+    console.log(`[uploadBottleImage] Uploading image to ${filePath}`);
+
+    const imageUrl = await uploadImageToStorage(imageUri, filePath);
+    console.log(`[uploadBottleImage] Image uploaded successfully: ${imageUrl}`);
+
+    const bottleRef = doc(db, 'bottleCatalog', bottleId);
+    await updateDoc(bottleRef, { imageUrl });
+    console.log(`[uploadBottleImage] Firestore document updated with image URL: ${imageUrl}`);
+
+    return imageUrl; // Return the uploaded image URL
+  } catch (err) {
+    const error = err as Error; // Explicitly cast 'err' to 'Error'
+    console.error(`[uploadBottleImage] Error: ${error.message}`);
+    throw new Error(`Failed to upload bottle image and update Firestore: ${error.message}`);
+  }
+};

@@ -1,4 +1,5 @@
 // File: src/utils/bottleService.ts
+// Purpose: Handles operations related to bottles in events, such as adding, updating, deleting, and fetching bottles associated with events.
 
 import { apiClient, handleApiError } from './api'; // Import centralized axios and error handler
 import { BackendBottle } from './types'; // Assuming BackendBottle type is defined

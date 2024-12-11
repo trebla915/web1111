@@ -2,6 +2,8 @@ import * as Notifications from "expo-notifications";
 import * as TaskManager from "expo-task-manager";
 import Constants from "expo-constants";
 import { Platform } from "react-native";
+import { apiClient } from "./api"; // Import the centralized API client
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Define the background notification task name
 const BACKGROUND_NOTIFICATION_TASK = "BACKGROUND-NOTIFICATION-TASK";
@@ -16,12 +18,25 @@ Notifications.setNotificationHandler({
 });
 
 // Define the background notification task
-TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, ({ data, error }) => {
-  if (error) {
-    console.error("Error in background notification task:", error);
-    return;
+TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, async ({ data, error }) => {
+  try {
+    if (error) {
+      console.error("Error in background notification task:", error);
+      return Promise.reject(error); // Return a rejected Promise for errors
+    }
+
+    console.log("\u2705 Received a notification in the background!", { data });
+
+    // Process your notification data here
+    if (data) {
+      console.log("Notification Data:", data);
+    }
+
+    return Promise.resolve(); // Return a resolved Promise for success
+  } catch (err) {
+    console.error("Error in background notification task:", err);
+    return Promise.reject(err); // Return a rejected Promise for unexpected errors
   }
-  console.log("✅ Received a notification in the background!", { data });
 });
 
 // Register the background notification task
@@ -33,6 +48,29 @@ export async function registerBackgroundNotificationTask() {
     console.error("Failed to register background notification task:", error);
   }
 }
+
+// Store Expo Push Token to backend using the API client
+export async function storePushToken(token: string) {
+  try {
+    const userId = await AsyncStorage.getItem("userId"); // Retrieve userId from storage or context
+
+    if (!userId || userId.trim() === "") { // Ensure userId is valid and not empty
+      throw new Error("User ID is missing or invalid. Ensure the user is logged in.");
+    }
+
+    const response = await apiClient.post("/notifications/save-push-token", { // Update route to match backend
+      userId,
+      expoPushToken: token,
+    });
+
+    console.log("Push token saved to the server:", response.data);
+  } catch (error) {
+    console.error("Failed to store push token:", error.message || error);
+    throw error;
+  }
+}
+
+
 
 // Request push notification permissions and get the Expo Push Token
 export async function registerForPushNotificationsAsync() {
@@ -60,6 +98,9 @@ export async function registerForPushNotificationsAsync() {
     const token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
     console.log("Expo Push Token:", token);
 
+    // Save the token to your backend
+    await storePushToken(token);
+
     return token;
   } catch (error) {
     console.error("Failed to register for push notifications:", error);
@@ -81,5 +122,25 @@ export async function setupNotificationChannels() {
     } catch (error) {
       console.error("Failed to set up notification channel:", error);
     }
+  }
+}
+
+// Send push notifications using the API client
+export async function sendPushNotification({
+  title,
+  message,
+}: {
+  title: string;
+  message: string;
+}) {
+  try {
+    const response = await apiClient.post("/send-notification", {
+      title,
+      message,
+    });
+    console.log("Push notification sent successfully:", response.data);
+  } catch (error) {
+    console.error("Failed to send push notification:", error);
+    throw error;
   }
 }

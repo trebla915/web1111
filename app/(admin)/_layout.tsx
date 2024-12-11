@@ -49,6 +49,12 @@ export default function AdminLayout() {
         <Stack.Screen name="ManageUsers" options={{ title: 'Manage Users' }} />
         <Stack.Screen name="AddBottleToCatalog" options={{ title: 'Add Bottle to Catalog' }} />
         <Stack.Screen name="AddBottlesToEvent" options={{ title: 'Add Bottles to Event' }} />
+        
+        {/* New PushNotification screen */}
+        <Stack.Screen 
+          name="PushNotification" 
+          options={{ title: 'Send Push Notifications' }} 
+        />
       </Stack>
     </BottleProvider>
   );
