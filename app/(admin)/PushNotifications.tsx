@@ -7,7 +7,7 @@ import {
   StyleSheet,
   Alert,
 } from "react-native";
-import { sendPushNotification } from "../../src/utils/notifications"; // Import the utility function
+import { sendPushNotification } from "../../src/utils/notifications";
 
 export default function PushNotificationScreen() {
   const [title, setTitle] = useState("");
@@ -20,9 +20,9 @@ export default function PushNotificationScreen() {
     }
 
     try {
-      // Call the function to send the push notification
+      // Send the title and message to the backend
       await sendPushNotification({ title, message });
-      Alert.alert("Success", "Push notification sent successfully!");
+      Alert.alert("Success", "Push notification sent to all users!");
       setTitle("");
       setMessage("");
     } catch (error) {

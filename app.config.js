@@ -4,7 +4,7 @@ export default ({ config }) => ({
     slug: "club1111",
     version: "1.0.0",
     orientation: "portrait",
-    icon: "./src/assets/images/icon.png",
+    icon: "./src/assets/images/icon.png", // App icon
     scheme: "club1111",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
@@ -48,6 +48,9 @@ export default ({ config }) => ({
         "android.permission.RECEIVE_BOOT_COMPLETED",
         "android.permission.VIBRATE",
       ],
+      notification: {
+        icon: "./src/assets/images/icon.png", // Notification icon
+      },
     },
     web: {
       bundler: "metro",
