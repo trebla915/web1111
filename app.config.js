@@ -2,7 +2,7 @@ export default ({ config }) => ({
   expo: {
     name: "club1111",
     slug: "club1111",
-    version: "1.0.0",
+    version: "1.1.0",
     orientation: "portrait",
     icon: "./src/assets/images/icon.png", // App icon
     scheme: "club1111",
@@ -49,7 +49,8 @@ export default ({ config }) => ({
         "android.permission.VIBRATE",
       ],
       notification: {
-        icon: "./src/assets/images/icon.png", // Notification icon
+        "icon": "./assets/notification-icon.png",
+        "color": "#fff"
       },
     },
     web: {

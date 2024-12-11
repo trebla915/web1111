@@ -9,7 +9,7 @@ import ManageReservations from './ManageReservations';
 import AddBottleToCatalog from './AddBottleToCatalog';
 import AddBottlesToEvent from './AddBottlesToEvent';
 import EditEvents from './EditEvents'; 
-import PushNotification from './PushNotifications'; // Import the PushNotification component
+import PushNotifications from './PushNotifications'; // Ensure correct import
 
 // Create the Top Tab Navigator
 const Tab = createMaterialTopTabNavigator();
@@ -38,7 +38,7 @@ export default function Dashboard() {
       <Tab.Screen name="Manage Reservations" component={ManageReservations} />
       <Tab.Screen name="Add Bottle to Catalog" component={AddBottleToCatalog} />
       <Tab.Screen name="Add Bottles to Event" component={AddBottlesToEvent} />
-      <Tab.Screen name="Push Notifications" component={PushNotification} />
+      <Tab.Screen name="Push Notifications" component={PushNotifications} />
     </Tab.Navigator>
   );
 }
