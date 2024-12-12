@@ -13,12 +13,14 @@ import {
   ScrollView,
   TouchableWithoutFeedback,
   Keyboard,
+  TouchableOpacity,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { auth } from "../../src/config/firebase.native";
-import { createUserWithEmailAndPassword, deleteUser } from "firebase/auth";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 import { createUser } from "../../src/utils/users";
-import { TouchableOpacity } from "react-native";
+import CheckBox from "expo-checkbox"; // Checkbox for the Terms and Conditions
+import EulaModal from "../../src/components/EulaModal"; // Import the EULA modal
 
 // Custom TextInput Wrapper
 type WebInputProps = React.InputHTMLAttributes<HTMLInputElement>;
@@ -37,6 +39,8 @@ export default function Register() {
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const [modalVisible, setModalVisible] = useState<boolean>(false); // EULA Modal visibility
+  const [agreedToTerms, setAgreedToTerms] = useState<boolean>(false); // Checkbox state
   const router = useRouter();
 
   const { width } = Dimensions.get("window");
@@ -44,75 +48,65 @@ export default function Register() {
 
   const handleRegister = async () => {
     setError("");
-  
-    // Regular expression for basic email validation
+
+    if (!agreedToTerms) {
+      Alert.alert("Error", "You must agree to the Terms and Conditions to register.");
+      return;
+    }
+
+    // Validation logic
+    if (!fullName || !email || !password || !confirmPassword) {
+      setError("All fields are required.");
+      return;
+    }
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  
-    if (!fullName) {
-      setError("Full Name is required!");
-      return;
-    }
-  
-    if (!email) {
-      setError("Email is required!");
-      return;
-    }
-  
     if (!emailRegex.test(email)) {
-      setError("Please enter a valid email address!");
+      setError("Invalid email format.");
       return;
     }
-  
-    if (!password) {
-      setError("Password is required!");
-      return;
-    }
-  
-    if (password !== confirmPassword) {
-      setError("Passwords do not match!");
-      return;
-    }
-  
+
     if (password.length < 6) {
-      setError("Password must be at least 6 characters long");
+      setError("Password must be at least 6 characters long.");
       return;
     }
-  
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-  
-      // Create user in the backend
+
       await createUser({
-        id: user.uid, // Firebase UID
+        id: user.uid,
         email,
         name: fullName,
-        role: "user", // Default role
+        role: "user",
       });
-  
+
       Alert.alert("Success", "Account Created Successfully!", [
         { text: "OK", onPress: () => router.push("/(auth)/Login") },
       ]);
     } catch (err: any) {
       console.error("Registration Error:", err);
-  
-      let errorMessage = "An unexpected error occurred. Please try again.";
+      let errorMessage = "An unexpected error occurred.";
       switch (err.code) {
         case "auth/email-already-in-use":
-          errorMessage = "This email address is already in use. Please use a different email.";
+          errorMessage = "This email is already in use.";
           break;
         case "auth/invalid-email":
-          errorMessage = "The email address is invalid. Please enter a valid email.";
+          errorMessage = "Invalid email address.";
           break;
         case "auth/weak-password":
-          errorMessage = "The password is too weak. Please use a stronger password.";
+          errorMessage = "Password must contain at least 6 characters.";
           break;
         default:
           errorMessage = err.message || errorMessage;
           break;
       }
-  
-      Alert.alert("Registration Error", errorMessage);
       setError(errorMessage);
     }
   };
@@ -170,12 +164,32 @@ export default function Register() {
             autoCapitalize="none"
             autoCorrect={false}
           />
-          <TouchableOpacity style={styles.button} onPress={handleRegister}>
+          <View style={styles.termsContainer}>
+            <CheckBox
+              value={agreedToTerms}
+              onValueChange={setAgreedToTerms}
+              color={agreedToTerms ? "#fff" : "#fff"} // White tick
+              style={styles.checkbox}
+            />
+            <TouchableOpacity onPress={() => setModalVisible(true)}>
+              <Text style={styles.termsText}>
+                I agree to the <Text style={styles.termsLink}>Terms and Conditions</Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: agreedToTerms ? "#fff" : "#ccc" }]}
+            onPress={handleRegister}
+            disabled={!agreedToTerms}
+          >
             <Text style={styles.buttonText}>Register</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push("/(auth)/Login")}>
             <Text style={styles.linkText}>Already have an account? Login</Text>
           </TouchableOpacity>
+
+          {/* Modal for EULA */}
+          <EulaModal visible={modalVisible} onClose={() => setModalVisible(false)} />
         </ScrollView>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
@@ -226,7 +240,6 @@ const styles = StyleSheet.create({
     borderColor: "#fff",
   },
   button: {
-    backgroundColor: "#fff",
     padding: 15,
     borderRadius: 10,
     alignItems: "center",
@@ -246,5 +259,26 @@ const styles = StyleSheet.create({
     color: "#ff4444",
     marginBottom: 10,
     textAlign: "center",
+  },
+  termsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 15,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    backgroundColor: "#000", // Black background
+    borderColor: "#fff",
+    borderWidth: 1,
+  },
+  termsText: {
+    color: "#fff",
+    marginLeft: 10,
+  },
+  termsLink: {
+    textDecorationLine: "underline",
   },
 });

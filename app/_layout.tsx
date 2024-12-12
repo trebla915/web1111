@@ -14,6 +14,7 @@ import { LoadingProvider } from "../src/contexts/LoadingContext";
 import { NotificationProvider } from "../src/contexts/NotificationContext";
 import Constants from "expo-constants";
 import * as Updates from "expo-updates";
+import { registerForPushNotificationsAsync } from "../src/utils/notifications";
 
 // Notifications setup
 Notifications.setNotificationHandler({
@@ -53,24 +54,11 @@ TaskManager.defineTask(
   }
 );
 
-// Register background task
-Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK);
-
-// Load environment variables using `Constants`
-const STRIPE_PUBLISHABLE_KEY = Constants.expoConfig?.extra?.STRIPE_PUBLISHABLE_KEY;
-
-if (!STRIPE_PUBLISHABLE_KEY) {
-  console.error("Stripe Publishable Key is missing. Check your EAS secrets.");
-  throw new Error("Missing Stripe Publishable Key.");
-}
-
-// Prevent the splash screen from auto-hiding
-SplashScreen.preventAutoHideAsync();
-
 const AppContent: React.FC = () => {
   const router = useRouter();
   const { firebaseUser, isLoading } = useAuth();
   const [appReady, setAppReady] = useState(false);
+  const [notificationsRegistered, setNotificationsRegistered] = useState(false);
 
   useEffect(() => {
     const prepareApp = async () => {
@@ -117,6 +105,12 @@ const AppContent: React.FC = () => {
         if (firebaseUser) {
           console.log("User authenticated, navigating to /tabs...");
           router.replace("/(tabs)");
+
+          // Register for push notifications if not already registered
+          if (!notificationsRegistered) {
+            await registerForPushNotificationsAsync();
+            setNotificationsRegistered(true);
+          }
         } else {
           console.log("User not authenticated, navigating to /auth/Login...");
           router.replace("/(auth)/Login");
@@ -125,7 +119,7 @@ const AppContent: React.FC = () => {
     };
 
     handleNavigation();
-  }, [appReady, firebaseUser, router]);
+  }, [appReady, firebaseUser, notificationsRegistered, router]);
 
   if (!appReady) {
     return null; // Splash screen will handle the loading UI
@@ -136,10 +130,10 @@ const AppContent: React.FC = () => {
 
 export default function RootLayout() {
   return (
-    <NotificationProvider>
-      <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
-        <PaperProvider>
-          <AuthProvider>
+    <AuthProvider>
+      <NotificationProvider>
+        <StripeProvider publishableKey={Constants.expoConfig?.extra?.STRIPE_PUBLISHABLE_KEY}>
+          <PaperProvider>
             <UserProvider>
               <LoadingProvider>
                 <Slot />
@@ -147,10 +141,10 @@ export default function RootLayout() {
                 <Toast />
               </LoadingProvider>
             </UserProvider>
-          </AuthProvider>
-        </PaperProvider>
-      </StripeProvider>
-    </NotificationProvider>
+          </PaperProvider>
+        </StripeProvider>
+      </NotificationProvider>
+    </AuthProvider>
   );
 }
 

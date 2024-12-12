@@ -2,21 +2,26 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  Image,
+  TextInput as NativeTextInput,
   StyleSheet,
   Alert,
-  ActivityIndicator,
-  useWindowDimensions,
-  TextInput as NativeTextInput,
-  TextInputProps as NativeTextInputProps,
+  Image,
+  Dimensions,
   Platform,
+  TextInputProps as NativeTextInputProps,
+  KeyboardAvoidingView,
+  ScrollView,
+  TouchableWithoutFeedback,
+  Keyboard,
+  TouchableOpacity,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { useAuth } from "../../src/contexts/AuthContext";
-import CustomButton from "../../src/components/CustomButton";
-import logo from "../../src/assets/logo.png";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../src/config/firebase.native";
+import EulaModal from "../../src/components/EulaModal"; // Import the EULA modal
+import PrivacyModal from "../../src/components/PrivacyModal"; // Import the Privacy Policy modal
 
-// Custom TextInput Wrapper
+// Custom TextInput Wrapper for cross-platform compatibility
 type WebInputProps = React.InputHTMLAttributes<HTMLInputElement>;
 const TextInput: React.FC<NativeTextInputProps | WebInputProps> = (props) => {
   if (Platform.OS === "web") {
@@ -27,199 +32,217 @@ const TextInput: React.FC<NativeTextInputProps | WebInputProps> = (props) => {
   }
 };
 
-// Web-specific styles for TextInput
-const webInputStyles: React.CSSProperties = {
-  width: "100%",
-  borderWidth: "1px",
-  borderColor: "#ffffff",
-  padding: "12px",
-  marginBottom: "15px",
-  borderRadius: "10px",
-  backgroundColor: "#1e1e1e",
-  color: "#ffffff",
-  fontSize: "16px",
-};
-
-const LoginScreen: React.FC = () => {
+export default function Login() {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const { height, width } = useWindowDimensions();
+  const [error, setError] = useState<string>("");
+  const [eulaModalVisible, setEulaModalVisible] = useState<boolean>(false); // EULA modal state
+  const [privacyModalVisible, setPrivacyModalVisible] = useState<boolean>(false); // Privacy modal state
   const router = useRouter();
-  const { signIn, isLoading } = useAuth();
+
+  const { width } = Dimensions.get("window");
+  const logoSize = width * 0.5;
 
   const handleLogin = async () => {
-    if (!email || !isValidEmail(email)) {
-      Alert.alert("Invalid Email", "Please enter a valid email address.");
+    setError("");
+
+    if (!email || !password) {
+      setError("Email and password are required.");
       return;
     }
-    if (!password) {
-      Alert.alert("Invalid Password", "Please enter your password.");
-      return;
-    }
+
     try {
-      await signIn(email, password);
-      setEmail("");
-      setPassword("");
-      router.push("/"); // Redirect to home screen
-    } catch (error: any) {
-      console.error("Login Failed:", error);
-      Alert.alert("Login Failed", getErrorMessage(error.code));
-    }
-  };
+      await signInWithEmailAndPassword(auth, email, password);
+      router.replace("/");
+    } catch (err: any) {
+      console.error("Login Error:", err);
 
-  const isValidEmail = (email: string): boolean =>
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      let errorMessage = "An unexpected error occurred. Please try again.";
+      switch (err.code) {
+        case "auth/user-not-found":
+          errorMessage = "No account found with this email.";
+          break;
+        case "auth/wrong-password":
+          errorMessage = "Incorrect password. Please try again.";
+          break;
+        case "auth/invalid-email":
+          errorMessage = "Invalid email format.";
+          break;
+        default:
+          errorMessage = err.message || errorMessage;
+          break;
+      }
 
-  const getErrorMessage = (errorCode: string) => {
-    switch (errorCode) {
-      case "auth/user-not-found":
-        return "No account found with this email. Please sign up first.";
-      case "auth/wrong-password":
-        return "Incorrect password. Please try again.";
-      case "auth/invalid-email":
-        return "Invalid email format. Please check and try again.";
-      case "auth/network-request-failed":
-        return "Network error. Please check your connection and try again.";
-      default:
-        return "An unexpected error occurred. Please try again.";
+      Alert.alert("Login Error", errorMessage);
+      setError(errorMessage);
     }
   };
 
   return (
-    <View style={styles.container}>
-      {/* Logo Section */}
-      <View style={styles.logoContainer}>
-        <Image
-          source={logo}
-          style={[
-            styles.logo,
-            { width: width * 0.8, height: height * 0.25 },
-          ]}
-        />
-      </View>
-      {isLoading ? (
-        <ActivityIndicator size="large" color="#ffffff" />
-      ) : (
-        <View style={styles.form}>
-          {/* Email Input */}
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.logoContainer}>
+            <Image
+              source={require("../../src/assets/logo.png")} // Correct relative path to the image
+              style={[styles.logo, { width: logoSize, height: logoSize }]}
+              resizeMode="contain"
+            />
+          </View>
+          <Text style={styles.title}>Login</Text>
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
           <TextInput
-            placeholder="Enter your email"
+            style={styles.input}
+            placeholder="Email"
+            placeholderTextColor="#ccc"
             value={email}
             onChangeText={setEmail}
-            style={styles.input}
             keyboardType="email-address"
             autoCapitalize="none"
-            autoComplete="email"
-            placeholderTextColor="#888"
+            autoCorrect={false}
           />
-          {/* Password Input */}
           <TextInput
-            placeholder="Enter your password"
+            style={styles.input}
+            placeholder="Password"
+            placeholderTextColor="#ccc"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
-            style={styles.input}
-            autoComplete="password"
-            placeholderTextColor="#888"
+            autoCapitalize="none"
+            autoCorrect={false}
           />
-          {/* Login Button */}
-          <CustomButton
-            title="Login"
-            onPress={handleLogin}
-            outlined={true}
-            disabled={isLoading}
-            buttonStyle={{
-              paddingVertical: 15,
-              width: "100%",
-              borderRadius: 10,
-              marginBottom: 15,
-              alignItems: "center",
-              borderColor: "#fff",
-              borderWidth: 1,
-              backgroundColor: "transparent",
-            }}
-            textStyle={{
-              color: "#ffffff",
-              fontSize: 18,
-              textAlign: "center",
-              fontWeight: "bold",
-            }}
-          />
-          {/* Sign Up Button */}
-          <CustomButton
-            title="Sign Up"
-            onPress={() => router.push("/(auth)/Register")}
-            outlined={false}
-            buttonStyle={{
-              paddingVertical: 15,
-              width: "100%",
-              borderRadius: 10,
-              marginBottom: 15,
-              alignItems: "center",
-              backgroundColor: "#ffffff",
-            }}
-            textStyle={{
-              color: "#000000",
-              fontSize: 18,
-              textAlign: "center",
-              fontWeight: "bold",
-            }}
-          />
-          <View style={styles.additionalTextContainer}>
-            <Text style={styles.infoText}>
-              By clicking Log in, you agree to the{" "}
-              <Text style={styles.linkText}>Terms of Use</Text> and{" "}
-              <Text style={styles.linkText}>Privacy Policy</Text>.
+          <TouchableOpacity style={styles.button} onPress={handleLogin}>
+            <Text style={styles.buttonText}>Login</Text>
+          </TouchableOpacity>
+
+          <View style={styles.registerContainer}>
+            <TouchableOpacity onPress={() => router.push("/(auth)/Register")}>
+              <Text style={styles.registerText}>
+                Don't have an account?{" "}
+                <Text style={styles.registerLink}>Register</Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.termsContainer}>
+            <Text style={styles.termsText}>
+              By logging in, you agree to our{" "}
+              <Text
+                style={styles.linkText}
+                onPress={() => setEulaModalVisible(true)}
+              >
+                Terms of Service
+              </Text>{" "}
+              and acknowledge our{" "}
+              <Text
+                style={styles.linkText}
+                onPress={() => setPrivacyModalVisible(true)}
+              >
+                Privacy Policy
+              </Text>
+              .
             </Text>
           </View>
-        </View>
-      )}
-    </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
+
+      {/* Modals for Terms of Service and Privacy Policy */}
+      <EulaModal visible={eulaModalVisible} onClose={() => setEulaModalVisible(false)} />
+      <PrivacyModal
+        visible={privacyModalVisible}
+        onClose={() => setPrivacyModalVisible(false)}
+      />
+    </KeyboardAvoidingView>
   );
+}
+
+// Web-specific styles for TextInput
+const webInputStyles: React.CSSProperties = {
+  width: "100%",
+  padding: "15px",
+  marginBottom: "15px",
+  borderRadius: "10px",
+  border: "1px solid #fff",
+  backgroundColor: "#1c1c1c",
+  color: "#fff",
+  fontSize: "16px",
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#000",
+  },
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: "center",
     padding: 20,
-    backgroundColor: "#121212",
   },
   logoContainer: {
     alignItems: "center",
     marginBottom: 30,
   },
-  logo: {
-    resizeMode: "contain",
-    alignSelf: "center",
-  },
-  form: {
-    marginTop: 20,
+  logo: {},
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#fff",
+    marginBottom: 20,
+    textAlign: "center",
   },
   input: {
-    borderWidth: 1,
-    borderColor: "#ffffff",
-    padding: 12,
-    marginBottom: 15,
+    backgroundColor: "#1c1c1c",
+    color: "#fff",
     borderRadius: 10,
-    backgroundColor: "#1e1e1e",
-    color: "#ffffff",
-    fontSize: 16,
+    padding: 15,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: "#fff",
   },
-  additionalTextContainer: {
+  button: {
+    backgroundColor: "#fff",
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+    marginBottom: 15,
+  },
+  buttonText: {
+    color: "#000",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  linkText: {
+    color: "#fff",
+    textDecorationLine: "underline",
+  },
+  errorText: {
+    color: "#ff4444",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  registerContainer: {
+    marginTop: 20,
+    alignItems: "center",
+  },
+  registerText: {
+    color: "#fff",
+    fontSize: 14,
+    textAlign: "center",
+  },
+  registerLink: {
+    color: "#fff",
+    textDecorationLine: "underline",
+    fontWeight: "bold",
+  },
+  termsContainer: {
     marginTop: 10,
     alignItems: "center",
   },
-  infoText: {
-    fontSize: 12,
-    color: "#ffffff",
+  termsText: {
+    color: "#fff",
     textAlign: "center",
-    marginBottom: 5,
-  },
-  linkText: {
-    color: "#ffffff",
-    textDecorationLine: "underline",
   },
 });
-
-export default LoginScreen;

@@ -1,5 +1,3 @@
-// metro.config.js
-
 const { getDefaultConfig } = require('@expo/metro-config');
 const path = require('path');
 
@@ -19,6 +17,16 @@ defaultConfig.resolver.sourceExts = [
 if (!defaultConfig.resolver.sourceExts.includes('cjs')) {
   defaultConfig.resolver.sourceExts.push('cjs');
 }
+
+// Add custom path aliases
+defaultConfig.resolver.alias = {
+  '@': path.resolve(__dirname, './frontend'),
+  '@/assets': path.resolve(__dirname, './frontend/src/assets'),
+  '@/config': path.resolve(__dirname, './frontend/src/config'),
+  '@/contexts': path.resolve(__dirname, './frontend/src/contexts'),
+  '@/utils': path.resolve(__dirname, './frontend/src/utils'),
+  // Add more aliases as needed
+};
 
 // Map 'react-native' imports to 'react-native-web' for web builds
 defaultConfig.resolver.extraNodeModules = {

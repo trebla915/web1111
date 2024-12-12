@@ -87,3 +87,26 @@ export type MergedBottle = BottleCatalog & {
   isInEvent: boolean; // Whether the bottle is part of the event
   eventData?: BackendBottle; // Use undefined to denote absence instead of null
 };
+
+export type CommunityPost = {
+  id: string; // Firestore document ID
+  text: string; // Post text content
+  image?: string; // Optional image URL
+  likes: string[]; // Array of user IDs who liked the post
+  user: {
+    id: string; // User ID
+    name: string; // User's display name
+    avatar: string; // User's avatar URL
+  };
+  comments: {
+    user: {
+      id: string; // Commenter ID
+      name: string; // Commenter's name
+      avatar: string; // Commenter's avatar URL
+    };
+    text: string; // Comment text
+    createdAt: Date; // Timestamp for the comment
+  }[];
+  createdAt: Date; // Timestamp for when the post was created
+  status: "public" | "reported" | "reviewing" | "deleted"; // Moderation status
+};

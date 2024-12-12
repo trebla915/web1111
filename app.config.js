@@ -1,8 +1,8 @@
 export default ({ config }) => ({
   expo: {
-    name: "club1111",
-    slug: "club1111",
-    version: "1.1.0",
+    name: "11:11 EPTX",
+    slug: "11:11",
+    version: "1.0.1",
     orientation: "portrait",
     icon: "./src/assets/images/icon.png", // App icon
     scheme: "club1111",

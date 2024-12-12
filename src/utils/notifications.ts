@@ -21,21 +21,21 @@ Notifications.setNotificationHandler({
 TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, async ({ data, error }) => {
   try {
     if (error) {
-      console.error("Error in background notification task:", error as any); // Cast error to any
-      return Promise.reject(error); // Return a rejected Promise for errors
+      console.error("Error in background notification task:", error);
+      return Promise.reject(error);
     }
 
-    console.log("\u2705 Received a notification in the background!", { data });
+    console.log("✅ Received a notification in the background!", { data });
 
     // Process your notification data here
     if (data) {
       console.log("Notification Data:", data);
     }
 
-    return Promise.resolve(); // Return a resolved Promise for success
-  } catch (err: unknown) {
-    console.error("Error in background notification task:", (err as Error).message || err); // Handle unknown type
-    return Promise.reject(err); // Return a rejected Promise for unexpected errors
+    return Promise.resolve();
+  } catch (err) {
+    console.error("Error in background notification task:", err);
+    return Promise.reject(err);
   }
 });
 
@@ -44,18 +44,26 @@ export async function registerBackgroundNotificationTask() {
   try {
     await Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK);
     console.log("Background notification task registered successfully.");
-  } catch (error: unknown) {
-    console.error("Failed to register background notification task:", (error as Error).message || error);
+  } catch (error) {
+    console.error("Failed to register background notification task:", error);
   }
 }
 
 // Store Expo Push Token to backend using the API client
 export async function storePushToken(token: string) {
   try {
-    const userId = await AsyncStorage.getItem("userId"); // Retrieve userId from storage or context
+    const userId = await AsyncStorage.getItem("userId"); // Retrieve userId from storage
 
     if (!userId || userId.trim() === "") {
-      throw new Error("User ID is missing or invalid. Ensure the user is logged in.");
+      console.warn("User ID is missing. Push token will not be registered.");
+      return; // Skip if no userId
+    }
+
+    // Avoid duplicate token registrations by checking the stored token
+    const storedToken = await AsyncStorage.getItem("storedPushToken");
+    if (storedToken === token) {
+      console.log("Push token is already registered. Skipping registration.");
+      return;
     }
 
     const response = await apiClient.post("/notifications/save-push-token", {
@@ -64,8 +72,11 @@ export async function storePushToken(token: string) {
     });
 
     console.log("Push token saved to the server:", response.data);
-  } catch (error: unknown) {
-    console.error("Failed to store push token:", (error as Error).message || error);
+
+    // Store the token locally to avoid duplicate registrations
+    await AsyncStorage.setItem("storedPushToken", token);
+  } catch (error) {
+    console.error("Failed to store push token:", error);
     throw error;
   }
 }
@@ -73,6 +84,13 @@ export async function storePushToken(token: string) {
 // Request push notification permissions and get the Expo Push Token
 export async function registerForPushNotificationsAsync() {
   try {
+    const userId = await AsyncStorage.getItem("userId");
+
+    if (!userId) {
+      console.warn("Cannot register for push notifications. User is not logged in.");
+      return null; // Skip if no userId
+    }
+
     // Request permissions for notifications
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
@@ -86,22 +104,21 @@ export async function registerForPushNotificationsAsync() {
       throw new Error("Permission not granted for push notifications!");
     }
 
-    // Get the Expo Push Token with the project ID from Constants
     const projectId = Constants.expoConfig?.extra?.eas?.projectId;
     if (!projectId) {
       console.error("EAS Project ID is missing in Expo Constants.");
-      throw new Error("Project ID is missing. Ensure it is set in your environment.");
+      throw new Error("Project ID is missing.");
     }
 
     const token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
     console.log("Expo Push Token:", token);
 
-    // Save the token to your backend
+    // Save the token to the backend
     await storePushToken(token);
 
     return token;
-  } catch (error: unknown) {
-    console.error("Failed to register for push notifications:", (error as Error).message || error);
+  } catch (error) {
+    console.error("Failed to register for push notifications:", error);
     return null;
   }
 }
@@ -117,8 +134,8 @@ export async function setupNotificationChannels() {
         lightColor: "#FF231F7C",
       });
       console.log("Notification channel set up for Android.");
-    } catch (error: unknown) {
-      console.error("Failed to set up notification channel:", (error as Error).message || error);
+    } catch (error) {
+      console.error("Failed to set up notification channel:", error);
     }
   }
 }
@@ -137,14 +154,11 @@ export async function sendPushNotification({
     const response = await apiClient.post("/notifications/send-notification", {
       title,
       message,
-      data, // Optional data passed to the backend
+      data,
     });
     console.log("Push notification request sent successfully:", response.data);
-  } catch (error: unknown) {
-    console.error(
-      "Failed to send push notification request:",
-      (error as Error).message || error
-    );
+  } catch (error) {
+    console.error("Failed to send push notification request:", error);
     throw error;
   }
 }
