@@ -42,7 +42,7 @@ const Login: React.FC = () => {
   const { setGuestMode } = useAuth();
 
   const { width } = Dimensions.get("window");
-  const logoSize = width * 0.5;
+  const logoSize = width; // Full width logo
 
   const handleLogin = async () => {
     setError("");
@@ -90,7 +90,7 @@ const Login: React.FC = () => {
           <View style={styles.logoContainer}>
             <Image
               source={require("../../src/assets/logo.png")}
-              style={[styles.logo, { width: logoSize, height: logoSize }]}
+              style={[styles.logo, { width: logoSize, height: logoSize * 0.3 }]} // Full-width logo with proportional height
               resizeMode="contain"
             />
           </View>
