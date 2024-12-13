@@ -9,7 +9,6 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   RefreshControl,
-  Text,
 } from "react-native";
 import {
   getFirestore,
@@ -32,6 +31,7 @@ import ReportPostModal from "../../src/components/ReportModal";
 import EditPostModal from "../../src/components/EditPostModal";
 import { uploadImageToStorage } from "../../src/utils/uploadImageToStorage";
 
+// Interface for community posts, defining their structure
 interface CommunityPost {
   id: string;
   text: string;
@@ -75,10 +75,10 @@ const CommunityScreen: React.FC = () => {
       const communityQuery = query(communityRef, orderBy("createdAt", "desc"));
       const querySnapshot = await getDocs(communityQuery);
 
-      const userDoc = firebaseUser
-        ? await getDoc(doc(db, "users", firebaseUser.uid))
-        : null;
-      const blockedUsers = userDoc?.exists() ? userDoc.data()?.blockedUsers || [] : [];
+      const userDoc = await getDoc(doc(db, "users", firebaseUser?.uid || ""));
+      const blockedUsers = userDoc.exists()
+        ? userDoc.data()?.blockedUsers || []
+        : [];
 
       const fetchedData: CommunityPost[] = querySnapshot.docs
         .map((doc) => {
@@ -115,8 +115,8 @@ const CommunityScreen: React.FC = () => {
   };
 
   const handleAddComment = async (postId: string, commentText: string) => {
-    if (!firebaseUser) {
-      Alert.alert("Restricted Action", "Please log in to comment.");
+    if (!userData) {
+      Alert.alert("Error", "You must be logged in to comment.");
       return;
     }
 
@@ -138,9 +138,9 @@ const CommunityScreen: React.FC = () => {
 
       const newComment = {
         user: {
-          id: userData!.id,
-          name: userData!.name || "Anonymous",
-          avatar: userData!.avatar || "https://via.placeholder.com/50",
+          id: userData.id,
+          name: userData.name || "Anonymous",
+          avatar: userData.avatar || "https://via.placeholder.com/50",
         },
         text: commentText.trim(),
         createdAt: new Date(),
@@ -158,8 +158,8 @@ const CommunityScreen: React.FC = () => {
   };
 
   const handlePostSubmit = async (text: string, imageUri?: string) => {
-    if (!firebaseUser) {
-      Alert.alert("Restricted Action", "Please log in to create a post.");
+    if (!userData) {
+      Alert.alert("Error", "You must be logged in to post.");
       return;
     }
 
@@ -180,9 +180,9 @@ const CommunityScreen: React.FC = () => {
         ...(imageUrl && { image: imageUrl }),
         likes: [],
         user: {
-          id: userData!.id,
-          name: userData!.name || "Anonymous",
-          avatar: userData!.avatar || "https://via.placeholder.com/50",
+          id: userData.id,
+          name: userData.name || "Anonymous",
+          avatar: userData.avatar || "https://via.placeholder.com/50",
         },
         comments: [],
         createdAt: new Date(),
@@ -203,6 +203,154 @@ const CommunityScreen: React.FC = () => {
     }
   };
 
+  const submitReport = async (reason: string, details: string) => {
+    if (!reportingPostId) return;
+
+    try {
+      const postRef = doc(db, "communityPosts", reportingPostId);
+      const postSnapshot = await getDoc(postRef);
+
+      if (!postSnapshot.exists()) {
+        Alert.alert("Error", "The post does not exist.");
+        return;
+      }
+
+      const post = postSnapshot.data() as CommunityPost;
+      const reportedPostsRef = collection(db, "reportedPosts");
+
+      await addDoc(reportedPostsRef, {
+        ...post,
+        status: "reported",
+        reportDetails: { reason, details },
+        reportedBy: {
+          id: userData?.id || "unknown",
+          name: userData?.name || "Anonymous",
+        },
+        reportedAt: new Date(),
+      });
+
+      await deleteDoc(postRef);
+      setCommunityData((prev) => prev.filter((item) => item.id !== reportingPostId));
+      Alert.alert("Success", "Report submitted.");
+      setReportingPostId(null);
+      setReportModalVisible(false);
+    } catch (error) {
+      console.error("Error submitting report:", error);
+      Alert.alert("Error", "Failed to submit report.");
+    }
+  };
+
+  const handleEditSubmit = async (text: string, imageUri?: string) => {
+    if (!editingPostId) return;
+
+    try {
+      setLoading(true);
+      const postRef = doc(db, "communityPosts", editingPostId);
+
+      const updates: Partial<CommunityPost> = {};
+      if (text) updates.text = text.trim();
+      if (imageUri) {
+        updates.image = await uploadImageToStorage(
+          imageUri,
+          `communityPosts/${Date.now()}.jpg`
+        );
+      }
+
+      await updateDoc(postRef, updates);
+      setEditingPostId(null);
+      setEditModalVisible(false);
+      fetchCommunityData();
+      Alert.alert("Success", "Post updated.");
+    } catch (error) {
+      console.error("Error editing post:", error);
+      Alert.alert("Error", "Failed to update the post.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePostOptions = async (
+    postId: string,
+    action: "report" | "edit" | "delete" | "block",
+    userId?: string
+  ) => {
+    try {
+      const postRef = doc(db, "communityPosts", postId);
+      const postSnapshot = await getDoc(postRef);
+
+      if (!postSnapshot.exists()) {
+        Alert.alert("Error", "The post does not exist.");
+        return;
+      }
+
+      const post = postSnapshot.data() as CommunityPost;
+
+      if (action === "delete") {
+        if (post.user.id !== userData?.id) {
+          Alert.alert("Error", "You can only delete your own posts.");
+          return;
+        }
+        await updateDoc(postRef, { status: "deleted" });
+        setCommunityData((prev) => prev.filter((p) => p.id !== postId));
+        Alert.alert("Success", "Post deleted successfully.");
+      } else if (action === "report") {
+        setReportingPostId(postId);
+        setReportModalVisible(true);
+      } else if (action === "edit") {
+        if (post.user.id !== userData?.id) {
+          Alert.alert("Error", "You can only edit your own posts.");
+          return;
+        }
+        setEditingPostId(postId);
+        setEditModalVisible(true);
+      } else if (action === "block" && userId) {
+        const userDocRef = doc(db, "users", firebaseUser?.uid || "");
+        const userDoc = await getDoc(userDocRef);
+
+        if (userDoc.exists()) {
+          const currentBlockedUsers = userDoc.data()?.blockedUsers || [];
+          await updateDoc(userDocRef, {
+            blockedUsers: [...currentBlockedUsers, userId],
+          });
+
+          Alert.alert("Success", "User has been blocked.");
+          fetchCommunityData();
+        }
+      }
+    } catch (error) {
+      console.error("Error processing post action:", error);
+      Alert.alert("Error", "An error occurred while processing your request.");
+    }
+  };
+
+  const handleLikePost = async (postId: string) => {
+    try {
+      const postRef = doc(db, "communityPosts", postId);
+      const postSnapshot = await getDoc(postRef);
+
+      if (!postSnapshot.exists()) {
+        Alert.alert("Error", "The post does not exist.");
+        return;
+      }
+
+      const post = postSnapshot.data() as CommunityPost;
+      const likes = post.likes;
+
+      if (likes.includes(firebaseUser?.uid || "")) {
+        // If user already liked, remove their like
+        await updateDoc(postRef, { likes: likes.filter((id) => id !== firebaseUser?.uid) });
+      } else {
+        // Add user's like
+        await updateDoc(postRef, { likes: [...likes, firebaseUser?.uid || ""] });
+      }
+
+      fetchCommunityData();
+    } catch (error) {
+      console.error("Error handling like:", error);
+      Alert.alert("Error", "An error occurred while liking the post.");
+    }
+  };
+
   return (
     <TouchableWithoutFeedback onPress={() => setSelectedPostId(null)}>
       <KeyboardAvoidingView
@@ -216,27 +364,11 @@ const CommunityScreen: React.FC = () => {
           renderItem={({ item }) => (
             <PostCard
               post={item}
-              onCommentPress={(postId) => {
-                if (!firebaseUser) {
-                  Alert.alert("Restricted Action", "Please log in to comment.");
-                  return;
-                }
-                setSelectedPostId(postId);
-              }}
-              onLikePress={(postId) => {
-                if (!firebaseUser) {
-                  Alert.alert("Restricted Action", "Please log in to like posts.");
-                  return;
-                }
-                Alert.alert(`Liked post: ${postId}`);
-              }}
-              onOptionsPress={(action, postId) => {
-                if (!firebaseUser) {
-                  Alert.alert("Restricted Action", "Please log in to perform actions.");
-                  return;
-                }
-                Alert.alert(`Options for post: ${postId}`);
-              }}
+              onCommentPress={(postId) => setSelectedPostId(postId)}
+              onLikePress={(postId) => handleLikePost(postId)} // Updated
+              onOptionsPress={(action, postId) =>
+                handlePostOptions(postId, action, item.user.id)
+              }
             />
           )}
           refreshControl={
@@ -244,24 +376,28 @@ const CommunityScreen: React.FC = () => {
           }
           contentContainerStyle={styles.listContent}
         />
-        {!firebaseUser && (
-          <View style={styles.readOnlyMessageContainer}>
-            <Text style={styles.readOnlyText}>
-              You are viewing the community in read-only mode. Log in to interact with posts.
-            </Text>
-          </View>
+        <WritePostInput
+          onSubmit={
+            selectedPostId
+              ? (text) => handleAddComment(selectedPostId, text)
+              : handlePostSubmit
+          }
+          placeholder={
+            selectedPostId ? "Write a comment..." : "Write a new post..."
+          }
+          isCommentInput={!!selectedPostId}
+        />
+        {reportModalVisible && (
+          <ReportPostModal
+            onSubmit={submitReport}
+            onCancel={() => setReportModalVisible(false)}
+          />
         )}
-        {firebaseUser && (
-          <WritePostInput
-            onSubmit={
-              selectedPostId
-                ? (text) => handleAddComment(selectedPostId, text)
-                : handlePostSubmit
-            }
-            placeholder={
-              selectedPostId ? "Write a comment..." : "Write a new post..."
-            }
-            isCommentInput={!!selectedPostId}
+        {editModalVisible && (
+          <EditPostModal
+            visible={editModalVisible}
+            onSubmit={(text, imageUri) => handleEditSubmit(text, imageUri)}
+            onCancel={() => setEditModalVisible(false)}
           />
         )}
       </KeyboardAvoidingView>
@@ -278,18 +414,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingBottom: 80,
     paddingTop: 20,
-  },
-  readOnlyMessageContainer: {
-    padding: 10,
-    backgroundColor: "#1c1c1c",
-    borderRadius: 5,
-    margin: 10,
-    alignItems: "center",
-  },
-  readOnlyText: {
-    color: "#fff",
-    fontSize: 16,
-    textAlign: "center",
   },
 });
 
