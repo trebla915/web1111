@@ -6,7 +6,6 @@ import {
   StyleSheet,
   Pressable,
   TouchableOpacity,
-  TextInput,
 } from "react-native";
 import { Menu, Divider } from "react-native-paper";
 import { CommunityPost } from "../utils/types";
@@ -15,7 +14,7 @@ interface PostCardProps {
   post: CommunityPost;
   onCommentPress: (postId: string) => void;
   onLikePress: (postId: string) => void;
-  onOptionsPress: (action: "report" | "edit" | "delete", postId: string) => void;
+  onOptionsPress: (action: "report" | "edit" | "delete" | "block", postId: string) => void;
 }
 
 const PostCard: React.FC<PostCardProps> = ({
@@ -30,7 +29,7 @@ const PostCard: React.FC<PostCardProps> = ({
   const openMenu = () => setMenuVisible(true);
   const closeMenu = () => setMenuVisible(false);
 
-  const handleMenuPress = (action: "report" | "edit" | "delete") => {
+  const handleMenuPress = (action: "report" | "edit" | "delete" | "block") => {
     closeMenu();
     onOptionsPress(action, post.id);
   };
@@ -60,6 +59,8 @@ const PostCard: React.FC<PostCardProps> = ({
           <Menu.Item onPress={() => handleMenuPress("edit")} title="Edit" />
           <Divider />
           <Menu.Item onPress={() => handleMenuPress("delete")} title="Delete" />
+          <Divider />
+          <Menu.Item onPress={() => handleMenuPress("block")} title="Block" />
         </Menu>
       </View>
       {post.text && <Text style={styles.text}>{post.text}</Text>}

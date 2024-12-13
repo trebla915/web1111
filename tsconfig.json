@@ -5,32 +5,33 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./app/*"],
-      "@/config/*": ["src/config/*"],
-      "@/contexts/*": ["./app/contexts/*"],
-      "@/hooks/*": ["./app/hooks/*"],
-      "@/components/*": ["./app/components/*"],
-      "@/screens/*": ["app/(screens)/*"],
-      "@/constants/*": ["./app/constants/*"],
-      "@/utils/*": ["app/src/utils/*"],
-      "@/assets/*": ["./assets/*"],
-      "@firebase/auth": ["./node_modules/@firebase/auth/dist/index.rn.d.ts"]
+      "@/assets/*": ["./src/assets/*"],
+      "@/images/*": ["./src/assets/images/*"],
+      "@/config/*": ["./src/config/*"],
+      "@/contexts/*": ["./src/contexts/*"],
+      "@/utils/*": ["./src/utils/*"]
     },
-    "typeRoots": ["node_modules/@types", "./types"],
+    "typeRoots": [
+      "node_modules/@types",
+      "./types"
+    ],
     "jsx": "react-native",
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "moduleResolution": "node",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "allowJs": true,
+    "lib": ["esnext", "dom"]
   },
   "include": [
     "app/**/*.ts",
     "app/**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
     ".expo/types/**/*.ts",
-    "expo-env.d.ts",
-    "types/**/*.ts",
-    "types/**/*.tsx"
+    "expo-env.d.ts"
   ],
   "exclude": [
     "node_modules",

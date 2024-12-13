@@ -15,6 +15,9 @@ import ClubLayout from './ClubLayout';
 import { FrontendTable } from '../../src/utils/types';
 import { Pressable } from 'react-native';
 
+// Import the local banner image
+import bannerImage from '../../src/assets/images/banner.jpg';
+
 const TableSelection: React.FC = () => {
   const router = useRouter();
   const { setReservationDetails, userData } = useUser();
@@ -63,13 +66,13 @@ const TableSelection: React.FC = () => {
       eventId,
       tableId: selectedTable.id,
       tableNumber: selectedTable.number,
-      capacity: selectedTable.capacity, // Include capacity from the backend
+      capacity: selectedTable.capacity,
       userId: userData.id,
       reservationTime: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       guestCount: 1,
       bottles: [],
-      tablePrice: selectedTable.price, // Include table price
+      tablePrice: selectedTable.price,
     });
   
     router.push({
@@ -83,7 +86,6 @@ const TableSelection: React.FC = () => {
       },
     });
   };
-  
 
   if (loading) {
     return (
@@ -114,7 +116,7 @@ const TableSelection: React.FC = () => {
   return (
     <View style={styles.container}>
       <Image
-        source={{ uri: 'https://via.placeholder.com/300' }}
+        source={bannerImage} // Use the local banner image
         style={styles.eventImage}
         resizeMode="cover"
       />
@@ -125,7 +127,7 @@ const TableSelection: React.FC = () => {
       <ClubLayout
         tables={tables}
         onTableSelect={handleTableSelection}
-        showTablePrice // Ensure ClubLayout can display table prices
+        showTablePrice
       />
     </View>
   );

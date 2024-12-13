@@ -19,12 +19,7 @@ const TabLayout: React.FC = () => {
             borderBottomWidth: 1,
             borderBottomColor: 'gray',
           },
-          headerTintColor: '#fff',
-          headerLeft: () => (
-            <TouchableOpacity style={styles.headerIconContainer}>
-              <Ionicons name="menu" size={24} color="#fff" />
-            </TouchableOpacity>
-          ),
+          headerTintColor: '#fff', // Corrected the unterminated string
           headerRight: () => (
             <TouchableOpacity style={styles.headerIconContainer}>
               <Ionicons name="notifications" size={24} color="#fff" />

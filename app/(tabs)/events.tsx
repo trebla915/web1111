@@ -17,6 +17,7 @@ import { Linking } from 'react-native';
 import { useLoading } from '../../src/contexts/LoadingContext'; // Use global loading context
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Pressable } from 'react-native';
+import { useAuth } from '../../src/contexts/AuthContext'; // Import Auth context
 
 const EventsScreen: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
@@ -26,6 +27,7 @@ const EventsScreen: React.FC = () => {
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]); // State for filtered events
 
   const { setLoading } = useLoading(); // Use global loading context
+  const { isGuest } = useAuth(); // Access guest mode
   const router = useRouter();
 
   // Fetch and sort events by date
@@ -80,6 +82,19 @@ const EventsScreen: React.FC = () => {
       Alert.alert('Error', 'Event details are missing. Please try again.');
       return;
     }
+
+    if (isGuest) {
+      Alert.alert(
+        'Account Required',
+        'You need an account to reserve a table.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Sign Up', onPress: () => router.push('/(auth)/Register') },
+        ]
+      );
+      return;
+    }
+
     router.push({
       pathname: '/(reservations)/TableSelection',
       params: { eventId: event.id, eventTitle: event.title, eventDate: event.date },

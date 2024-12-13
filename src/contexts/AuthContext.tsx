@@ -1,14 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Alert } from "react-native";
-import { useRouter } from "expo-router";
-import {
-  getAuth,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  signOut,
-  User,
-  createUserWithEmailAndPassword,
-} from "firebase/auth";
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, User } from "firebase/auth";
 import { setAuthToken } from "../utils/api"; // Import from api
 import { createUser } from "../utils/users"; // Import from users
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -23,22 +15,25 @@ interface AuthContextType {
   signUp: (email: string, password: string, name: string, role: string) => Promise<void>;
   token: string | null;
   refreshAuthToken: () => Promise<string | null>;
+  setGuestMode: (isGuest: boolean) => void;
+  isGuest: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const router = useRouter();
   const [authState, setAuthState] = useState<{
     firebaseUser: User | null;
     userId: string | null;
     token: string | null;
     isLoading: boolean;
+    isGuest: boolean;
   }>({
     firebaseUser: null,
     userId: null,
     token: null,
     isLoading: true,
+    isGuest: false,
   });
 
   const updateToken = async (token: string | null) => {
@@ -48,9 +43,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await AsyncStorage.setItem("userToken", token);
         setAuthToken(token); // Update Axios headers
       } else {
-        console.log("Removing token from AsyncStorage");
-        await AsyncStorage.removeItem("userToken");
-        setAuthToken(null); // Clear Axios headers
+        console.log("No token found, not removing token from AsyncStorage yet.");
+        setAuthToken(null); // Update Axios headers if token is null
       }
       setAuthState((prev) => ({ ...prev, token }));
     } catch (error) {
@@ -67,56 +61,67 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log("New token retrieved:", newToken);
       await updateToken(newToken);
       return newToken;
-    } catch (error: any) {
-      console.error("Error refreshing token:", error.message || error);
+    } catch (error) {
+      console.error("Error refreshing token:", error);
       Alert.alert("Error", "Unable to refresh session. Please sign in again.");
       return null;
     }
   };
 
   useEffect(() => {
+    const checkTokenInAsyncStorage = async () => {
+      try {
+        const storedToken = await AsyncStorage.getItem("userToken");
+        if (storedToken) {
+          setAuthState((prev) => ({ ...prev, token: storedToken, isLoading: false }));
+        } else {
+          setAuthState((prev) => ({ ...prev, isLoading: false }));
+        }
+      } catch (error) {
+        console.error("Error checking token in AsyncStorage:", error);
+        setAuthState((prev) => ({ ...prev, isLoading: false }));
+      }
+    };
+
+    checkTokenInAsyncStorage();
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
           const token = await user.getIdToken();
           console.log("Token retrieved onAuthStateChanged:", token);
 
-          // Store userId in AsyncStorage for later retrieval in other components
           await AsyncStorage.setItem("userId", user.uid);
-
           await updateToken(token);
+
           setAuthState({
             firebaseUser: user,
             userId: user.uid,
             token,
             isLoading: false,
+            isGuest: false,
           });
         } catch (error) {
           console.error("Error during authentication:", error);
-
-          // Clear stored userId in case of an error
           await AsyncStorage.removeItem("userId");
-
           await updateToken(null);
+
           setAuthState({
             firebaseUser: null,
             userId: null,
             token: null,
             isLoading: false,
+            isGuest: false,
           });
         }
       } else {
-        console.log("User signed out. Clearing token.");
-
-        // Clear stored userId when user signs out
-        await AsyncStorage.removeItem("userId");
-
-        await updateToken(null);
+        console.log("User signed out. Not clearing token yet.");
         setAuthState({
           firebaseUser: null,
           userId: null,
           token: null,
           isLoading: false,
+          isGuest: false,
         });
       }
     });
@@ -131,15 +136,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const token = await userCredential.user.getIdToken();
       console.log("Token retrieved on signIn:", token);
       await updateToken(token);
+
       setAuthState({
         firebaseUser: userCredential.user,
         userId: userCredential.user.uid,
         token,
         isLoading: false,
+        isGuest: false,
       });
-    } catch (error: any) {
-      console.error("Sign-in failed:", error.message || error);
-      Alert.alert("Error", "Invalid email or password. Please try again.");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("Sign-in failed:", error.message);
+        Alert.alert("Error", error.message || "An unknown error occurred.");
+      } else {
+        console.error("Sign-in failed:", error);
+        Alert.alert("Error", "An unknown error occurred.");
+      }
       setAuthState((prev) => ({ ...prev, isLoading: false }));
     }
   };
@@ -157,11 +169,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role,
       });
       await updateToken(token);
+
       setAuthState({
         firebaseUser: userCredential.user,
         userId: userCredential.user.uid,
         token,
         isLoading: false,
+        isGuest: false,
       });
     } catch (error: any) {
       console.error("Sign-up failed:", error.message || error);
@@ -174,23 +188,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setAuthState((prev) => ({ ...prev, isLoading: true }));
     try {
       console.log("Signing out user.");
-
-      // Perform Firebase sign-out
       await signOut(auth);
-
-      // Navigate to the login screen
-      router.replace("/(auth)/Login");
-    } catch (error: any) {
-      console.error("Sign-out failed:", error.message || error);
-      Alert.alert("Error", "Unable to sign out. Please try again.");
-    } finally {
       setAuthState({
         firebaseUser: null,
         userId: null,
         token: null,
         isLoading: false,
+        isGuest: false,
       });
+    } catch (error: any) {
+      console.error("Sign-out failed:", error.message || error);
+      Alert.alert("Error", "Unable to sign out. Please try again.");
     }
+  };
+
+  const setGuestMode = (isGuest: boolean) => {
+    setAuthState((prev) => ({
+      ...prev,
+      firebaseUser: null,
+      userId: null,
+      token: null,
+      isGuest,
+      isLoading: false,
+    }));
   };
 
   return (
@@ -204,6 +224,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signUp,
         token: authState.token,
         refreshAuthToken,
+        setGuestMode,
+        isGuest: authState.isGuest,
       }}
     >
       {children}

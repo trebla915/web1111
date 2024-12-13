@@ -1,8 +1,3 @@
-/**
- * @file UserContext.tsx
- * @description Provides context and state management for user-related data and reservation information.
- */
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { doc, onSnapshot, collection } from 'firebase/firestore';
 import { auth, db } from '../config/firebase.native'; // Firestore and Auth configuration
@@ -35,7 +30,6 @@ interface ReservationDetails extends Partial<Reservation> {
   mixers?: { id: string; name: string; price: number }[];
 }
 
-
 // Interface for the UserContext
 interface UserContextType {
   userData: UserData | null;
@@ -63,18 +57,20 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const authUnsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
+        // Set up listener for user data
         const userDocRef = doc(db, 'users', firebaseUser.uid);
         unsubscribeUser = onSnapshot(userDocRef, (docSnapshot) => {
           if (docSnapshot.exists()) {
             const data = docSnapshot.data();
-            setUserData({
+            setUserData((prevData) => ({
+              ...prevData,
               id: firebaseUser.uid,
               name: data.name || '',
               email: data.email || '',
-              phone: data.phone || '', // Include phone if it exists
-              avatar: data.avatar || '', // Include avatar field
-              role: data.role || '', // Include role field
-            });
+              phone: data.phone || '',
+              avatar: data.avatar || '',
+              role: data.role || '',
+            }));
           } else {
             setUserData(null);
           }

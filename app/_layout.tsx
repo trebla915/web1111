@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Slot, useRouter } from "expo-router";
 import { AuthProvider, useAuth } from "../src/contexts/AuthContext";
 import { UserProvider } from "../src/contexts/UserContext";
-import { View, StyleSheet, Alert } from "react-native";
+import { View, StyleSheet, Alert, Animated } from "react-native";
 import * as SplashScreen from "expo-splash-screen";
 import * as Notifications from "expo-notifications";
 import * as TaskManager from "expo-task-manager";
@@ -36,16 +36,8 @@ TaskManager.defineTask(
     executionInfo,
   }: TaskManager.TaskManagerTaskBody<unknown>) => {
     try {
-      console.log("✅ Received a notification in the background!", {
-        data,
-        error,
-        executionInfo,
-      });
-
-      if (data) {
-        console.log("Notification Data:", data);
-      }
-
+      console.log("✅ Received a notification in the background!", { data, error, executionInfo });
+      if (data) console.log("Notification Data:", data);
       return Promise.resolve();
     } catch (err) {
       console.error("Error in background notification task:", err);
@@ -56,21 +48,27 @@ TaskManager.defineTask(
 
 const AppContent: React.FC = () => {
   const router = useRouter();
-  const { firebaseUser, isLoading } = useAuth();
+  const { firebaseUser, isLoading, token } = useAuth();
   const [appReady, setAppReady] = useState(false);
   const [notificationsRegistered, setNotificationsRegistered] = useState(false);
+  const [fadeAnim] = useState(new Animated.Value(0)); // For fade-in animation
 
   useEffect(() => {
     const prepareApp = async () => {
       try {
         console.log("Preparing app...");
-        setAppReady(true);
+        await SplashScreen.preventAutoHideAsync(); // Prevent auto hide of splash screen
+        setAppReady(true); // Only after everything is ready, allow app to show
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }).start();
       } catch (error) {
         console.error("Error during app preparation:", error);
       }
     };
 
-    // Check for updates
     const checkForUpdates = async () => {
       try {
         const update = await Updates.checkForUpdateAsync();
@@ -94,38 +92,43 @@ const AppContent: React.FC = () => {
 
     checkForUpdates();
     prepareApp();
-  }, []);
+  }, [fadeAnim]);
 
   useEffect(() => {
     const handleNavigation = async () => {
-      if (!appReady) return;
+      if (!appReady || isLoading) return; // Ensure app is ready and loading is complete
 
       setTimeout(async () => {
-        await SplashScreen.hideAsync();
-        if (firebaseUser) {
-          console.log("User authenticated, navigating to /tabs...");
+        await SplashScreen.hideAsync(); // Hide splash screen
+
+        // If a token is available, navigate to the home screen, else stay on login screen
+        if (token) {
+          console.log("Token found, user authenticated, navigating to /tabs...");
           router.replace("/(tabs)");
 
-          // Register for push notifications if not already registered
           if (!notificationsRegistered) {
             await registerForPushNotificationsAsync();
             setNotificationsRegistered(true);
           }
         } else {
-          console.log("User not authenticated, navigating to /auth/Login...");
-          router.replace("/(auth)/Login");
+          console.log("No token found, staying on /auth/Login...");
+          router.replace("/(auth)/Login"); // Stay on login screen
         }
-      }, 700);
+      }, 700); // Adjust the timeout as necessary
     };
 
     handleNavigation();
-  }, [appReady, firebaseUser, notificationsRegistered, router]);
+  }, [appReady, isLoading, notificationsRegistered, token, router]);
 
-  if (!appReady) {
-    return null; // Splash screen will handle the loading UI
+  if (!appReady || isLoading || token === null) {
+    return null; // Splash screen will handle the loading UI until app is ready
   }
 
-  return null;
+  return (
+    <Animated.View style={{ opacity: fadeAnim }}>
+      {/* Your app content goes here */}
+    </Animated.View>
+  );
 };
 
 export default function RootLayout() {

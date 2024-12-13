@@ -20,8 +20,8 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../src/config/firebase.native";
 import EulaModal from "../../src/components/EulaModal"; // Import the EULA modal
 import PrivacyModal from "../../src/components/PrivacyModal"; // Import the Privacy Policy modal
+import { useAuth } from "../../src/contexts/AuthContext"; // Import the Auth context
 
-// Custom TextInput Wrapper for cross-platform compatibility
 type WebInputProps = React.InputHTMLAttributes<HTMLInputElement>;
 const TextInput: React.FC<NativeTextInputProps | WebInputProps> = (props) => {
   if (Platform.OS === "web") {
@@ -32,31 +32,29 @@ const TextInput: React.FC<NativeTextInputProps | WebInputProps> = (props) => {
   }
 };
 
-export default function Login() {
+const Login: React.FC = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string>("");
-  const [eulaModalVisible, setEulaModalVisible] = useState<boolean>(false); // EULA modal state
-  const [privacyModalVisible, setPrivacyModalVisible] = useState<boolean>(false); // Privacy modal state
+  const [eulaModalVisible, setEulaModalVisible] = useState<boolean>(false);
+  const [privacyModalVisible, setPrivacyModalVisible] = useState<boolean>(false);
   const router = useRouter();
+  const { setGuestMode } = useAuth();
 
   const { width } = Dimensions.get("window");
   const logoSize = width * 0.5;
 
   const handleLogin = async () => {
     setError("");
-
     if (!email || !password) {
       setError("Email and password are required.");
       return;
     }
-
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.replace("/");
     } catch (err: any) {
       console.error("Login Error:", err);
-
       let errorMessage = "An unexpected error occurred. Please try again.";
       switch (err.code) {
         case "auth/user-not-found":
@@ -72,10 +70,14 @@ export default function Login() {
           errorMessage = err.message || errorMessage;
           break;
       }
-
       Alert.alert("Login Error", errorMessage);
       setError(errorMessage);
     }
+  };
+
+  const handleSkip = () => {
+    setGuestMode(true);
+    router.push("/(tabs)/events");
   };
 
   return (
@@ -87,7 +89,7 @@ export default function Login() {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.logoContainer}>
             <Image
-              source={require("../../src/assets/logo.png")} // Correct relative path to the image
+              source={require("../../src/assets/logo.png")}
               style={[styles.logo, { width: logoSize, height: logoSize }]}
               resizeMode="contain"
             />
@@ -117,7 +119,9 @@ export default function Login() {
           <TouchableOpacity style={styles.button} onPress={handleLogin}>
             <Text style={styles.buttonText}>Login</Text>
           </TouchableOpacity>
-
+          <TouchableOpacity style={styles.guestButton} onPress={handleSkip}>
+            <Text style={styles.guestButtonText}>Continue as Guest</Text>
+          </TouchableOpacity>
           <View style={styles.registerContainer}>
             <TouchableOpacity onPress={() => router.push("/(auth)/Register")}>
               <Text style={styles.registerText}>
@@ -126,7 +130,6 @@ export default function Login() {
               </Text>
             </TouchableOpacity>
           </View>
-
           <View style={styles.termsContainer}>
             <Text style={styles.termsText}>
               By logging in, you agree to our{" "}
@@ -148,8 +151,6 @@ export default function Login() {
           </View>
         </ScrollView>
       </TouchableWithoutFeedback>
-
-      {/* Modals for Terms of Service and Privacy Policy */}
       <EulaModal visible={eulaModalVisible} onClose={() => setEulaModalVisible(false)} />
       <PrivacyModal
         visible={privacyModalVisible}
@@ -157,9 +158,8 @@ export default function Login() {
       />
     </KeyboardAvoidingView>
   );
-}
+};
 
-// Web-specific styles for TextInput
 const webInputStyles: React.CSSProperties = {
   width: "100%",
   padding: "15px",
@@ -214,6 +214,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
+  guestButton: {
+    backgroundColor: "#000", // Black background
+    borderWidth: 1, // White border
+    borderColor: "#fff",
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+    marginBottom: 15,
+  },
+  guestButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
   linkText: {
     color: "#fff",
     textDecorationLine: "underline",
@@ -246,3 +260,5 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
+
+export default Login;
