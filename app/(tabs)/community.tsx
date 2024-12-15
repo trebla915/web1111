@@ -9,6 +9,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   RefreshControl,
+  Text,
 } from "react-native";
 import {
   getFirestore,
@@ -69,14 +70,19 @@ const CommunityScreen: React.FC = () => {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Check if the user is logged in, read-only mode if not
+  const isReadOnly = !firebaseUser;
+
   const fetchCommunityData = async () => {
     try {
       const communityRef = collection(db, "communityPosts");
       const communityQuery = query(communityRef, orderBy("createdAt", "desc"));
       const querySnapshot = await getDocs(communityQuery);
 
-      const userDoc = await getDoc(doc(db, "users", firebaseUser?.uid || ""));
-      const blockedUsers = userDoc.exists()
+      const userDoc = firebaseUser?.uid
+        ? await getDoc(doc(db, "users", firebaseUser.uid))
+        : null;
+      const blockedUsers = userDoc?.exists()
         ? userDoc.data()?.blockedUsers || []
         : [];
 
@@ -364,11 +370,9 @@ const CommunityScreen: React.FC = () => {
           renderItem={({ item }) => (
             <PostCard
               post={item}
-              onCommentPress={(postId) => setSelectedPostId(postId)}
-              onLikePress={(postId) => handleLikePost(postId)} // Updated
-              onOptionsPress={(action, postId) =>
-                handlePostOptions(postId, action, item.user.id)
-              }
+              onCommentPress={isReadOnly ? () => {} : (postId) => setSelectedPostId(postId)}
+              onLikePress={isReadOnly ? () => {} : (postId) => handleLikePost(postId)} // Disable like button if read-only
+              onOptionsPress={isReadOnly ? () => {} : (action, postId) => handlePostOptions(postId, action, item.user.id)}
             />
           )}
           refreshControl={
@@ -376,17 +380,24 @@ const CommunityScreen: React.FC = () => {
           }
           contentContainerStyle={styles.listContent}
         />
-        <WritePostInput
-          onSubmit={
-            selectedPostId
-              ? (text) => handleAddComment(selectedPostId, text)
-              : handlePostSubmit
-          }
-          placeholder={
-            selectedPostId ? "Write a comment..." : "Write a new post..."
-          }
-          isCommentInput={!!selectedPostId}
-        />
+        {isReadOnly && (
+          <View style={styles.readOnlyMessage}>
+            <Text style={styles.readOnlyText}>You must log in to interact with posts.</Text>
+          </View>
+        )}
+        {!isReadOnly && (
+          <WritePostInput
+            onSubmit={
+              selectedPostId
+                ? (text) => handleAddComment(selectedPostId, text)
+                : handlePostSubmit
+            }
+            placeholder={
+              selectedPostId ? "Write a comment..." : "Write a new post..."
+            }
+            isCommentInput={!!selectedPostId}
+          />
+        )}
         {reportModalVisible && (
           <ReportPostModal
             onSubmit={submitReport}
@@ -414,6 +425,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingBottom: 80,
     paddingTop: 20,
+  },
+  readOnlyMessage: {
+    alignItems: "center",
+    marginVertical: 10,
+  },
+  readOnlyText: {
+    color: "#fff",
+    fontSize: 16,
+    fontStyle: "italic",
   },
 });
 
