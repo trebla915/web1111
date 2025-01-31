@@ -33,12 +33,8 @@ const LoginModal = ({ isOpen, onClose, className }: LoginModalProps) => {
       toast.success("Login successful! Redirecting...");
       onClose(); // ✅ Close modal
       router.push(redirectTo); // ✅ Redirect to intended page
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError("Invalid email or password");
-      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Invalid email or password");
       toast.error("Login failed. Check your credentials.");
     } finally {
       setLoading(false);

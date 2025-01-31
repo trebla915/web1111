@@ -1,23 +1,25 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 export default function DownloadApp() {
   const [downloadLink, setDownloadLink] = useState<string | null>(null);
 
   useEffect(() => {
-    // Detect User Device and Set Download Link
-    if (/android/i.test(navigator.userAgent)) {
-      setDownloadLink("https://play.google.com/store/apps/details?id=com.your.club1111&hl=en_US");
-    } else if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-      setDownloadLink("https://apps.apple.com/us/app/11-11-eptx/id6739264535");
+    if (typeof navigator !== "undefined") {
+      if (/android/i.test(navigator.userAgent)) {
+        setDownloadLink("https://play.google.com/store/apps/details?id=com.your.club1111&hl=en_US");
+      } else if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+        setDownloadLink("https://apps.apple.com/us/app/11-11-eptx/id6739264535");
+      }
     }
   }, []);
 
   return (
-    <section 
-      className="relative text-white py-16 bg-cover bg-center bg-no-repeat" 
-      style={{ backgroundImage: "url('/images/hero.jpg')" }} // ✅ Background Image
+    <section
+      className="relative text-white py-16 bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: "url('/images/hero.jpg')" }} 
     >
       <div className="relative bg-black/60 backdrop-blur-md h-[500px] rounded-tl-[50px] rounded-tr-[50px] overflow-hidden">
         <div className="max-w-6xl mx-auto px-4 lg:px-8 h-full flex flex-col lg:flex-row items-center justify-between space-y-8 lg:space-y-0 lg:space-x-16">
@@ -80,10 +82,12 @@ export default function DownloadApp() {
           
           {/* Right Image */}
           <div className="relative">
-            <img
+            <Image
               src="/phone-mockup.png"
               alt="Phone Mockup"
-              className="w-[300px] lg:w-[400px] h-auto absolute lg:-top-28 -top-20 lg:-right-12"
+              width={400}
+              height={800}
+              className="absolute lg:-top-28 -top-20 lg:-right-12"
             />
           </div>
         </div>

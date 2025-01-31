@@ -26,7 +26,7 @@ export default function Step3Page() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user || !tableId || !tablePrice || !tableNumber || !guests) return;
+    if (!user || !tableId || !tableNumber || !guests) return;
 
     const fetchTotal = async () => {
       try {
@@ -67,7 +67,7 @@ export default function Step3Page() {
     };
 
     fetchTotal();
-  }, [user, tableId, tablePrice, tableNumber, guests, searchParams, bottles]);
+  }, [user, tableId, tablePrice, tableNumber, guests, bottles, searchParams]);
 
   if (!user) {
     return <div className="text-center text-red-500">You must be logged in to reserve a table.</div>;

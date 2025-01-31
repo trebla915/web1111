@@ -1,9 +1,8 @@
-// components/ui/Carousel/Carousel.tsx
 'use client';
 
 import { ReactNode, useCallback } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
-import type { EmblaOptionsType, EmblaCarouselType } from 'embla-carousel';
+import type { EmblaOptionsType } from 'embla-carousel';
 
 export type CarouselProps = {
   children: ReactNode;
@@ -116,7 +115,7 @@ const NextButton = ({
   </button>
 );
 
-// Compound component exports
+// Export components
 Carousel.Slide = Slide;
 Carousel.NextButton = NextButton;
 Carousel.PrevButton = PrevButton;
