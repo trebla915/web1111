@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase/config";
-import { useRouter, useSearchParams } from "next/navigation"; // ✅ Now using search params
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-hot-toast";
 
 interface LoginModalProps {
@@ -33,8 +33,12 @@ const LoginModal = ({ isOpen, onClose, className }: LoginModalProps) => {
       toast.success("Login successful! Redirecting...");
       onClose(); // ✅ Close modal
       router.push(redirectTo); // ✅ Redirect to intended page
-    } catch (err) {
-      setError("Invalid email or password");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("Invalid email or password");
+      }
       toast.error("Login failed. Check your credentials.");
     } finally {
       setLoading(false);

@@ -27,7 +27,7 @@ export default function LoginForm() {
       await signInWithEmailAndPassword(auth, email, password);
       toast.success("Login successful!");
       router.push(redirect);
-    } catch (err) {
+    } catch {
       setError("Invalid email or password");
       toast.error("Login failed.");
     } finally {
@@ -67,7 +67,7 @@ export default function LoginForm() {
       </button>
 
       <div className="text-center mt-4 text-sm">
-        Don't have an account?{" "}
+        Don&apos;t have an account?{" "}
         <Link href="/register" className="text-purple-400 hover:underline">
           Sign Up
         </Link>

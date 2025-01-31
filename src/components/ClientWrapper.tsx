@@ -6,18 +6,14 @@ import StripeProvider from "@/components/StripeProvider";
 import { useAuth } from "@/lib/contexts/AuthProvider";
 
 export default function ClientWrapper({ children }: { children: ReactNode }) {
-  const { user, loading } = useAuth();
+  const { loading } = useAuth(); // ✅ Removed unused `user`
 
   return (
     <StripeProvider>
-      {/* ✅ Debugging Content */}
-      <div className="bg-blue-500 text-white p-4 text-center">
-        DEBUG: ClientWrapper is Rendering | Loading: {loading ? "True" : "False"}
-      </div>
+      {/* ✅ Ensure children render properly */}
+      {!loading && children}
 
-      {/* ✅ Temporarily render everything even if user isn't logged in */}
-      {children}
-
+      {/* ✅ Toast notifications */}
       <Toaster position="top-right" />
     </StripeProvider>
   );

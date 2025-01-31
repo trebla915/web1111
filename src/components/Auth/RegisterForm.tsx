@@ -23,8 +23,12 @@ export default function RegisterForm() {
       await createUserWithEmailAndPassword(auth, email, password);
       toast.success("Account created! Redirecting...");
       router.push("/login");
-    } catch (err) {
-      setError("Registration failed.");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("Registration failed.");
+      }
       toast.error("Error creating account.");
     } finally {
       setLoading(false);

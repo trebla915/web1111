@@ -26,7 +26,7 @@ export default function Step3Page() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !tableId || !tablePrice || !tableNumber || !guests) return;
 
     const fetchTotal = async () => {
       try {
@@ -59,7 +59,7 @@ export default function Step3Page() {
 
         const paymentIntent = await createPaymentIntent(paymentData);
         setClientSecret(paymentIntent.clientSecret);
-      } catch (err) {
+      } catch {
         setError("Failed to calculate total or initialize payment.");
       } finally {
         setLoading(false);
@@ -67,7 +67,7 @@ export default function Step3Page() {
     };
 
     fetchTotal();
-  }, [user]);
+  }, [user, tableId, tablePrice, tableNumber, guests, searchParams, bottles]);
 
   if (!user) {
     return <div className="text-center text-red-500">You must be logged in to reserve a table.</div>;
