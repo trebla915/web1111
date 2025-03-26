@@ -188,27 +188,32 @@ export default function Header() {
               </button>
             </div>
             
-            {/* Desktop navigation - centered */}
+            {/* Desktop navigation - centered with unique design */}
             <nav
               className={`${
                 menuOpen ? "flex absolute top-full left-0 right-0 bg-black/95 border-t border-white/10 shadow-xl" : "hidden md:flex"
-              } w-full md:w-auto flex-col md:flex-row md:items-center md:justify-center space-y-1 md:space-y-0 p-4 md:p-0 md:absolute md:left-1/2 md:-translate-x-1/2`}
+              } w-full md:w-auto flex-col md:flex-row md:items-center md:justify-center space-y-1 md:space-y-0 p-4 md:p-0 md:absolute md:left-1/2 md:-translate-x-1/2 md:bg-black/80 md:backdrop-blur-sm md:rounded-full md:px-6 md:py-2 md:border md:border-white/10 md:shadow-lg`}
             >
               <NavLink href="/" sectionId="">
                 HOME
               </NavLink>
+              <div className="hidden md:block w-px h-6 bg-gradient-to-b from-transparent via-white/20 to-transparent mx-2"></div>
               <NavLink href="/" sectionId="events">
                 EVENTS
               </NavLink>
+              <div className="hidden md:block w-px h-6 bg-gradient-to-b from-transparent via-white/20 to-transparent mx-2"></div>
               <NavLink href="/" sectionId="venue">
                 VENUE
               </NavLink>
+              <div className="hidden md:block w-px h-6 bg-gradient-to-b from-transparent via-white/20 to-transparent mx-2"></div>
               <NavLink href="/" sectionId="faq">
                 RULES
               </NavLink>
+              <div className="hidden md:block w-px h-6 bg-gradient-to-b from-transparent via-white/20 to-transparent mx-2"></div>
               <NavLink href="/" sectionId="contact">
                 CONTACT
               </NavLink>
+              <div className="hidden md:block w-px h-6 bg-gradient-to-b from-transparent via-white/20 to-transparent mx-2"></div>
               <NavLink href="/" sectionId="location">
                 FIND US
               </NavLink>
@@ -228,14 +233,14 @@ export default function Header() {
               )}
             </nav>
             
-            {/* Desktop user controls - fixed to right */}
+            {/* Desktop user controls - fixed to right with unique design */}
             <div className="hidden md:flex items-center space-x-4">
               {/* Auth controls */}
               {user ? (
                 <div className="relative" ref={profileMenuRef}>
                   <button
                     onClick={toggleProfileMenu}
-                    className="flex items-center gap-2 py-1 px-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all duration-300"
+                    className="flex items-center gap-2 py-1.5 px-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all duration-300 border border-white/10 hover:border-white/20"
                     aria-label="Profile menu"
                   >
                     <FaUserCircle className="text-white text-xl" />
@@ -266,7 +271,7 @@ export default function Header() {
               ) : (
                 <button
                   onClick={() => setShowLogin(true)}
-                  className="px-4 py-2 bg-white text-black font-bold hover:bg-cyan-100 transition-colors"
+                  className="px-4 py-2 bg-gradient-to-r from-cyan-400 to-cyan-500 text-black font-bold hover:from-cyan-500 hover:to-cyan-600 transition-all duration-300 rounded-full shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/30"
                 >
                   LOGIN
                 </button>
