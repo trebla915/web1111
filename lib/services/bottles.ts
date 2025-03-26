@@ -3,6 +3,30 @@ import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firesto
 import { Bottle, Mixer } from '@/types/reservation';
 import { apiClient, handleApiError } from '@/lib/api';
 import { API_ENDPOINTS } from '@/lib/api/endpoints';
+import { auth } from '@/lib/firebase/config';
+import { getIdToken } from 'firebase/auth';
+import Cookies from 'js-cookie';
+
+// Helper function to refresh token if needed
+const refreshTokenIfNeeded = async () => {
+  try {
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      const token = await getIdToken(currentUser, true);
+      Cookies.set('authToken', token, { 
+        expires: 7,
+        path: '/',
+        secure: true,
+        sameSite: 'lax'
+      });
+      return token;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error refreshing token:', error);
+    return null;
+  }
+};
 
 /**
  * Fetch a single bottle by ID
@@ -94,6 +118,9 @@ export const fetchAllBottlesForEvent = async (eventId: string): Promise<Bottle[]
     const endpoint = API_ENDPOINTS.bottles.getByEvent(eventId);
     console.log('Using endpoint:', endpoint);
     
+    // Try to refresh token before making the request
+    await refreshTokenIfNeeded();
+    
     const response = await apiClient.get<Bottle[]>(endpoint);
     console.log('Bottles response:', {
       status: response.status,
@@ -101,8 +128,22 @@ export const fetchAllBottlesForEvent = async (eventId: string): Promise<Bottle[]
     });
     
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in fetchAllBottlesForEvent:', error);
+    
+    // If error is 401, try to refresh token and retry once
+    if (error.response?.status === 401) {
+      try {
+        const token = await refreshTokenIfNeeded();
+        if (token) {
+          const response = await apiClient.get<Bottle[]>(API_ENDPOINTS.bottles.getByEvent(eventId));
+          return response.data;
+        }
+      } catch (retryError) {
+        console.error('Error retrying after token refresh:', retryError);
+      }
+    }
+    
     handleApiError(error, 'fetchAllBottlesForEvent');
     return [];
   }
@@ -114,6 +155,7 @@ export const fetchSingleBottle = async (
   bottleId: string
 ): Promise<Bottle> => {
   try {
+    await refreshTokenIfNeeded();
     const response = await apiClient.get<Bottle>(
       API_ENDPOINTS.bottles.removeFromEvent(eventId, bottleId)
     );
@@ -130,6 +172,7 @@ export const addBottlesToEvent = async (
   bottles: Bottle[]
 ): Promise<void> => {
   try {
+    await refreshTokenIfNeeded();
     await apiClient.post(API_ENDPOINTS.bottles.addToEvent(eventId), bottles);
   } catch (error) {
     handleApiError(error, 'addBottlesToEvent');
@@ -143,6 +186,7 @@ export const removeBottleFromEvent = async (
   bottleId: string
 ): Promise<void> => {
   try {
+    await refreshTokenIfNeeded();
     await apiClient.delete(API_ENDPOINTS.bottles.removeFromEvent(eventId, bottleId));
   } catch (error) {
     handleApiError(error, 'removeBottleFromEvent');

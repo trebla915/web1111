@@ -12,6 +12,9 @@ import {
 } from "@/lib/services/auth";
 import { createUserDocument } from "@/lib/services/users";
 import { toast } from "react-hot-toast";
+import { auth } from '@/lib/firebase/config';
+import { getIdToken } from 'firebase/auth';
+import Cookies from 'js-cookie';
 
 // Define the auth context
 interface AuthContextType {
@@ -21,7 +24,8 @@ interface AuthContextType {
   logout: () => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
-  isGuest: boolean; // Keep the guest mode functionality
+  isGuest: boolean;
+  refreshToken: () => Promise<void>;
 }
 
 // Create the context
@@ -32,7 +36,8 @@ export const AuthContext = createContext<AuthContextType>({
   logout: async () => {},
   register: async () => {},
   forgotPassword: async () => {},
-  isGuest: false
+  isGuest: false,
+  refreshToken: async () => {}
 });
 
 // Hook to use the auth context
@@ -46,49 +51,72 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Check if user is in guest mode
   const isGuest = typeof window !== 'undefined' && localStorage.getItem('guestMode') === 'true';
 
-  useEffect(() => {
+  // Function to refresh the auth token
+  const refreshToken = async () => {
     try {
-      // Check for saved user
-      const savedUser = localStorage.getItem('user');
-      if (savedUser) {
-        const parsedUser = JSON.parse(savedUser);
-        
-        // Check if user should be admin based on email
-        if (parsedUser.email) {
-          const isAdmin = parsedUser.email.includes('admin') || 
-                         parsedUser.email === 'albert@1111eptx.com' ||
-                         parsedUser.email === 'admin@1111eptx.com';
-          
-          // Force admin role if email matches
-          if (isAdmin && parsedUser.role !== 'admin') {
-            parsedUser.role = 'admin';
-          }
-          
-          // Check for promoter
-          if (parsedUser.email.includes('promoter') && parsedUser.role !== 'promoter') {
-            parsedUser.role = 'promoter';
-          }
-        }
-        
-        setUser(parsedUser);
-        console.log('Restored user with role:', parsedUser.role);
-      } 
-      // Check for guest mode
-      else if (isGuest) {
-        setUser({
-          uid: 'guest-user',
-          email: 'guest@example.com',
-          displayName: 'Guest User',
-          role: 'user',
-          isGuest: true,
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        const token = await getIdToken(currentUser, true);
+        Cookies.set('authToken', token, { 
+          expires: 7,
+          path: '/',
+          secure: true,
+          sameSite: 'lax'
         });
+        console.log('Token refreshed successfully');
       }
     } catch (error) {
-      console.error('Error restoring auth state:', error);
-    } finally {
-      setLoading(false);
+      console.error('Error refreshing token:', error);
     }
-  }, [isGuest]);
+  };
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChange(async (user) => {
+      try {
+        if (user) {
+          // Get fresh token
+          const token = await getIdToken(user, true);
+          Cookies.set('authToken', token, { 
+            expires: 7,
+            path: '/',
+            secure: true,
+            sameSite: 'lax'
+          });
+          
+          // Check if user should be admin based on email
+          if (user.email) {
+            const isAdmin = user.email.includes('admin') || 
+                          user.email === 'albert@1111eptx.com' ||
+                          user.email === 'admin@1111eptx.com';
+            
+            // Force admin role if email matches
+            if (isAdmin && user.role !== 'admin') {
+              user.role = 'admin';
+            }
+            
+            // Check for promoter
+            if (user.email.includes('promoter') && user.role !== 'promoter') {
+              user.role = 'promoter';
+            }
+          }
+          
+          setUser(user);
+          console.log('User authenticated with role:', user.role);
+        } else {
+          // Clear token when user is not authenticated
+          Cookies.remove('authToken');
+          setUser(null);
+          console.log('User logged out, token cleared');
+        }
+      } catch (error) {
+        console.error('Error in auth state change:', error);
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const login = async (email: string, password: string) => {
     try {
@@ -97,6 +125,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Set user immediately which will update UI components
       setUser(user);
+      
+      // Ensure token is set
+      await refreshToken();
       
       toast.success("Logged in successfully");
       
@@ -120,6 +151,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (isGuest) {
         localStorage.removeItem('guestMode');
         setUser(null);
+        Cookies.remove('authToken');
         window.location.reload(); // Refresh to update UI
         return;
       }
@@ -127,6 +159,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Otherwise logout from Firebase
       await logoutUser();
       setUser(null);
+      Cookies.remove('authToken');
       toast.success("Logged out successfully");
       router.push("/");
     } catch (error: any) {
@@ -141,6 +174,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Create the user document in Firestore
       await createUserDocument(user);
+      
+      // Ensure token is set
+      await refreshToken();
       
       setUser(user);
       toast.success("Account created successfully");
@@ -171,7 +207,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     logout,
     register,
     forgotPassword,
-    isGuest
+    isGuest,
+    refreshToken
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
