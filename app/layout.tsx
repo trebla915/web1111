@@ -74,7 +74,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <ReservationProvider>
               <ClientWrapper>
                 <Header />
-                <main className="flex-1 flex flex-col min-h-0">{children}</main>
+                <main className="flex-1">{children}</main>
                 <Footer />
               </ClientWrapper>
             </ReservationProvider>

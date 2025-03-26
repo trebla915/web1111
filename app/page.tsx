@@ -59,24 +59,15 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="flex flex-col">
-      {/* Hero section with full-screen experience */}
+    <div className="flex flex-col">
       <HeroSection />
-      
-      {/* Festival-style events section */}
-      <EventsFestivalSection maxEvents={8} className="py-16" />
-      
-      {/* Venue section with images and details */}
-      <VenueSection />
-      
-      {/* FAQ section with club rules */}
-      <FAQFestivalSection />
-      
-      {/* Contact section for reservations */}
-      <ContactSection />
-      
-      {/* Map section to find the venue */}
-      <MapSection />
-    </main>
+      <div className="flex flex-col gap-16">
+        <EventsFestivalSection />
+        <VenueSection />
+        <FAQFestivalSection />
+        <ContactSection />
+        <MapSection />
+      </div>
+    </div>
   )
 }
