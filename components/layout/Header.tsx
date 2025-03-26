@@ -140,14 +140,13 @@ export default function Header() {
         <a 
           href={isHomePage ? `#${sectionId}` : href}
           onClick={(e) => isHomePage ? scrollToSection(e, sectionId) : null}
-          className={`px-4 py-2 transition-colors duration-200 relative ${isActive ? 'text-white' : 'text-gray-300'}`}
+          className={`px-3 py-1.5 transition-all duration-200 relative rounded-full text-sm font-medium ${
+            isActive 
+              ? 'text-white bg-white/10' 
+              : 'text-gray-300 hover:text-white hover:bg-white/5'
+          }`}
         >
-          <span className="font-bold text-lg hover:text-white">
-            {children}
-          </span>
-          {isActive && (
-            <span className="absolute -bottom-1 left-0 right-0 h-[2px] bg-white"></span>
-          )}
+          {children}
         </a>
       )
     }
@@ -156,14 +155,13 @@ export default function Header() {
     return (
       <Link 
         href={href} 
-        className={`px-4 py-2 transition-colors duration-200 relative ${isActive ? 'text-white' : 'text-gray-300'}`}
+        className={`px-3 py-1.5 transition-all duration-200 relative rounded-full text-sm font-medium ${
+          isActive 
+            ? 'text-white bg-white/10' 
+            : 'text-gray-300 hover:text-white hover:bg-white/5'
+        }`}
       >
-        <span className="font-bold text-lg hover:text-white">
-          {children}
-        </span>
-        {isActive && (
-          <span className="absolute -bottom-1 left-0 right-0 h-[2px] bg-white"></span>
-        )}
+        {children}
       </Link>
     )
   }
@@ -194,25 +192,27 @@ export default function Header() {
                 menuOpen ? "flex absolute top-full left-0 right-0 bg-black/95 border-t border-white/10 shadow-xl" : "hidden md:flex"
               } w-full md:w-auto flex-col md:flex-row md:items-center md:justify-center space-y-1 md:space-y-0 p-4 md:p-0 md:absolute md:left-1/2 md:-translate-x-1/2 md:bg-black/80 md:backdrop-blur-sm md:rounded-full md:px-4 md:py-1.5 md:border md:border-white/10 md:shadow-lg`}
             >
-              <div className="hidden md:flex items-center space-x-1">
-                <NavLink href="/" sectionId="">
-                  HOME
-                </NavLink>
-                <NavLink href="/" sectionId="events">
-                  EVENTS
-                </NavLink>
-                <NavLink href="/" sectionId="venue">
-                  VENUE
-                </NavLink>
-                <NavLink href="/" sectionId="faq">
-                  RULES
-                </NavLink>
-                <NavLink href="/" sectionId="contact">
-                  CONTACT
-                </NavLink>
-                <NavLink href="/" sectionId="location">
-                  FIND US
-                </NavLink>
+              <div className="hidden md:flex items-center">
+                <div className="flex items-center space-x-1 bg-white/5 rounded-full px-2 py-1">
+                  <NavLink href="/" sectionId="">
+                    HOME
+                  </NavLink>
+                  <NavLink href="/" sectionId="events">
+                    EVENTS
+                  </NavLink>
+                  <NavLink href="/" sectionId="venue">
+                    VENUE
+                  </NavLink>
+                  <NavLink href="/" sectionId="faq">
+                    RULES
+                  </NavLink>
+                  <NavLink href="/" sectionId="contact">
+                    CONTACT
+                  </NavLink>
+                  <NavLink href="/" sectionId="location">
+                    FIND US
+                  </NavLink>
+                </div>
               </div>
               
               {/* Mobile-only user menu */}
