@@ -4,7 +4,14 @@ import EventDetails from "@/components/events/EventDetails";
 import EventNotFound from "@/components/events/EventNotFound";
 import { notFound } from "next/navigation";
 
-export default async function EventPage({ params }: { params: { id: string } }) {
+type Props = {
+  params: {
+    id: string;
+  };
+  searchParams?: { [key: string]: string | string[] | undefined };
+}
+
+export default async function EventPage({ params, searchParams }: Props) {
   try {
     const eventData = await fetchEventById(params.id);
     if (!eventData) {
