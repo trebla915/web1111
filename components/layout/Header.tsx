@@ -268,9 +268,10 @@ export default function Header() {
               ) : (
                 <button
                   onClick={() => setShowLogin(true)}
-                  className="px-4 py-2 bg-gradient-to-r from-cyan-400 to-cyan-500 text-black font-bold hover:from-cyan-500 hover:to-cyan-600 transition-all duration-300 rounded-full shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/30"
+                  className="p-2.5 bg-gradient-to-r from-cyan-400 to-cyan-500 text-black font-bold hover:from-cyan-500 hover:to-cyan-600 transition-all duration-300 rounded-full shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/30"
+                  aria-label="Login"
                 >
-                  LOGIN
+                  <FiUser className="text-xl" />
                 </button>
               )}
             </div>
