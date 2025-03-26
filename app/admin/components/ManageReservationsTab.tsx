@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { ReservationService } from '@/lib/services/backend/reservations';
-import { EventService } from '@/lib/services/backend/events';
+import { ReservationService } from '@/lib/services/reservations';
+import { EventService } from '@/lib/services/events';
 import { getUserById } from '@/lib/services/users';
 import { TableService } from '@/lib/services/tables';
 import { toast } from 'react-hot-toast';

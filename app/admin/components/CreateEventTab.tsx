@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { uploadImageToStorage } from '@/lib/services/storage';
-import { createEvent } from '@/lib/services/events';
+import { EventService } from '@/lib/services/events';
+import { checkRequiredEnvVars } from '@/lib/utils/env-check';
 import Image from 'next/image';
 import { toast } from 'react-hot-toast';
 import { FiCalendar, FiLink, FiUpload, FiTrash2, FiPlus, FiInfo, FiAlertCircle } from 'react-icons/fi';
@@ -22,26 +23,12 @@ export default function CreateEventTab() {
 
   // Check environment variables on component mount
   useEffect(() => {
-    // Check Firebase environment variables
-    const requiredEnvVars = [
-      'NEXT_PUBLIC_FIREBASE_API_KEY',
-      'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
-      'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
-      'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET'
-    ];
-    
-    const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
-    
-    if (missingVars.length > 0) {
-      console.error('Missing required Firebase environment variables:', missingVars);
-      setDebugInfo(`Warning: Missing environment variables: ${missingVars.join(', ')}`);
+    const envVarsValid = checkRequiredEnvVars();
+    if (!envVarsValid) {
+      setDebugInfo('Warning: Some Firebase environment variables are missing. Check the console for details.');
     } else {
-      console.log('All required Firebase environment variables are set');
-      if (process.env.NODE_ENV === 'development') {
-        setDebugInfo(`Firebase environment variables OK. Storage bucket: ${process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}`);
-      }
+      setDebugInfo('Firebase environment variables OK');
     }
-    
     setEnvVarsChecked(true);
   }, []);
 
@@ -85,7 +72,7 @@ export default function CreateEventTab() {
       
       try {
         // Test fetch to check token validity with Firebase
-        const url = `https://firebasestorage.googleapis.com/v0/b/${storageBucket}/o?prefix=test`;
+        const url = `https://firebasestorage.googleapis.com/v0/b/${storageBucket}/o?prefix=test/`;
         console.log('Testing URL:', url);
         
         const response = await fetch(url, {
@@ -248,60 +235,38 @@ export default function CreateEventTab() {
               date: selectedDate?.toISOString(),
               ticketLink: ticketLink.trim(),
               flyerUrl: '', // Will be populated by server
-              imageBase64: base64Data, // Send base64 image directly
-              userId: user.uid,
-              imageUrl: '', // Will be populated by server
+              flyerBase64: base64Data,
+              createdBy: user.uid,
               createdAt: new Date().toISOString(),
             };
-            
-            // Create event with base64 image
-            const result = await createEvent(eventData);
-            
-            // Check if result contains flyerUrl
-            if (result && result.flyerUrl) {
-              flyerUrl = result.flyerUrl;
-              console.log(`[handleCreateEvent] Direct event creation with image successful: ${flyerUrl}`);
-            } else {
-              throw new Error('Failed to get flyer URL from direct upload');
-            }
+
+            const event = await EventService.create(eventData);
+            console.log(`[handleCreateEvent] Event created successfully with base64 image:`, event);
+            toast.success('Event created successfully!');
+            return;
           }
-        } catch (uploadError: any) {
-          console.error('[handleCreateEvent] Image upload error:', uploadError);
-          console.error('Error details:', {
-            code: uploadError.code,
-            message: uploadError.message,
-            stack: uploadError.stack
-          });
-          toast.error(`Image upload failed: ${uploadError.message || 'Unknown error'}`);
-          setLoading(false);
+        } catch (error) {
+          console.error('Error handling flyer image:', error);
+          toast.error('Failed to process flyer image');
           return;
         }
       }
 
-      // Only create event if we haven't already done so with the direct upload
-      if (!flyerUrl.includes('imageBase64')) {
-        const eventData = {
-          title: eventName.trim(),
-          date: selectedDate?.toISOString(),
-          ticketLink: ticketLink.trim(),
-          flyerUrl,
-          userId: user.uid,
-          imageUrl: flyerUrl, // Use the same url for compatibility
-          createdAt: new Date().toISOString(),
-        };
+      // Create event without flyer or with uploaded flyer URL
+      const eventData = {
+        title: eventName.trim(),
+        date: selectedDate?.toISOString(),
+        ticketLink: ticketLink.trim(),
+        flyerUrl,
+        createdBy: user.uid,
+        createdAt: new Date().toISOString(),
+      };
 
-        console.log(`[handleCreateEvent] Creating event with data:`, { 
-          ...eventData, 
-          flyerUrl: flyerUrl ? 'URL exists' : 'No flyer URL' 
-        });
-
-        await createEvent(eventData);
-      }
-
+      const event = await EventService.create(eventData);
+      console.log(`[handleCreateEvent] Event created successfully:`, event);
       toast.success('Event created successfully!');
-      console.log(`[handleCreateEvent] Event created successfully!`);
-
-      // Clear form fields after success
+      
+      // Reset form
       setEventName('');
       setFlyerFile(null);
       if (flyerPreview) {
@@ -310,27 +275,11 @@ export default function CreateEventTab() {
       }
       setTicketLink('');
       setSelectedDate(null);
-    } catch (error: any) {
-      console.error('[handleCreateEvent] Error creating event:', error);
-      console.error('Error details:', {
-        code: error.code,
-        message: error.message,
-        stack: error.stack
-      });
-      
-      // Handle different error scenarios
-      if (error.code === 'permission-denied') {
-        toast.error('You do not have permission to create events. Please contact an admin.');
-      } else if (error.code === 'unavailable') {
-        toast.error('The service is currently unavailable. Please try again later.');
-      } else if (error.message?.includes('storage')) {
-        toast.error('There was a problem with the image upload. Please try a different image.');
-      } else {
-        toast.error(`Failed to create event: ${error.message || 'Unknown error'}`);
-      }
+    } catch (error) {
+      console.error('Error creating event:', error);
+      toast.error('Failed to create event');
     } finally {
       setLoading(false);
-      console.log('===== EVENT CREATION COMPLETE =====');
     }
   };
 

@@ -2,20 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { fetchAllEvents, updateEvent, deleteEvent } from '@/lib/services/events';
+import { EventService } from '@/lib/services/events';
 import { toast } from 'react-hot-toast';
 import { FiSearch, FiEdit, FiTrash2, FiCalendar, FiLink, FiCheck, FiAlertTriangle } from 'react-icons/fi';
-
-interface Event {
-  id: string;
-  title: string;
-  date?: string;
-  ticketLink?: string;
-  flyerUrl?: string;
-  userId: string;
-  createdAt?: any;
-  updatedAt?: any;
-}
+import { Event } from '@/types/event';
 
 export default function EditEventsTab() {
   const { user } = useAuth();
@@ -36,7 +26,7 @@ export default function EditEventsTab() {
   const loadEvents = async () => {
     setLoading(true);
     try {
-      const fetchedEvents = await fetchAllEvents();
+      const fetchedEvents = await EventService.getAll();
       setEvents(fetchedEvents);
       setFilteredEvents(fetchedEvents);
     } catch (error) {
@@ -83,7 +73,7 @@ export default function EditEventsTab() {
         date: eventDate ? new Date(eventDate).toISOString() : undefined,
         ticketLink,
       };
-      await updateEvent(selectedEventId, updatedEvent);
+      await EventService.update(selectedEventId, updatedEvent);
       toast.success('Event updated successfully.');
       await loadEvents();
     } catch (error) {
@@ -108,7 +98,7 @@ export default function EditEventsTab() {
 
     setLoading(true);
     try {
-      await deleteEvent(selectedEventId);
+      await EventService.delete(selectedEventId);
       toast.success('Event deleted successfully.');
       setSelectedEventId(null);
       setEventTitle('');
