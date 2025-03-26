@@ -308,9 +308,9 @@ export default function HeroSection() {
           }
         }}
       >
-        <span className="text-cyan-400 text-sm mb-2 hover:text-cyan-300 transition-colors">SCROLL DOWN</span>
-        <div className="w-0.5 h-6 md:h-8 bg-cyan-400/50 relative overflow-hidden">
-          <div className="absolute top-0 w-full h-1/2 bg-cyan-400 animate-bounce"></div>
+        <span className="text-white text-sm mb-2 hover:text-white/80 transition-colors">SCROLL DOWN</span>
+        <div className="w-0.5 h-6 md:h-8 bg-white/50 relative overflow-hidden">
+          <div className="absolute top-0 w-full h-1/2 bg-white animate-bounce"></div>
         </div>
       </div>
     </section>
