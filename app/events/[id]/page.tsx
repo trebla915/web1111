@@ -4,13 +4,12 @@ import EventDetails from "@/components/events/EventDetails";
 import EventNotFound from "@/components/events/EventNotFound";
 import { notFound } from "next/navigation";
 
-interface PageProps {
-  params: {
-    id: string;
-  };
+type Props = {
+  params: { id: string }
+  searchParams: { [key: string]: string | string[] | undefined }
 }
 
-export default async function EventPage({ params }: PageProps) {
+export default async function EventPage({ params }: Props) {
   try {
     const eventData = await fetchEventById(params.id);
     if (!eventData) {
