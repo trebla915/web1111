@@ -262,8 +262,8 @@ export default function HeroSection() {
           }
         }}
       >
-        <span className="text-white text-sm mb-2 hover:text-white/80 transition-colors">SCROLL DOWN</span>
-        <div className="w-0.5 h-6 md:h-8 bg-white/50 relative overflow-hidden">
+        <span className="text-white text-xs sm:text-sm mb-2 px-4 py-2 sm:py-1 border border-white/30 rounded-full bg-black/30 backdrop-blur-sm hover:bg-white/10 transition-colors">SCROLL DOWN</span>
+        <div className="w-0.5 h-6 md:h-8 bg-white/50 relative overflow-hidden mt-1">
           <div className="absolute top-0 w-full h-1/2 bg-white animate-bounce"></div>
         </div>
       </div>

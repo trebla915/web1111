@@ -163,6 +163,9 @@ export default function EventsFestivalSection({
                         fill
                         className="object-contain group-hover:scale-110 transition-transform duration-500"
                         sizes="(max-width: 768px) 80px, 128px"
+                        placeholder="blur"
+                        blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAEggJ4YA0XfwAAAABJRU5ErkJggg=="
+                        loading="lazy"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-70"></div>
                     </div>

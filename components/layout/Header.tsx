@@ -195,22 +195,22 @@ export default function Header() {
               {/* Mobile menu items */}
               <div className="flex md:hidden flex-col space-y-3 w-full">
                 <NavLink href="/" sectionId="">
-                  HOME
+                  <div className="py-3 px-4 w-full text-center">HOME</div>
                 </NavLink>
                 <NavLink href="/" sectionId="events">
-                  EVENTS
+                  <div className="py-3 px-4 w-full text-center">EVENTS</div>
                 </NavLink>
                 <NavLink href="/" sectionId="venue">
-                  VENUE
+                  <div className="py-3 px-4 w-full text-center">VENUE</div>
                 </NavLink>
                 <NavLink href="/" sectionId="faq">
-                  RULES
+                  <div className="py-3 px-4 w-full text-center">RULES</div>
                 </NavLink>
                 <NavLink href="/" sectionId="contact">
-                  CONTACT
+                  <div className="py-3 px-4 w-full text-center">CONTACT</div>
                 </NavLink>
                 <NavLink href="/" sectionId="location">
-                  FIND US
+                  <div className="py-3 px-4 w-full text-center">FIND US</div>
                 </NavLink>
               </div>
 
