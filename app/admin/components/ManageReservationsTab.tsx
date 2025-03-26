@@ -1,31 +1,25 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { fetchReservationsGroupedByEvent } from '@/lib/services/reservations';
-import { fetchAllEvents } from '@/lib/services/events';
+import { ReservationService } from '@/lib/services/backend/reservations';
+import { EventService } from '@/lib/services/backend/events';
+import { getUserById } from '@/lib/services/users';
+import { TableService } from '@/lib/services/tables';
 import { toast } from 'react-hot-toast';
-import { FiChevronDown, FiChevronUp, FiUsers, FiUser, FiRefreshCw, FiCalendar, FiAlertTriangle } from 'react-icons/fi';
+import { FiChevronDown, FiChevronUp, FiUsers, FiUser, FiRefreshCw, FiCalendar, FiAlertTriangle, FiTrash2 } from 'react-icons/fi';
 import { BiTable, BiWine, BiDrink } from 'react-icons/bi';
+import { Event } from '@/types/event';
+import { Reservation } from '@/types/reservation';
+import { User } from '@/types/user';
 
-interface Reservation {
-  id: string;
-  tableNumber?: number;
-  userId: string;
-  guestCount: number;
-  bottles?: Array<{ id: string; name: string }>;
-  eventId: string;
-  totalAmount?: number;
-  status?: string;
-  createdAt?: string;
-}
-
-interface Event {
-  id: string;
-  title: string;
+interface ReservationWithUser extends Reservation {
+  userName?: string;
+  userEmail?: string;
+  userId?: string;
 }
 
 type ReservationsByEvent = {
-  [eventTitle: string]: Reservation[];
+  [eventTitle: string]: ReservationWithUser[];
 };
 
 export default function ManageReservationsTab() {
@@ -41,12 +35,12 @@ export default function ManageReservationsTab() {
   const fetchReservationsData = async () => {
     setLoading(true);
     try {
-      const reservationsData = await fetchReservationsGroupedByEvent();
+      const reservationsData = await ReservationService.getGroupedByEvent();
       if (!reservationsData || typeof reservationsData !== 'object' || Array.isArray(reservationsData)) {
         throw new Error('Invalid reservations data format');
       }
 
-      const events = await fetchAllEvents();
+      const events = await EventService.getAll();
       const eventTitleMap: { [key: string]: string } = {};
       events.forEach((event: Event) => {
         eventTitleMap[event.id] = event.title;
@@ -60,10 +54,32 @@ export default function ManageReservationsTab() {
         }
 
         const eventTitle = eventTitleMap[eventId] || eventId;
-        reservationsByEventTitle[eventTitle] = reservations.map((reservation) => ({
-          ...reservation,
-          tableNumber: reservation.tableNumber ?? 0,
-        }));
+        // Fetch user names for all reservations
+        const reservationsWithUserNames = await Promise.all(
+          reservations.map(async (reservation) => {
+            try {
+              const user = await getUserById(reservation.userId);
+              return {
+                ...reservation,
+                tableNumber: reservation.tableNumber ?? 0,
+                userName: user?.displayName || 'Unknown User',
+                userEmail: user?.email || 'No email',
+                userId: reservation.userId
+              };
+            } catch (error) {
+              console.error(`Error fetching user for reservation ${reservation.id}:`, error);
+              return {
+                ...reservation,
+                tableNumber: reservation.tableNumber ?? 0,
+                userName: 'Unknown User',
+                userEmail: 'No email',
+                userId: reservation.userId
+              };
+            }
+          })
+        );
+
+        reservationsByEventTitle[eventTitle] = reservationsWithUserNames;
       }
 
       setReservationsByEvent(reservationsByEventTitle);
@@ -74,6 +90,26 @@ export default function ManageReservationsTab() {
       toast.error('Failed to load reservations');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteReservation = async (reservationId: string, eventId: string, tableNumber: number) => {
+    if (!confirm('Are you sure you want to delete this reservation?')) {
+      return;
+    }
+
+    try {
+      // First, release the table
+      await TableService.release(eventId, tableNumber.toString());
+      
+      // Then delete the reservation
+      await ReservationService.delete(reservationId);
+      
+      toast.success('Reservation deleted successfully');
+      fetchReservationsData(); // Refresh the data
+    } catch (error) {
+      console.error('Error deleting reservation:', error);
+      toast.error('Failed to delete reservation');
     }
   };
 
@@ -96,14 +132,28 @@ export default function ManageReservationsTab() {
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
     
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(date);
+    try {
+      // Parse the date string and ensure it's treated as UTC
+      const date = new Date(dateString + 'Z');
+      if (isNaN(date.getTime())) {
+        console.warn('Invalid date string:', dateString);
+        return 'Invalid Date';
+      }
+      
+      // Format the date in UTC to prevent timezone issues
+      return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'UTC',
+        hour12: true
+      }).format(date);
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Invalid Date';
+    }
   };
 
   // Get status badge classes based on status
@@ -212,11 +262,14 @@ export default function ManageReservationsTab() {
                             </div>
                             
                             {/* User Information */}
-                            <div className="flex items-center space-x-2 mb-2 text-gray-300">
-                              <FiUser className="h-4 w-4 text-gray-400" />
-                              <span>
-                                User ID: <span className="font-mono text-sm bg-zinc-900 px-2 py-0.5 rounded">{reservation.userId}</span>
-                              </span>
+                            <div className="space-y-2 mb-3">
+                              <div className="flex items-center space-x-2 text-gray-300">
+                                <FiUser className="h-4 w-4 text-gray-400" />
+                                <span>userName: {reservation.userName}</span>
+                              </div>
+                              <div className="flex items-center space-x-2 text-gray-300 ml-6">
+                                <span>Email: {reservation.userEmail}</span>
+                              </div>
                             </div>
                             
                             {/* Guest Count */}
@@ -261,6 +314,15 @@ export default function ManageReservationsTab() {
                                 </div>
                               )}
                             </div>
+
+                            {/* Delete Button */}
+                            <button
+                              onClick={() => handleDeleteReservation(reservation.id, reservation.eventId, reservation.tableNumber || 0)}
+                              className="absolute top-3 right-3 p-2 text-red-400 hover:text-red-300 transition-colors"
+                              title="Delete reservation"
+                            >
+                              <FiTrash2 className="h-4 w-4" />
+                            </button>
                           </div>
                           
                           {/* Hover effect bottom gradient line */}
