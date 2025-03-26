@@ -256,6 +256,17 @@ export default function Header() {
                   </button>
                 </div>
               )}
+              {!user && (
+                <div className="md:hidden mt-4 w-full border-t border-white/10 pt-4">
+                  <button 
+                    onClick={() => setShowLogin(true)}
+                    className="flex w-full items-center gap-2 p-2 text-white hover:bg-white/10 rounded transition-colors"
+                  >
+                    <FiUser />
+                    <span className="text-base font-bold">LOGIN</span>
+                  </button>
+                </div>
+              )}
             </nav>
             
             {/* Desktop user controls and social media - fixed to right with unique design */}
