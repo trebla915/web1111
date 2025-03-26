@@ -1,7 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { FiCookie, FiRefreshCw } from 'react-icons/fi';
+import dynamic from 'next/dynamic';
+
+const FiCookie = dynamic(() => import('react-icons/fi').then(mod => mod.FiCookie));
+const FiRefreshCw = dynamic(() => import('react-icons/fi').then(mod => mod.FiRefreshCw));
 
 export default function CookiesSection() {
   const [cookies, setCookies] = useState<Record<string, string>>({});
@@ -54,14 +57,12 @@ export default function CookiesSection() {
     <div className="bg-gray-800 p-6 rounded-lg">
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-xl font-semibold flex items-center">
-          <FiCookie className="mr-2" />
           Cookies
         </h3>
         <button
           onClick={refreshCookies}
           className="flex items-center bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-sm"
         >
-          <FiRefreshCw className="mr-1" />
           Refresh
         </button>
       </div>
