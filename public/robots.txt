@@ -1,0 +1,12 @@
+# Allow all web crawlers to access all content
+User-agent: *
+Allow: /
+
+# Disallow admin and API routes
+Disallow: /admin/
+Disallow: /api/
+Disallow: /dashboard/
+
+# Sitemap locations
+Sitemap: https://www.1111eptx.com/sitemap.xml
+Sitemap: https://www.1111eptx.com/api/sitemap 
