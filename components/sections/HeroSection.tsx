@@ -142,20 +142,12 @@ export default function HeroSection() {
                   priority
                 />
               </div>
+              <div className="text-2xl md:text-4xl font-bold mt-6 tracking-widest" style={{ fontFamily: 'Impact, sans-serif' }}>
+                MUSIC IS TIME:LESS
+              </div>
             </div>
           </motion.div>
         </div>
-        
-        {/* Music is Timeless text */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
-          className="text-2xl md:text-4xl font-bold tracking-widest text-cyan-400 mb-12" 
-          style={{ fontFamily: 'Impact, sans-serif' }}
-        >
-          MUSIC IS TIME:LESS
-        </motion.div>
         
         {/* CTA Section */}
         <motion.div
