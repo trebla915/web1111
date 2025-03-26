@@ -2,18 +2,13 @@ import axios from 'axios';
 import { Platform } from 'react-native';
 
 // Determine the base URL based on the environment
-const getBaseUrl = () => {
-  if (Platform.OS === 'web') {
-    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
-  } else {
-    // For mobile use the appropriate API URL
-    return process.env.EXPO_PUBLIC_API_URL || 'https://api.yourserver.com/api';
-  }
+export const getApiBaseUrl = () => {
+  return process.env.NEXT_PUBLIC_API_URL || 'https://api-23psv7suga-uc.a.run.app';
 };
 
 // Create API client
 export const apiClient = axios.create({
-  baseURL: getBaseUrl(),
+  baseURL: getApiBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
   },

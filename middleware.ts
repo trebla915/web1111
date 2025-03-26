@@ -166,7 +166,7 @@ async function decodeToken(token: string) {
     }
     
     // Option 2: If JWT parsing fails, try to get the user from a dedicated endpoint
-    const response = await fetch('http://localhost:3000/api/auth/me', {
+    const response = await fetch('https://api-23psv7suga-uc.a.run.app/api/auth/me', {
       headers: {
         'Cookie': `authToken=${token}`
       }
