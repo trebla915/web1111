@@ -3,7 +3,7 @@ import { Timestamp } from 'firebase/firestore';
 import { filterFutureEvents, sortEventsByDate } from '@/lib/utils/dateFormatter';
 
 // Create API client
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.1111eptx.com';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api-23psv7suga-uc.a.run.app';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
