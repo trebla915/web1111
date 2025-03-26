@@ -179,7 +179,7 @@ export default function Header() {
             <div className="md:hidden">
               <button
                 onClick={toggleMenu}
-                className="p-2 text-white rounded-full hover:bg-white/10 transition-colors"
+                className="p-3 text-white rounded-full hover:bg-white/10 transition-colors"
                 aria-label={menuOpen ? "Close menu" : "Open menu"}
               >
                 {menuOpen ? <HiX size={24} /> : <HiOutlineMenu size={24} />}
@@ -189,11 +189,11 @@ export default function Header() {
             {/* Desktop navigation - centered with unique design */}
             <nav
               className={`${
-                menuOpen ? "flex absolute top-full left-0 right-0 bg-black/95 border-t border-white/10 shadow-xl" : "hidden md:flex"
+                menuOpen ? "flex absolute top-full left-0 right-0 bg-black/95 border-t border-white/10 shadow-xl z-50" : "hidden md:flex"
               } w-full md:w-auto flex-col md:flex-row md:items-center md:justify-center space-y-1 md:space-y-0 p-4 md:p-0 md:absolute md:left-1/2 md:-translate-x-1/2 md:bg-black/80 md:backdrop-blur-sm md:rounded-full md:px-4 md:py-1.5 md:border md:border-white/10 md:shadow-lg`}
             >
               {/* Mobile menu items */}
-              <div className="flex md:hidden flex-col space-y-2">
+              <div className="flex md:hidden flex-col space-y-3 w-full">
                 <NavLink href="/" sectionId="">
                   HOME
                 </NavLink>

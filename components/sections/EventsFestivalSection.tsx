@@ -127,26 +127,26 @@ export default function EventsFestivalSection({
                     <div className="absolute inset-0 bg-white/5 rounded-lg group-hover:bg-white/10 transition-all duration-300"></div>
                     <div className="absolute -inset-px bg-gradient-to-tr from-white/0 via-white/0 to-white/30 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
                     
-                    <div className="text-6xl md:text-7xl font-bold text-white group-hover:digital-glow-soft transition-all duration-300 relative z-10" style={{ fontFamily: 'Impact, sans-serif' }}>
+                    <div className="text-5xl md:text-7xl font-bold text-white group-hover:digital-glow-soft transition-all duration-300 relative z-10" style={{ fontFamily: 'Impact, sans-serif' }}>
                       {event.date ? getEventDay(event.date) : "--"}
                     </div>
-                    <div className="text-xl text-white/60 relative z-10">
+                    <div className="text-lg md:text-xl text-white/60 relative z-10">
                       {event.date ? getEventMonth(event.date) : "TBA"}
                     </div>
                   </div>
                   
                   {/* Event name and details */}
-                  <div className="w-2/4 md:w-4/6 flex flex-col pl-4">
-                    <h3 className="text-2xl md:text-4xl font-bold text-white tracking-wider group-hover:text-white/90 transition-all duration-300" style={{ fontFamily: 'Impact, sans-serif' }}>
+                  <div className="w-2/4 md:w-4/6 flex flex-col pl-2 md:pl-4">
+                    <h3 className="text-xl md:text-4xl font-bold text-white tracking-wider group-hover:text-white/90 transition-all duration-300 truncate" style={{ fontFamily: 'Impact, sans-serif' }}>
                       {event.title.toUpperCase()}
                     </h3>
                     {event.venue && (
-                      <p className="text-white/60 text-sm md:text-base mt-1">{event.venue}</p>
+                      <p className="text-white/60 text-xs md:text-base mt-1 truncate">{event.venue}</p>
                     )}
                     {event.time && (
-                      <p className="text-white/40 text-sm mt-1">{event.time}</p>
+                      <p className="text-white/40 text-xs md:text-sm mt-1">{event.time}</p>
                     )}
-                    <div className="flex items-center mt-2">
+                    <div className="hidden md:flex items-center mt-2">
                       <FiArrowRight className="text-white opacity-0 group-hover:opacity-100 transition-all duration-300" />
                       <span className="ml-2 text-white/60 text-sm opacity-0 group-hover:opacity-100 transition-all duration-300">
                         View Details
@@ -155,14 +155,14 @@ export default function EventsFestivalSection({
                   </div>
                   
                   {/* Event flyer thumbnail */}
-                  <div className="w-24 md:w-32 relative aspect-square ml-auto">
+                  <div className="w-20 md:w-32 relative aspect-square ml-auto">
                     <div className="absolute inset-0 rounded-md overflow-hidden border border-white/20 shadow-lg">
                       <Image
                         src={event.flyerUrl || 'https://via.placeholder.com/400x400?text=Event+Flyer'}
                         alt={event.title}
                         fill
                         className="object-contain group-hover:scale-110 transition-transform duration-500"
-                        sizes="(max-width: 768px) 96px, 128px"
+                        sizes="(max-width: 768px) 80px, 128px"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-70"></div>
                     </div>

@@ -212,9 +212,9 @@ export default function HeroSection() {
       </div>
       
       {/* Main Content */}
-      <div className="relative z-[60] flex flex-col items-center justify-center flex-grow pb-24 md:pb-16">
+      <div className="relative z-[60] flex flex-col items-center justify-center flex-grow pb-12 md:pb-16">
         {/* Logo container */}
-        <div className="relative w-full max-w-2xl mx-auto px-4">
+        <div className="relative w-full max-w-xs sm:max-w-sm md:max-w-2xl mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -233,7 +233,7 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.8, ease: "easeOut" }}
-              className="text-4xl md:text-7xl font-light -mt-12 tracking-[0.3em] text-white font-['Digital-7'] uppercase"
+              className="text-3xl sm:text-4xl md:text-7xl font-light -mt-8 md:-mt-12 tracking-[0.3em] text-white font-['Digital-7'] uppercase"
             >
               TIME:LESS
             </motion.div>
@@ -245,57 +245,11 @@ export default function HeroSection() {
           initial={{ opacity: 0, scaleX: 0 }}
           animate={{ opacity: 1, scaleX: 1 }}
           transition={{ delay: 0.8, duration: 1.2, ease: "easeOut" }}
-          className="w-32 h-[2px] bg-white/30 my-6 md:my-4"
+          className="w-32 h-[2px] bg-white/30 my-4 md:my-4"
         />
 
-        {/* Navigation Grid */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1, duration: 0.8, ease: "easeOut" }}
-          className="grid grid-cols-2 gap-4 md:gap-8 max-w-2xl mx-auto px-4"
-        >
-          {/* Events Card */}
-          <Link 
-            href="#events"
-            onClick={(e) => {
-              e.preventDefault();
-              const eventsSection = document.getElementById('events');
-              if (eventsSection) {
-                eventsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }
-            }}
-            className="group relative aspect-square bg-cyan-900/30 backdrop-blur-sm border border-cyan-400/20 rounded-lg overflow-hidden hover:bg-cyan-900/40 transition-all duration-300"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-cyan-400/0 via-cyan-400/0 to-cyan-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-              <div className="text-cyan-400 text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">EVENTS</h3>
-              <p className="text-cyan-200/70 text-sm">View upcoming shows</p>
-            </div>
-          </Link>
-
-          {/* Reserve Card */}
-          <Link 
-            href="/reserve"
-            className="group relative aspect-square bg-cyan-900/30 backdrop-blur-sm border border-cyan-400/20 rounded-lg overflow-hidden hover:bg-cyan-900/40 transition-all duration-300"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-cyan-400/0 via-cyan-400/0 to-cyan-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-              <div className="text-cyan-400 text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">RESERVE</h3>
-              <p className="text-cyan-200/70 text-sm">Book your table</p>
-            </div>
-          </Link>
-        </motion.div>
+        {/* Navigation Grid - Removed per request */}
+        
       </div>
       
       {/* Scroll indicator */}
