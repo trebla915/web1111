@@ -155,6 +155,7 @@ export default function Header() {
     return (
       <Link 
         href={href} 
+        onClick={() => setMenuOpen(false)}
         className={`px-0.5 py-0 transition-all duration-200 relative rounded-full text-2xl font-medium ${
           isActive 
             ? 'text-white bg-white/10' 
@@ -165,6 +166,30 @@ export default function Header() {
       </Link>
     )
   }
+
+  // Mobile navigation items with click handling
+  const MobileNavItem = ({ href, sectionId, children }: { href: string, sectionId?: string, children: React.ReactNode }) => {
+    const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+      // Close mobile menu
+      setMenuOpen(false);
+      
+      // Use scrollToSection for section links
+      if (isHomePage && sectionId) {
+        scrollToSection(e, sectionId);
+      }
+    };
+
+    return (
+      <NavLink href={href} sectionId={sectionId}>
+        <div 
+          className="py-3 px-4 w-full text-center"
+          onClick={handleClick}
+        >
+          {children}
+        </div>
+      </NavLink>
+    );
+  };
 
   return (
     <>
@@ -194,24 +219,24 @@ export default function Header() {
             >
               {/* Mobile menu items */}
               <div className="flex md:hidden flex-col space-y-3 w-full">
-                <NavLink href="/" sectionId="">
-                  <div className="py-3 px-4 w-full text-center">HOME</div>
-                </NavLink>
-                <NavLink href="/" sectionId="events">
-                  <div className="py-3 px-4 w-full text-center">EVENTS</div>
-                </NavLink>
-                <NavLink href="/" sectionId="venue">
-                  <div className="py-3 px-4 w-full text-center">VENUE</div>
-                </NavLink>
-                <NavLink href="/" sectionId="faq">
-                  <div className="py-3 px-4 w-full text-center">RULES</div>
-                </NavLink>
-                <NavLink href="/" sectionId="contact">
-                  <div className="py-3 px-4 w-full text-center">CONTACT</div>
-                </NavLink>
-                <NavLink href="/" sectionId="location">
-                  <div className="py-3 px-4 w-full text-center">FIND US</div>
-                </NavLink>
+                <MobileNavItem href="/" sectionId="">
+                  HOME
+                </MobileNavItem>
+                <MobileNavItem href="/" sectionId="events">
+                  EVENTS
+                </MobileNavItem>
+                <MobileNavItem href="/" sectionId="venue">
+                  VENUE
+                </MobileNavItem>
+                <MobileNavItem href="/" sectionId="faq">
+                  RULES
+                </MobileNavItem>
+                <MobileNavItem href="/" sectionId="contact">
+                  CONTACT
+                </MobileNavItem>
+                <MobileNavItem href="/" sectionId="location">
+                  FIND US
+                </MobileNavItem>
               </div>
 
               {/* Desktop menu items */}
@@ -246,11 +271,21 @@ export default function Header() {
               {/* Mobile-only user menu */}
               {user && (
                 <div className="md:hidden mt-4 w-full border-t border-white/10 pt-4">
-                  <Link href="/dashboard" className="flex items-center gap-2 p-2 text-white hover:bg-white/10 rounded transition-colors">
+                  <Link 
+                    href="/dashboard" 
+                    className="flex items-center gap-2 p-2 text-white hover:bg-white/10 rounded transition-colors"
+                    onClick={() => setMenuOpen(false)}
+                  >
                     <FiUser />
                     <span className="text-base font-bold">DASHBOARD</span>
                   </Link>
-                  <button onClick={logout} className="flex w-full items-center gap-2 p-2 text-red-200 hover:bg-red-900/20 rounded transition-colors">
+                  <button 
+                    onClick={() => {
+                      logout();
+                      setMenuOpen(false);
+                    }} 
+                    className="flex w-full items-center gap-2 p-2 text-red-200 hover:bg-red-900/20 rounded transition-colors"
+                  >
                     <FiLogOut />
                     <span className="text-base font-bold">SIGN OUT</span>
                   </button>
@@ -259,7 +294,10 @@ export default function Header() {
               {!user && (
                 <div className="md:hidden mt-4 w-full border-t border-white/10 pt-4">
                   <button 
-                    onClick={() => setShowLogin(true)}
+                    onClick={() => {
+                      setShowLogin(true);
+                      setMenuOpen(false);
+                    }}
                     className="flex w-full items-center gap-2 p-2 text-white hover:bg-white/10 rounded transition-colors"
                   >
                     <FiUser />
