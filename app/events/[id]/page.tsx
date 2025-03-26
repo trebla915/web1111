@@ -4,13 +4,18 @@ import EventDetails from "@/components/events/EventDetails";
 import EventNotFound from "@/components/events/EventNotFound";
 import { notFound } from "next/navigation";
 
-export default async function EventPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+interface PageParams {
+  id: string;
+}
+
+interface PageProps {
+  params: PageParams;
+  searchParams: { [key: string]: string | string[] | undefined };
+}
+
+export default async function EventPage(props: PageProps) {
   try {
-    const eventData = await fetchEventById(params.id);
+    const eventData = await fetchEventById(props.params.id);
     if (!eventData) {
       notFound();
     }
@@ -23,12 +28,12 @@ export default async function EventPage({
 }
 
 export async function generateMetadata(
-  { params }: { params: { id: string } },
+  props: PageProps,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   try {
     // Fetch the event data
-    const event = await fetchEventById(params.id);
+    const event = await fetchEventById(props.params.id);
     
     if (!event) {
       return {
