@@ -1,23 +1,11 @@
-import type { NextConfig } from "next";
-
 /** @type {import('next').NextConfig} */
-const nextConfig: NextConfig = {
-  /* config options here */
+const nextConfig = {
   typescript: {
-    // ⚠️ Warning: Enabling this will disable TypeScript errors during builds
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: true
   },
   eslint: {
-    // ⚠️ Warning: Enabling this will disable ESLint errors during builds
-    ignoreDuringBuilds: true,
-  },
-  webpack: (config) => {
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      'react-icons/fi': 'react-icons/fi/index'
-    }
-    return config
+    ignoreDuringBuilds: true
   }
-};
+}
 
-module.exports = nextConfig;
+module.exports = nextConfig
