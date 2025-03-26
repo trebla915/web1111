@@ -10,7 +10,14 @@ const nextConfig: NextConfig = {
   eslint: {
     // ⚠️ Warning: Enabling this will disable ESLint errors during builds
     ignoreDuringBuilds: true,
+  },
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'react-icons/fi': 'react-icons/fi/index'
+    }
+    return config
   }
 };
 
-export default nextConfig;
+module.exports = nextConfig;
