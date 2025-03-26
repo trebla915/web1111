@@ -117,67 +117,65 @@ export default function HeroSection() {
       <div className="absolute inset-0 opacity-3 bg-[linear-gradient(45deg,_transparent_25%,_#06b6d4_25%,_#06b6d4_50%,_transparent_50%,_transparent_75%,_#06b6d4_75%)] bg-[length:40px_40px]"></div>
       
       {/* Main Content */}
-      <div className="z-50 max-w-6xl px-6 text-white space-y-12 relative pb-24 md:pb-0">
-        {/* Logo/Brand */}
-        <div className="mb-8">
+      <div className="relative z-10 flex flex-col items-center justify-center flex-grow pb-24 md:pb-16">
+        {/* Logo container */}
+        <div className="relative w-full max-w-2xl mx-auto px-4">
           <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 1, ease: "easeOut" }}
-            className="relative mx-auto"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="relative"
           >
-            <div 
-              className={`relative mx-auto text-center transition-all duration-300 cursor-pointer`}
-              onMouseEnter={() => setGlitchActive(true)}
-              onMouseLeave={() => setGlitchActive(false)}
+            <Image
+              src="/images/1111logo.png"
+              alt="1111 Logo"
+              width={800}
+              height={400}
+              className="w-full h-auto"
+              priority
+            />
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.8, ease: "easeOut" }}
+              className="text-2xl md:text-4xl font-bold mt-4 md:mt-2 tracking-widest text-white font-['Impact']"
             >
-              {/* Logo Image - 75% bigger and without flashing effect */}
-              <div className={`relative w-112 md:w-168 h-auto mx-auto ${glitchActive ? 'vibrate' : ''}`}>
-                <Image
-                  src="/1111logo.png"
-                  alt="11:11 Logo"
-                  width={700}
-                  height={350}
-                  className="drop-shadow-2xl"
-                  priority
-                />
-              </div>
-              <div className="text-2xl md:text-4xl font-bold mt-6 tracking-widest" style={{ fontFamily: 'Impact, sans-serif' }}>
-                MUSIC IS TIME:LESS
-              </div>
-            </div>
+              Music is Timeless
+            </motion.div>
           </motion.div>
         </div>
-        
-        {/* CTA Section */}
+
+        {/* Decorative line */}
         <motion.div
-          initial={{ opacity: 0, y: 25 }}
+          initial={{ opacity: 0, scaleX: 0 }}
+          animate={{ opacity: 1, scaleX: 1 }}
+          transition={{ delay: 0.8, duration: 1.2, ease: "easeOut" }}
+          className="w-32 h-[2px] bg-white/30 my-6 md:my-4"
+        />
+
+        {/* CTA Buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut", delay: 0.5 }}
-          className="relative"
-        >          
-          {/* Line separator */}
-          <div className="w-32 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent mx-auto mb-16"></div>
-          
-          {/* CTA Buttons */}
-          <div className="flex flex-col md:flex-row justify-center gap-6">
-            <Link 
-              href="#events" 
-              className="px-8 py-4 bg-cyan-400 hover:bg-cyan-500 text-black font-bold text-lg transition-all transform hover:scale-105"
-              onClick={(e) => {
-                e.preventDefault();
-                document.getElementById('events')?.scrollIntoView({ behavior: 'smooth' });
-              }}
-            >
-              VIEW EVENTS
-            </Link>
-            <Link 
-              href="/reserve" 
-              className="px-8 py-4 border-2 border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black font-bold text-lg transition-all transform hover:scale-105"
-            >
-              RESERVE TABLE
-            </Link>
-          </div>
+          transition={{ delay: 1, duration: 0.8, ease: "easeOut" }}
+          className="flex flex-col md:flex-row gap-4 md:gap-6"
+        >
+          <Link 
+            href="#events" 
+            className="px-8 py-4 bg-cyan-400 hover:bg-cyan-500 text-black font-bold text-lg transition-all transform hover:scale-105"
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById('events')?.scrollIntoView({ behavior: 'smooth' });
+            }}
+          >
+            VIEW EVENTS
+          </Link>
+          <Link 
+            href="/reserve" 
+            className="px-8 py-4 border-2 border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black font-bold text-lg transition-all transform hover:scale-105"
+          >
+            RESERVE TABLE
+          </Link>
         </motion.div>
       </div>
       
