@@ -4,12 +4,13 @@ import EventDetails from "@/components/events/EventDetails";
 import EventNotFound from "@/components/events/EventNotFound";
 import { notFound } from "next/navigation";
 
+// Updated Props type to satisfy Next.js 15.x PageProps constraints
 type Props = {
   params: {
     id: string;
   };
-  searchParams?: { [key: string]: string | string[] | undefined };
-}
+  searchParams: { [key: string]: string | string[] | undefined };
+};
 
 export default async function EventPage({ params, searchParams }: Props) {
   try {
