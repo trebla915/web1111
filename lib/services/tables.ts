@@ -2,7 +2,7 @@ import { Table } from '@/types/reservation';
 import axios from 'axios';
 
 // Create API client
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api-23psv7suga-uc.a.run.app';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
