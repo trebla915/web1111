@@ -127,7 +127,7 @@ export default function HeroSection() {
             className="relative"
           >
             <Image
-              src="/images/1111logo.png"
+              src="/1111logo.png"
               alt="1111 Logo"
               width={800}
               height={400}
