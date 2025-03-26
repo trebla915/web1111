@@ -77,4 +77,7 @@ export const getUpcomingEvents = async (): Promise<Event[]> => {
     // Return empty array instead of throwing to prevent UI errors
     return [];
   }
-}; 
+};
+
+// Alias for getAllEvents for the sitemap generator
+export const fetchAllEvents = getAllEvents; 

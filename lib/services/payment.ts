@@ -84,4 +84,25 @@ export const PaymentService = {
       total
     };
   }
+};
+
+// Direct export of formatCostBreakdown function
+export const formatCostBreakdown = (reservationDetails: any): CostBreakdown => {
+  const tablePrice = reservationDetails.tablePrice || 0;
+  const bottles = reservationDetails.bottles || [];
+  const mixers = reservationDetails.mixers || [];
+  
+  const bottlesCost = bottles.reduce((total: number, bottle: any) => total + (bottle.price || 0), 0);
+  const mixersCost = mixers.reduce((total: number, mixer: any) => total + (mixer.price || 0), 0);
+  const subtotal = tablePrice + bottlesCost + mixersCost;
+  const serviceFee = subtotal * 0.1; // 10% service fee
+  const total = subtotal + serviceFee;
+
+  return {
+    tablePrice,
+    bottlesCost,
+    mixersCost,
+    serviceFee,
+    total
+  };
 }; 
