@@ -6,6 +6,7 @@ export const API_ENDPOINTS = {
     register: '/auth/register',
     logout: '/auth/logout',
     resetPassword: '/auth/reset-password',
+    me: '/auth/me',
   },
   
   // Event endpoints
@@ -15,6 +16,7 @@ export const API_ENDPOINTS = {
     create: '/events',
     update: (id: string) => `/events/${id}`,
     delete: (id: string) => `/events/${id}`,
+    getByDate: (date: string) => `/events/date/${date}`,
   },
   
   // Table endpoints
@@ -22,6 +24,8 @@ export const API_ENDPOINTS = {
     list: '/tables',
     get: (id: string) => `/tables/${id}`,
     getByEvent: (eventId: string) => `/tables/event/${eventId}`,
+    reserve: (id: string) => `/tables/${id}/reserve`,
+    release: (id: string) => `/tables/${id}/release`,
   },
   
   // Bottle endpoints
@@ -29,8 +33,8 @@ export const API_ENDPOINTS = {
     list: '/bottles',
     get: (id: string) => `/bottles/${id}`,
     getByEvent: (eventId: string) => `/bottles/event/${eventId}`,
-    addToEvent: (eventId: string) => `/bottles/${eventId}`,
-    removeFromEvent: (eventId: string, bottleId: string) => `/bottles/${eventId}/${bottleId}`,
+    addToEvent: (eventId: string) => `/bottles/event/${eventId}`,
+    removeFromEvent: (eventId: string, bottleId: string) => `/bottles/event/${eventId}/${bottleId}`,
   },
   
   // Reservation endpoints
@@ -40,6 +44,7 @@ export const API_ENDPOINTS = {
     create: '/reservations',
     update: (id: string) => `/reservations/${id}`,
     cancel: (id: string) => `/reservations/${id}/cancel`,
+    getByUser: '/reservations/user',
   },
   
   // Payment endpoints
@@ -55,4 +60,7 @@ export const API_ENDPOINTS = {
     updateProfile: '/users/profile',
     reservations: '/users/reservations',
   },
-} as const; 
+} as const;
+
+// Type for API endpoints
+export type ApiEndpoint = typeof API_ENDPOINTS; 

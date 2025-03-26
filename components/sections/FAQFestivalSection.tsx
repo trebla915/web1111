@@ -86,7 +86,7 @@ export default function FAQFestivalSection({
             </p>
             <div className="flex flex-col md:flex-row gap-4 justify-center">
               <Link 
-                href="/rules" 
+                href="/venue-rules" 
                 className="inline-block border-2 border-white text-white hover:bg-white hover:text-black px-8 py-3 transition-colors text-lg font-bold tracking-widest"
               >
                 FULL RULES
