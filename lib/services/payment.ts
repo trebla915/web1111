@@ -10,12 +10,30 @@ interface CreatePaymentIntent {
   userName: string;
 }
 
+interface PaymentIntentResponse {
+  clientSecret: string;
+  paymentId: string;
+}
+
 /**
  * Create a payment intent in Firestore
  * This would trigger a Cloud Function that creates a Stripe Payment Intent
  */
-export const createPaymentIntent = async (data: CreatePaymentIntent): Promise<string> => {
+export const createPaymentIntent = async (data: CreatePaymentIntent): Promise<PaymentIntentResponse> => {
   try {
+    // Validate inputs
+    if (typeof data.amount !== 'number' || data.amount <= 0) {
+      throw new Error('Invalid amount specified.');
+    }
+
+    if (!data.userName || !data.userEmail) {
+      throw new Error('Missing required user information.');
+    }
+
+    if (!data.reservationDetails.eventId || !data.reservationDetails.tableId) {
+      throw new Error('Missing required reservation details.');
+    }
+
     const paymentData = {
       amount: data.amount,
       currency: 'usd',
@@ -35,7 +53,12 @@ export const createPaymentIntent = async (data: CreatePaymentIntent): Promise<st
     const paymentsCollection = collection(db, 'payments');
     const docRef = await addDoc(paymentsCollection, paymentData);
     
-    return docRef.id;
+    // In a real implementation, this would come from your Stripe integration
+    // For now, we'll return a mock client secret
+    return {
+      clientSecret: 'mock_client_secret',
+      paymentId: docRef.id
+    };
   } catch (error) {
     console.error('Error creating payment intent:', error);
     throw error;
@@ -59,7 +82,7 @@ export const calculateTotal = (reservationDetails: ReservationDetails): number =
 };
 
 /**
- * Format a cost breakdown object
+ * Format cost breakdown for display
  */
 export const formatCostBreakdown = (reservationDetails: ReservationDetails) => {
   const tablePrice = reservationDetails.tablePrice || 0;
@@ -69,13 +92,15 @@ export const formatCostBreakdown = (reservationDetails: ReservationDetails) => {
     reservationDetails.mixers?.reduce((acc, mixer) => acc + mixer.price, 0) || 0;
 
   const subtotal = tablePrice + bottlesCost + mixersCost;
-  const serviceFee = subtotal * 0.029 + 0.3; // 2.9% + $0.30 fixed fee
+  const serviceFee = subtotal * 0.029 + 0.3;
+  const total = subtotal + serviceFee;
 
   return {
     tablePrice,
     bottlesCost,
     mixersCost,
     serviceFee,
-    total: subtotal + serviceFee
+    subtotal,
+    total
   };
 }; 

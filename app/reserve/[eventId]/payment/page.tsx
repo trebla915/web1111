@@ -5,24 +5,24 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useReservation } from '@/components/providers/ReservationProvider';
 import { formatCostBreakdown } from '@/lib/services/payment';
-import { createPaymentIntent } from '@/lib/services/payment';
-import { createReservation } from '@/lib/services/reservations';
+import { useStripePayment } from '@/lib/hooks/useStripePayment';
 import { toast } from 'react-hot-toast';
 import { FiCreditCard, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
-import { loadStripe } from '@stripe/stripe-js';
-
-// Load Stripe outside of component render to avoid recreating Stripe object on every render
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '@/lib/firebase/config';
+import { createReservation } from '@/lib/services/reservations';
 
 export default function PaymentPage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
-  const { reservationDetails, calculateTotal } = useReservation();
+  const { reservationDetails } = useReservation();
+  const { handlePaymentFlow } = useStripePayment();
   
   const [loading, setLoading] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<'pending' | 'processing' | 'success' | 'error'>('pending');
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [paymentId, setPaymentId] = useState<string | null>(null);
   
   const eventId = params.eventId as string;
   
@@ -31,6 +31,56 @@ export default function PaymentPage() {
       router.push(`/reserve/${eventId}`);
     }
   }, [eventId, reservationDetails, router, user]);
+
+  useEffect(() => {
+    if (!paymentId) return;
+
+    const paymentRef = doc(db, 'payments', paymentId);
+
+    const unsubscribe = onSnapshot(paymentRef, (docSnapshot) => {
+      if (docSnapshot.exists()) {
+        const paymentData = docSnapshot.data();
+
+        if (paymentData.status === 'succeeded') {
+          const reservationPayload = {
+            paymentId,
+            reservationDetails: {
+              eventId: reservationDetails?.eventId ?? '',
+              eventName: reservationDetails?.eventName ?? '',
+              tableId: reservationDetails?.tableId ?? '',
+              tableNumber: reservationDetails?.tableNumber ?? 0,
+              guestCount: reservationDetails?.guestCount ?? 1,
+              bottles: reservationDetails?.bottles ?? [],
+              mixers: reservationDetails?.mixers ?? [],
+              eventDate: reservationDetails?.eventDate ?? '',
+              userName: user?.displayName ?? 'Guest',
+              userEmail: user?.email ?? '',
+              userId: user?.uid ?? '',
+            },
+          };
+
+          createReservation(reservationPayload)
+            .then(() => {
+              setPaymentStatus('success');
+              toast.success('Payment successful!');
+              setTimeout(() => {
+                router.push(`/reserve/${eventId}/confirmation`);
+              }, 2000);
+            })
+            .catch((error) => {
+              console.error('Error creating reservation:', error);
+              setPaymentStatus('error');
+              setPaymentError('Failed to create reservation. Please try again.');
+              toast.error('Failed to create reservation');
+            });
+
+          unsubscribe();
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [paymentId, eventId, reservationDetails, user, router]);
   
   const handleInitiatePayment = async () => {
     if (!reservationDetails || !user) {
@@ -45,55 +95,20 @@ export default function PaymentPage() {
       // Get total amount in cents
       const totalAmount = Math.round(calculateTotal() * 100);
       
-      // Create payment intent
-      const paymentId = await createPaymentIntent({
+      const paymentId = await handlePaymentFlow({
+        totalAmount,
         reservationDetails,
-        amount: totalAmount,
-        userId: user.uid,
-        userEmail: user.email || '',
-        userName: user.displayName || 'Guest'
+        userData: {
+          userId: user.uid,
+          name: user.displayName || 'Guest',
+          email: user.email || '',
+        },
+        onSuccess: () => {
+          console.log('Payment initiated successfully');
+        },
       });
-      
-      // In a real application, you would redirect to Stripe checkout or use Elements
-      // For this demo, we'll simulate payment success
-      setTimeout(async () => {
-        try {
-          // Create the reservation with the payment ID
-          await createReservation({
-            paymentId,
-            reservationDetails: {
-              eventId: reservationDetails.eventId,
-              eventName: reservationDetails.eventName,
-              tableId: reservationDetails.tableId,
-              tableNumber: reservationDetails.tableNumber,
-              tablePrice: reservationDetails.tablePrice,
-              capacity: reservationDetails.capacity,
-              guestCount: reservationDetails.guestCount,
-              bottles: reservationDetails.bottles || [],
-              mixers: reservationDetails.mixers || [],
-              eventDate: reservationDetails.eventDate,
-              userId: user.uid,
-              userName: user.displayName || 'Guest',
-              userEmail: user.email || ''
-            }
-          });
-          
-          setPaymentStatus('success');
-          toast.success('Payment successful!');
-          
-          // Navigate to confirmation page after a delay
-          setTimeout(() => {
-            router.push(`/reserve/${eventId}/confirmation`);
-          }, 2000);
-        } catch (err: any) {
-          console.error('Error creating reservation:', err);
-          setPaymentStatus('error');
-          setPaymentError(err.message || 'Failed to create reservation');
-          toast.error('An error occurred while processing your payment');
-        } finally {
-          setLoading(false);
-        }
-      }, 2000);
+
+      setPaymentId(paymentId);
     } catch (err: any) {
       console.error('Error initiating payment:', err);
       setPaymentStatus('error');
@@ -101,6 +116,12 @@ export default function PaymentPage() {
       setLoading(false);
       toast.error('An error occurred while initiating payment');
     }
+  };
+
+  const calculateTotal = () => {
+    if (!reservationDetails) return 0;
+    const { total } = formatCostBreakdown(reservationDetails);
+    return total;
   };
   
   if (!reservationDetails) {

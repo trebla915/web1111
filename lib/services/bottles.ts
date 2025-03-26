@@ -1,6 +1,7 @@
 import { db } from '@/lib/firebase/config';
 import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 import { Bottle, Mixer } from '@/types/reservation';
+import { apiClient } from '@/lib/api';
 
 /**
  * Fetch a single bottle by ID
@@ -81,6 +82,31 @@ export const fetchAllMixers = async (): Promise<Mixer[]> => {
     return mixers;
   } catch (error) {
     console.error('Error fetching all mixers:', error);
+    throw error;
+  }
+};
+
+// Fetch all bottles for an event
+export const fetchAllBottlesForEvent = async (eventId: string): Promise<Bottle[]> => {
+  try {
+    const response = await apiClient.get<Bottle[]>(`/bottles/${eventId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching bottles:', error);
+    return []; // Return an empty array if error occurs
+  }
+};
+
+// Fetch a single bottle for an event by bottle ID
+export const fetchSingleBottle = async (
+  eventId: string,
+  bottleId: string
+): Promise<Bottle> => {
+  try {
+    const response = await apiClient.get<Bottle>(`/bottles/${eventId}/${bottleId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching single bottle:', error);
     throw error;
   }
 };
