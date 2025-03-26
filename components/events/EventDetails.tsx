@@ -9,17 +9,28 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '@/lib/hooks/useAuth';
 
+// Manual date adjustment for Mountain Time - directly adds a day to fix timezone issues
+function adjustToMountainTime(dateStr: string): Date {
+  // Parse the original date string
+  const originalDate = new Date(dateStr);
+  
+  // Add one day to compensate for timezone conversion issues
+  const adjustedDate = new Date(originalDate);
+  adjustedDate.setDate(originalDate.getDate() + 1);
+  
+  return adjustedDate;
+}
+
 // Date formatting utilities
 function formatToMMDDYYYY(dateStr: string): string {
   try {
-    const date = new Date(dateStr);
+    if (!dateStr) return 'Date TBA';
     
-    // Check if date is valid
-    if (isNaN(date.getTime())) {
-      return 'Invalid date';
-    }
+    // Use the adjusted date
+    const date = adjustToMountainTime(dateStr);
     
-    const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Months are 0-based
+    // Format as MM/DD/YYYY
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const day = date.getDate().toString().padStart(2, '0');
     const year = date.getFullYear();
     
@@ -32,14 +43,12 @@ function formatToMMDDYYYY(dateStr: string): string {
 
 function formatDateWithTime(dateStr: string): string {
   try {
-    const date = new Date(dateStr);
+    if (!dateStr) return 'Date TBA';
     
-    // Check if date is valid
-    if (isNaN(date.getTime())) {
-      return 'Invalid date';
-    }
+    // Use the adjusted date 
+    const date = adjustToMountainTime(dateStr);
     
-    // Format options
+    // Format with time
     const options: Intl.DateTimeFormatOptions = {
       month: 'short',
       day: 'numeric',
@@ -58,18 +67,44 @@ function formatDateWithTime(dateStr: string): string {
 
 function getDayOfWeek(dateStr: string): string {
   try {
-    const date = new Date(dateStr);
+    if (!dateStr) return 'TBA';
     
-    // Check if date is valid
-    if (isNaN(date.getTime())) {
-      return 'Invalid date';
-    }
+    // Use the adjusted date
+    const date = adjustToMountainTime(dateStr);
     
+    // Get day of week
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     return days[date.getDay()];
   } catch (error) {
     console.error('Error getting day of week:', error);
     return 'Invalid date';
+  }
+}
+
+// Add a debug function to help diagnose the issue
+function debugDateInfo(dateStr: string): string {
+  if (!dateStr) return 'No date provided';
+  
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return 'Invalid date';
+    
+    return `
+      Original string: ${dateStr}
+      UTC Date: ${date.toUTCString()}
+      Local Date: ${date.toString()}
+      Mountain Time: ${new Intl.DateTimeFormat('en-US', {
+        year: 'numeric', 
+        month: 'numeric', 
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric',
+        timeZone: 'America/Denver'
+      }).format(date)}
+    `;
+  } catch (error) {
+    return `Error: ${error}`;
   }
 }
 
@@ -92,6 +127,13 @@ export default function EventDetails({ event }: EventDetailsProps) {
   const router = useRouter();
   const { user, isGuest } = useAuth();
   const [showFullImage, setShowFullImage] = useState(false);
+
+  // Add a debug console log to understand what date we're working with
+  useEffect(() => {
+    if (event?.date) {
+      console.log('Debug date info:', debugDateInfo(event.date));
+    }
+  }, [event]);
 
   // Add JSON-LD structured data for SEO
   useEffect(() => {
@@ -217,11 +259,13 @@ export default function EventDetails({ event }: EventDetailsProps) {
                   </h1>
                 </div>
 
-                {/* Location */}
-                <div className="flex items-center gap-2 text-white/60 text-responsive-sm mb-4">
-                  <FiMapPin className="w-4 h-4 md:w-5 md:h-5" />
-                  <span>{event.location}</span>
-                </div>
+                {/* Location - only show if exists */}
+                {event.location && (
+                  <div className="flex items-center gap-2 text-white/60 text-responsive-sm mb-4">
+                    <FiMapPin className="w-4 h-4 md:w-5 md:h-5" />
+                    <span>{event.location}</span>
+                  </div>
+                )}
 
                 {/* Description */}
                 <div className="prose prose-invert max-w-none mb-6">

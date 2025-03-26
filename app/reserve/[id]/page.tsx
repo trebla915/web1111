@@ -123,15 +123,20 @@ export default function TableSelectionPage() {
     router.push(`/reserve/${eventId}/details`);
   };
   
-  // Helper function to format date to MM-DD-YY
+  // Helper function to format date to MM-DD-YY with timezone fix
   const formatDate = (dateStr: string): string => {
     try {
-      const date = new Date(dateStr);
-      if (isNaN(date.getTime())) return 'Invalid date';
+      const originalDate = new Date(dateStr);
+      if (isNaN(originalDate.getTime())) return 'Invalid date';
       
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const year = String(date.getFullYear()).slice(2);
+      // Add one day to fix timezone issue
+      const adjustedDate = new Date(originalDate);
+      adjustedDate.setDate(originalDate.getDate() + 1);
+      
+      // Format date
+      const month = String(adjustedDate.getMonth() + 1).padStart(2, '0');
+      const day = String(adjustedDate.getDate()).padStart(2, '0');
+      const year = String(adjustedDate.getFullYear()).slice(2);
       
       return `${month}-${day}-${year}`;
     } catch {

@@ -93,10 +93,14 @@ export default function ReservationDetailsPage() {
   // Format date to a more readable format
   const formatDate = (dateStr: string): string => {
     try {
-      const date = new Date(dateStr);
-      if (isNaN(date.getTime())) return 'Invalid date';
+      const originalDate = new Date(dateStr);
+      if (isNaN(originalDate.getTime())) return 'Invalid date';
       
-      return date.toLocaleDateString('en-US', {
+      // Add one day to fix timezone issue
+      const adjustedDate = new Date(originalDate);
+      adjustedDate.setDate(originalDate.getDate() + 1);
+      
+      return adjustedDate.toLocaleDateString('en-US', {
         weekday: 'long',
         year: 'numeric',
         month: 'long',

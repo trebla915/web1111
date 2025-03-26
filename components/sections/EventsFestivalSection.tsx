@@ -52,10 +52,21 @@ export default function EventsFestivalSection({
     loadEvents();
   }, [maxEvents]);
 
+  // Helper for adjusting dates to correct timezone issues
+  const adjustDateForTimezone = (dateStr: string): Date => {
+    const originalDate = new Date(dateStr);
+    
+    // Add one day to compensate for timezone conversion issues
+    const adjustedDate = new Date(originalDate);
+    adjustedDate.setDate(originalDate.getDate() + 1);
+    
+    return adjustedDate;
+  };
+
   // Format date for festival style display
   const getEventMonth = (dateStr: string): string => {
     try {
-      const date = new Date(dateStr);
+      const date = adjustDateForTimezone(dateStr);
       return date.toLocaleString('default', { month: 'short' }).toUpperCase();
     } catch {
       return 'TBA';
@@ -64,7 +75,7 @@ export default function EventsFestivalSection({
 
   const getEventDay = (dateStr: string): string => {
     try {
-      const date = new Date(dateStr);
+      const date = adjustDateForTimezone(dateStr);
       return date.getDate().toString();
     } catch {
       return '--';
