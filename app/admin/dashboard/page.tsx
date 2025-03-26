@@ -103,7 +103,7 @@ export default function AdminDashboardPage() {
       case "AddBottleToCatalog":
         return <AddBottleToCatalogTab />;
       case "AddBottlesToEvent":
-        return <AddBottlesToEventTab eventId={selectedEventId} />;
+        return <AddBottlesToEventTab eventId={selectedEventId || ""} />;
       case "PushNotifications":
         return <PushNotificationsTab />;
       default:

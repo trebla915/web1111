@@ -3,36 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import Image from "next/image";
-import { FiSearch, FiX, FiCheck, FiPlus, FiCalendar, FiPackage, FiDollarSign, FiTrash2, FiSave } from "react-icons/fi";
-import { fetchAllBottlesFromCatalog } from "@/lib/services/catalog";
+import { FiSearch, FiPlus, FiTrash2, FiSave } from "react-icons/fi";
 import { fetchAllBottlesForEvent, addBottlesToEvent } from "@/lib/services/bottles";
-import { fetchAllEvents } from "@/lib/services/events";
 import { Bottle } from '@/types/reservation';
-
-interface BottleCatalog {
-  id: string;
-  name: string;
-  price: number;
-  imageUrl: string;
-}
-
-interface EventBottle {
-  id: string;
-  name: string;
-  price: number;
-  eventId: string;
-}
-
-interface MergedBottle extends BottleCatalog {
-  isInEvent: boolean;
-  eventData?: EventBottle;
-}
-
-interface Event {
-  id: string;
-  title: string;
-  date?: string;
-}
 
 interface AddBottlesToEventTabProps {
   eventId: string;
@@ -41,23 +14,29 @@ interface AddBottlesToEventTabProps {
 export default function AddBottlesToEventTab({ eventId }: AddBottlesToEventTabProps) {
   const [availableBottles, setAvailableBottles] = useState<Bottle[]>([]);
   const [selectedBottles, setSelectedBottles] = useState<Bottle[]>([]);
+  const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadBottles = async () => {
       try {
+        setLoading(true);
         const bottles = await fetchAllBottlesForEvent(eventId);
         setAvailableBottles(bottles);
-        setLoading(false);
       } catch (error) {
-        console.error('Error loading bottles:', error);
-        toast.error('Failed to load bottles');
+        console.error("Error loading bottles:", error);
+        toast.error("Failed to load bottles for this event.");
+      } finally {
         setLoading(false);
       }
     };
 
     loadBottles();
   }, [eventId]);
+
+  const filteredBottles = availableBottles.filter(bottle =>
+    bottle.name.toLowerCase().includes(searchText.toLowerCase())
+  );
 
   const handleAddBottle = (bottle: Bottle) => {
     setSelectedBottles([...selectedBottles, bottle]);
@@ -93,18 +72,43 @@ export default function AddBottlesToEventTab({ eventId }: AddBottlesToEventTabPr
 
   return (
     <div className="space-y-6">
+      {/* Search Bar */}
+      <div className="relative">
+        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+          <FiSearch className="text-cyan-600" />
+        </div>
+        <input
+          type="text"
+          className="w-full p-3 pl-10 bg-zinc-800 rounded-lg text-white border border-cyan-900/50 focus:border-cyan-500/70 focus:outline-none focus:ring-1 focus:ring-cyan-500/50"
+          placeholder="Search bottles..."
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+        />
+      </div>
+
       {/* Available Bottles */}
       <div>
         <h3 className="text-lg font-bold text-white mb-4">Available Bottles</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {availableBottles.map((bottle) => (
+          {filteredBottles.map((bottle) => (
             <div
               key={bottle.id}
               className="bg-zinc-800 rounded-lg p-4 flex justify-between items-center"
             >
-              <div>
-                <h4 className="font-bold text-white">{bottle.name}</h4>
-                <p className="text-cyan-400">${bottle.price.toFixed(2)}</p>
+              <div className="flex items-center space-x-4">
+                <div className="relative h-16 w-16 flex-shrink-0 bg-black/30 rounded-md border border-cyan-900/20 p-1">
+                  <Image
+                    src={bottle.imageUrl}
+                    alt={bottle.name}
+                    fill
+                    style={{objectFit: "contain"}}
+                    className="rounded-md"
+                  />
+                </div>
+                <div>
+                  <h4 className="font-bold text-white">{bottle.name}</h4>
+                  <p className="text-cyan-400">${bottle.price.toFixed(2)}</p>
+                </div>
               </div>
               <button
                 onClick={() => handleAddBottle(bottle)}
@@ -127,9 +131,20 @@ export default function AddBottlesToEventTab({ eventId }: AddBottlesToEventTabPr
                 key={bottle.id}
                 className="bg-zinc-800 rounded-lg p-4 flex justify-between items-center"
               >
-                <div>
-                  <h4 className="font-bold text-white">{bottle.name}</h4>
-                  <p className="text-cyan-400">${bottle.price.toFixed(2)}</p>
+                <div className="flex items-center space-x-4">
+                  <div className="relative h-16 w-16 flex-shrink-0 bg-black/30 rounded-md border border-cyan-900/20 p-1">
+                    <Image
+                      src={bottle.imageUrl}
+                      alt={bottle.name}
+                      fill
+                      style={{objectFit: "contain"}}
+                      className="rounded-md"
+                    />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-white">{bottle.name}</h4>
+                    <p className="text-cyan-400">${bottle.price.toFixed(2)}</p>
+                  </div>
                 </div>
                 <button
                   onClick={() => handleRemoveBottle(bottle)}
