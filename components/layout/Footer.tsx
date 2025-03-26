@@ -6,7 +6,7 @@ import { FiInstagram, FiFacebook, FiTwitter } from "react-icons/fi";
 
 export default function Footer() {
   return (
-    <footer className="w-full bg-black text-white py-12 border-t border-cyan-500/30 mt-auto relative pb-safe">
+    <footer className="w-full bg-black text-white py-12 border-t border-cyan-500/30 relative pb-safe">
       {/* Background effects */}
       <div className="absolute inset-0 noise opacity-5"></div>
       <div className="absolute inset-0 spotlight opacity-10"></div>
@@ -109,9 +109,6 @@ export default function Footer() {
             </nav>
           </div>
         </div>
-        
-        {/* Spacer to ensure footer is visible */}
-        <div className="h-6 md:h-0"></div>
       </div>
     </footer>
   );
