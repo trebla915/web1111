@@ -116,8 +116,103 @@ export default function HeroSection() {
       {/* Diagonal lines - reduced opacity */}
       <div className="absolute inset-0 opacity-3 bg-[linear-gradient(45deg,_transparent_25%,_#06b6d4_25%,_#06b6d4_50%,_transparent_50%,_transparent_75%,_#06b6d4_75%)] bg-[length:40px_40px]"></div>
       
+      {/* Starfield/Tunnel Effect */}
+      <div className="absolute inset-0 overflow-hidden z-[60]">
+        {/* Moving stars background */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_0%,_black_70%)]"></div>
+        
+        {/* Animated stars */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1 }}
+          className="absolute inset-0"
+        >
+          {[...Array(50)].map((_, i) => (
+            <motion.div
+              key={i}
+              initial={{ 
+                opacity: 0,
+                scale: 0,
+                x: `${Math.random() * 100}%`,
+                y: `${Math.random() * 100}%`
+              }}
+              animate={{ 
+                opacity: [0, 1, 0],
+                scale: [0, 1, 0],
+                x: [
+                  `${Math.random() * 100}%`,
+                  `${Math.random() * 100}%`,
+                  `${Math.random() * 100}%`
+                ],
+                y: [
+                  `${Math.random() * 100}%`,
+                  `${Math.random() * 100}%`,
+                  `${Math.random() * 100}%`
+                ]
+              }}
+              transition={{
+                duration: Math.random() * 3 + 2,
+                repeat: Infinity,
+                ease: "linear",
+                delay: Math.random() * 2
+              }}
+              className="absolute w-1 h-1 bg-white rounded-full"
+              style={{
+                boxShadow: "0 0 10px rgba(255, 255, 255, 0.8)"
+              }}
+            />
+          ))}
+        </motion.div>
+
+        {/* Tunnel effect */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1 }}
+          className="absolute inset-0"
+        >
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_0%,_rgba(6,182,212,0.1)_20%,_transparent_70%)]"></div>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_0%,_rgba(255,255,255,0.05)_30%,_transparent_80%)]"></div>
+        </motion.div>
+
+        {/* Moving light beams */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1 }}
+          className="absolute inset-0"
+        >
+          {[...Array(3)].map((_, i) => (
+            <motion.div
+              key={i}
+              initial={{ 
+                opacity: 0,
+                rotate: Math.random() * 360,
+                scale: 0
+              }}
+              animate={{ 
+                opacity: [0, 0.3, 0],
+                rotate: [0, 360],
+                scale: [0, 1, 0]
+              }}
+              transition={{
+                duration: 8 + i * 2,
+                repeat: Infinity,
+                ease: "linear",
+                delay: i * 2
+              }}
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+              style={{
+                transformOrigin: "center"
+              }}
+            />
+          ))}
+        </motion.div>
+      </div>
+      
       {/* Main Content */}
-      <div className="relative z-10 flex flex-col items-center justify-center flex-grow pb-24 md:pb-16">
+      <div className="relative z-[60] flex flex-col items-center justify-center flex-grow pb-24 md:pb-16">
         {/* Logo container */}
         <div className="relative w-full max-w-2xl mx-auto px-4">
           <motion.div
@@ -138,9 +233,9 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.8, ease: "easeOut" }}
-              className="text-2xl md:text-4xl font-light mt-4 md:mt-2 tracking-widest text-white font-['Impact']"
+              className="text-4xl md:text-7xl font-light -mt-12 tracking-[0.3em] text-white font-['Digital-7'] uppercase"
             >
-              Music is Timeless
+              TIME:LESS
             </motion.div>
           </motion.div>
         </div>
@@ -153,35 +248,67 @@ export default function HeroSection() {
           className="w-32 h-[2px] bg-white/30 my-6 md:my-4"
         />
 
-        {/* CTA Buttons */}
+        {/* Navigation Grid */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1, duration: 0.8, ease: "easeOut" }}
-          className="flex flex-col md:flex-row gap-4 md:gap-6"
+          className="grid grid-cols-2 gap-4 md:gap-8 max-w-2xl mx-auto px-4"
         >
+          {/* Events Card */}
           <Link 
-            href="#events" 
-            className="px-8 py-4 bg-cyan-400 hover:bg-cyan-500 text-black font-bold text-lg transition-all transform hover:scale-105"
+            href="#events"
             onClick={(e) => {
               e.preventDefault();
-              document.getElementById('events')?.scrollIntoView({ behavior: 'smooth' });
+              const eventsSection = document.getElementById('events');
+              if (eventsSection) {
+                eventsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
             }}
+            className="group relative aspect-square bg-cyan-900/30 backdrop-blur-sm border border-cyan-400/20 rounded-lg overflow-hidden hover:bg-cyan-900/40 transition-all duration-300"
           >
-            VIEW EVENTS
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-400/0 via-cyan-400/0 to-cyan-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
+              <div className="text-cyan-400 text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">EVENTS</h3>
+              <p className="text-cyan-200/70 text-sm">View upcoming shows</p>
+            </div>
           </Link>
+
+          {/* Reserve Card */}
           <Link 
-            href="/reserve" 
-            className="px-8 py-4 border-2 border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black font-bold text-lg transition-all transform hover:scale-105"
+            href="/reserve"
+            className="group relative aspect-square bg-cyan-900/30 backdrop-blur-sm border border-cyan-400/20 rounded-lg overflow-hidden hover:bg-cyan-900/40 transition-all duration-300"
           >
-            RESERVE TABLE
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-400/0 via-cyan-400/0 to-cyan-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
+              <div className="text-cyan-400 text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">RESERVE</h3>
+              <p className="text-cyan-200/70 text-sm">Book your table</p>
+            </div>
           </Link>
         </motion.div>
       </div>
       
       {/* Scroll indicator */}
-      <div className="absolute bottom-4 md:bottom-8 left-1/2 transform -translate-x-1/2 flex flex-col items-center z-50">
-        <span className="text-cyan-400 text-sm mb-2">SCROLL DOWN</span>
+      <div 
+        className="absolute bottom-4 md:bottom-8 left-1/2 transform -translate-x-1/2 flex flex-col items-center z-[60] cursor-pointer"
+        onClick={() => {
+          const eventsSection = document.getElementById('events');
+          if (eventsSection) {
+            eventsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }}
+      >
+        <span className="text-cyan-400 text-sm mb-2 hover:text-cyan-300 transition-colors">SCROLL DOWN</span>
         <div className="w-0.5 h-6 md:h-8 bg-cyan-400/50 relative overflow-hidden">
           <div className="absolute top-0 w-full h-1/2 bg-cyan-400 animate-bounce"></div>
         </div>

@@ -1,21 +1,35 @@
-import { db } from '@/lib/firebase';
-import { collection, addDoc, updateDoc, deleteDoc, doc, getDoc, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { Event } from '@/types/event';
+import { apiClient } from '@/lib/api/client';
+import { API_ENDPOINTS } from '@/lib/api/endpoints';
 
-const COLLECTION_NAME = 'events';
+export const getAllEvents = async (): Promise<Event[]> => {
+  try {
+    const response = await apiClient.get('/events');
+    return response.data;
+  } catch (error) {
+    console.error('Error getting all events:', error);
+    throw error;
+  }
+};
+
+export const getEvent = async (id: string): Promise<Event | null> => {
+  try {
+    const response = await apiClient.get(`/events/${id}`);
+    return response.data;
+  } catch (error: any) {
+    if (error?.response?.status === 404) {
+      console.log(`Event with ID ${id} not found`);
+      return null;
+    }
+    console.error('Error getting event:', error);
+    throw error;
+  }
+};
 
 export const createEvent = async (eventData: Omit<Event, 'id'>): Promise<Event> => {
   try {
-    const docRef = await addDoc(collection(db, COLLECTION_NAME), {
-      ...eventData,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    });
-    
-    return {
-      id: docRef.id,
-      ...eventData,
-    };
+    const response = await apiClient.post('/events', eventData);
+    return response.data;
   } catch (error) {
     console.error('Error creating event:', error);
     throw error;
@@ -24,11 +38,7 @@ export const createEvent = async (eventData: Omit<Event, 'id'>): Promise<Event> 
 
 export const updateEvent = async (id: string, eventData: Partial<Event>): Promise<void> => {
   try {
-    const eventRef = doc(db, COLLECTION_NAME, id);
-    await updateDoc(eventRef, {
-      ...eventData,
-      updatedAt: new Date().toISOString(),
-    });
+    await apiClient.put(`/events/${id}`, eventData);
   } catch (error) {
     console.error('Error updating event:', error);
     throw error;
@@ -37,67 +47,34 @@ export const updateEvent = async (id: string, eventData: Partial<Event>): Promis
 
 export const deleteEvent = async (id: string): Promise<void> => {
   try {
-    const eventRef = doc(db, COLLECTION_NAME, id);
-    await deleteDoc(eventRef);
+    await apiClient.delete(`/events/${id}`);
   } catch (error) {
     console.error('Error deleting event:', error);
     throw error;
   }
 };
 
-export const getEvent = async (id: string): Promise<Event | null> => {
-  try {
-    const eventRef = doc(db, COLLECTION_NAME, id);
-    const eventDoc = await getDoc(eventRef);
-    
-    if (eventDoc.exists()) {
-      return {
-        id: eventDoc.id,
-        ...eventDoc.data(),
-      } as Event;
-    }
-    
-    return null;
-  } catch (error) {
-    console.error('Error getting event:', error);
-    throw error;
-  }
-};
-
-export const getAllEvents = async (): Promise<Event[]> => {
-  try {
-    const eventsQuery = query(
-      collection(db, COLLECTION_NAME),
-      orderBy('date', 'asc')
-    );
-    
-    const querySnapshot = await getDocs(eventsQuery);
-    return querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as Event[];
-  } catch (error) {
-    console.error('Error getting all events:', error);
-    throw error;
-  }
-};
-
 export const getUpcomingEvents = async (): Promise<Event[]> => {
   try {
-    const now = new Date().toISOString();
-    const eventsQuery = query(
-      collection(db, COLLECTION_NAME),
-      where('date', '>=', now),
-      orderBy('date', 'asc')
-    );
+    const response = await apiClient.get('/events');
+    const now = new Date();
     
-    const querySnapshot = await getDocs(eventsQuery);
-    return querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as Event[];
+    // Check the response structure and access the events array properly
+    const events = Array.isArray(response.data) ? response.data : 
+                  (response.data && response.data.events ? response.data.events : []);
+    
+    return events.filter((event: Event) => {
+      try {
+        return new Date(event.date) > now;
+      } catch (err) {
+        // If date is invalid, exclude the event
+        console.warn('Event with invalid date:', event);
+        return false;
+      }
+    });
   } catch (error) {
     console.error('Error getting upcoming events:', error);
-    throw error;
+    // Return empty array instead of throwing to prevent UI errors
+    return [];
   }
 }; 

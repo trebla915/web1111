@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { ReservationService } from '@/lib/services/reservations';
-import { EventService } from '@/lib/services/events';
+import { getGroupedByEvent, deleteReservation } from '@/lib/services/reservations';
+import { getAllEvents } from '@/lib/services/events';
 import { getUserById } from '@/lib/services/users';
-import { TableService } from '@/lib/services/tables';
+import { getAllTables, releaseTable } from '@/lib/services/tables';
 import { toast } from 'react-hot-toast';
 import { FiChevronDown, FiChevronUp, FiUsers, FiUser, FiRefreshCw, FiCalendar, FiAlertTriangle, FiTrash2 } from 'react-icons/fi';
 import { BiTable, BiWine, BiDrink } from 'react-icons/bi';
@@ -35,12 +35,12 @@ export default function ManageReservationsTab() {
   const fetchReservationsData = async () => {
     setLoading(true);
     try {
-      const reservationsData = await ReservationService.getGroupedByEvent();
+      const reservationsData = await getGroupedByEvent();
       if (!reservationsData || typeof reservationsData !== 'object' || Array.isArray(reservationsData)) {
         throw new Error('Invalid reservations data format');
       }
 
-      const events = await EventService.getAll();
+      const events = await getAllEvents();
       const eventTitleMap: { [key: string]: string } = {};
       events.forEach((event: Event) => {
         eventTitleMap[event.id] = event.title;
@@ -100,10 +100,11 @@ export default function ManageReservationsTab() {
 
     try {
       // First, release the table
-      await TableService.release(eventId, tableNumber.toString());
+      const tableId = tableNumber.toString();
+      await releaseTable(eventId, tableId);
       
       // Then delete the reservation
-      await ReservationService.delete(reservationId);
+      await deleteReservation(reservationId);
       
       toast.success('Reservation deleted successfully');
       fetchReservationsData(); // Refresh the data

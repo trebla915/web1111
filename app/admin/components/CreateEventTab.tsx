@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { uploadImageToStorage } from '@/lib/services/storage';
-import { EventService } from '@/lib/services/events';
+import { createEvent } from '@/lib/services/events';
 import { checkRequiredEnvVars } from '@/lib/utils/env-check';
 import Image from 'next/image';
 import { toast } from 'react-hot-toast';
@@ -240,7 +240,7 @@ export default function CreateEventTab() {
               createdAt: new Date().toISOString(),
             };
 
-            const event = await EventService.create(eventData);
+            const event = await createEvent(eventData);
             console.log(`[handleCreateEvent] Event created successfully with base64 image:`, event);
             toast.success('Event created successfully!');
             return;
@@ -262,7 +262,7 @@ export default function CreateEventTab() {
         createdAt: new Date().toISOString(),
       };
 
-      const event = await EventService.create(eventData);
+      const event = await createEvent(eventData);
       console.log(`[handleCreateEvent] Event created successfully:`, event);
       toast.success('Event created successfully!');
       

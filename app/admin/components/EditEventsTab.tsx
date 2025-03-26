@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { EventService } from '@/lib/services/events';
+import { getAllEvents, updateEvent, deleteEvent } from '@/lib/services/events';
 import { toast } from 'react-hot-toast';
 import { FiSearch, FiEdit, FiTrash2, FiCalendar, FiLink, FiCheck, FiAlertTriangle } from 'react-icons/fi';
 import { Event } from '@/types/event';
@@ -26,7 +26,7 @@ export default function EditEventsTab() {
   const loadEvents = async () => {
     setLoading(true);
     try {
-      const fetchedEvents = await EventService.getAll();
+      const fetchedEvents = await getAllEvents();
       setEvents(fetchedEvents);
       setFilteredEvents(fetchedEvents);
     } catch (error) {
@@ -73,7 +73,7 @@ export default function EditEventsTab() {
         date: eventDate ? new Date(eventDate).toISOString() : undefined,
         ticketLink,
       };
-      await EventService.update(selectedEventId, updatedEvent);
+      await updateEvent(selectedEventId, updatedEvent);
       toast.success('Event updated successfully.');
       await loadEvents();
     } catch (error) {
@@ -98,7 +98,7 @@ export default function EditEventsTab() {
 
     setLoading(true);
     try {
-      await EventService.delete(selectedEventId);
+      await deleteEvent(selectedEventId);
       toast.success('Event deleted successfully.');
       setSelectedEventId(null);
       setEventTitle('');

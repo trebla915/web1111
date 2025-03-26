@@ -13,6 +13,7 @@ interface ReservationContextType {
   addMixer: (mixer: Mixer) => void;
   removeMixer: (mixerId: string) => void;
   calculateTotal: () => number;
+  clearReservationDetails: () => void;
 }
 
 const ReservationContext = createContext<ReservationContextType | undefined>(undefined);
@@ -102,6 +103,10 @@ export function ReservationProvider({ children }: { children: ReactNode }) {
     return subtotal + serviceFee;
   };
 
+  const clearReservationDetails = () => {
+    setReservationDetailsState(null);
+  };
+
   const value = {
     reservationDetails,
     setReservationDetails,
@@ -111,7 +116,8 @@ export function ReservationProvider({ children }: { children: ReactNode }) {
     removeBottle,
     addMixer,
     removeMixer,
-    calculateTotal
+    calculateTotal,
+    clearReservationDetails
   };
 
   return (

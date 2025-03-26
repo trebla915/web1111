@@ -5,6 +5,31 @@ export interface Table {
   price: number;
   reserved: boolean;
   location: 'left' | 'right' | 'center';
+  eventId?: string;
+}
+
+export interface Event {
+  id: string;
+  title: string;
+  date: string;
+  description?: string;
+  flyerUrl?: string;
+  imageUrl?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Reservation {
+  id: string;
+  tableNumber?: number;
+  userId: string;
+  guestCount: number;
+  bottles?: Array<{ id: string; name: string }>;
+  eventId: string;
+  totalAmount?: number;
+  status?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Bottle {

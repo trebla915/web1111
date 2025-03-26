@@ -21,12 +21,29 @@ const USERS_COLLECTION = 'users';
 export const createUserDocument = async (user: User): Promise<void> => {
   try {
     const userRef = doc(db, USERS_COLLECTION, user.uid);
+    
+    // Determine role based on email
+    let role = 'user';
+    if (user.email) {
+      const isAdmin = user.email.includes('admin') || 
+                    user.email === 'albert@1111eptx.com' ||
+                    user.email === 'admin@1111eptx.com';
+      
+      if (isAdmin) {
+        role = 'admin';
+      } else if (user.email.includes('promoter')) {
+        role = 'promoter';
+      }
+    }
+    
     await setDoc(userRef, {
       ...user,
-      role: user.role || 'user', // Set default role to 'user' if not specified
+      role,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
+    
+    console.log(`Created user document with role: ${role}`);
   } catch (error) {
     console.error('Error creating user document:', error);
     throw error;
@@ -40,9 +57,12 @@ export const getUserById = async (userId: string): Promise<User | null> => {
     const userSnap = await getDoc(userRef);
     
     if (userSnap.exists()) {
-      return userSnap.data() as User;
+      const userData = userSnap.data() as User;
+      console.log('User data from Firestore:', userData);
+      return userData;
     }
     
+    console.log('No user document found for ID:', userId);
     return null;
   } catch (error) {
     console.error('Error getting user:', error);
@@ -180,6 +200,22 @@ export const getUsersByRole = async (role: string): Promise<User[]> => {
     }));
   } catch (error) {
     console.error(`Error fetching users with role ${role}:`, error);
+    throw error;
+  }
+};
+
+// Force update user role (for testing/debugging)
+export const forceUpdateUserRole = async (userId: string, role: 'user' | 'admin' | 'promoter'): Promise<void> => {
+  try {
+    const userRef = doc(db, USERS_COLLECTION, userId);
+    await setDoc(userRef, {
+      role,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+    
+    console.log(`Force updated user ${userId} role to ${role}`);
+  } catch (error) {
+    console.error(`Error force updating role for user ${userId}:`, error);
     throw error;
   }
 };

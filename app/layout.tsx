@@ -3,6 +3,7 @@ import { ReactNode } from "react";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import CookieConsent from "@/components/layout/CookieConsent";
 import ClientWrapper from "@/lib/utils/ClientWrapper"
 import StripeProvider from "@/components/providers/StripeProvider";
 import { ReservationProvider } from "@/components/providers/ReservationProvider";
@@ -76,6 +77,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 <Header />
                 <main className="flex-1">{children}</main>
                 <Footer />
+                <CookieConsent />
               </ClientWrapper>
             </ReservationProvider>
           </StripeProvider>

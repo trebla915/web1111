@@ -73,7 +73,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="w-full p-2 bg-gray-800 border border-gray-700 rounded text-white focus:ring-cyan-500 focus:border-cyan-500"
+          className="w-full p-2 bg-gray-800 border border-gray-700 rounded text-white focus:ring-white focus:border-white"
           placeholder="your@email.com"
         />
       </div>
@@ -88,14 +88,14 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          className="w-full p-2 bg-gray-800 border border-gray-700 rounded text-white focus:ring-cyan-500 focus:border-cyan-500"
+          className="w-full p-2 bg-gray-800 border border-gray-700 rounded text-white focus:ring-white focus:border-white"
           placeholder="••••••••"
         />
       </div>
       
       <div className="flex items-center justify-between">
         <div className="text-sm">
-          <Link href="/auth/forgot-password" className="text-cyan-400 hover:text-cyan-300">
+          <Link href="/auth/forgot-password" className="text-white hover:text-white/80">
             Forgot your password?
           </Link>
         </div>
@@ -105,7 +105,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
         <button
           type="submit"
           disabled={isLoading}
-          className={`w-full py-2 px-4 bg-cyan-600 hover:bg-cyan-700 text-white font-medium rounded transition duration-150 ease-in-out ${
+          className={`w-full py-2 px-4 bg-white hover:bg-white/90 text-black font-medium rounded transition duration-150 ease-in-out ${
             isLoading ? 'opacity-70 cursor-not-allowed' : ''
           }`}
         >
@@ -115,7 +115,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       
       <div className="text-center mt-4">
         <span className="text-gray-400">Don't have an account?</span>{' '}
-        <Link href="/auth/register" className="text-cyan-400 hover:text-cyan-300">
+        <Link href="/auth/register" className="text-white hover:text-white/80">
           Sign up
         </Link>
       </div>

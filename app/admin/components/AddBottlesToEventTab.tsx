@@ -5,7 +5,6 @@ import { toast } from "react-hot-toast";
 import Image from "next/image";
 import { FiSearch, FiPlus, FiTrash2, FiSave } from "react-icons/fi";
 import { BottleService } from "@/lib/services/backend/bottles";
-import { FirebaseBottleService } from "@/lib/services/firebase/bottles";
 import { Bottle } from '@/types/reservation';
 
 interface AddBottlesToEventTabProps {
@@ -22,16 +21,8 @@ export default function AddBottlesToEventTab({ eventId }: AddBottlesToEventTabPr
     const loadBottles = async () => {
       try {
         setLoading(true);
-        // First try to get bottles from the backend
         const bottles = await BottleService.getByEvent(eventId);
-        
-        // If no bottles found, try Firestore
-        if (bottles.length === 0) {
-          const firestoreBottles = await FirebaseBottleService.getByEvent(eventId);
-          setAvailableBottles(firestoreBottles);
-        } else {
-          setAvailableBottles(bottles);
-        }
+        setAvailableBottles(bottles);
       } catch (error) {
         console.error("Error loading bottles:", error);
         toast.error("Failed to load bottles for this event.");
@@ -61,16 +52,7 @@ export default function AddBottlesToEventTab({ eventId }: AddBottlesToEventTabPr
 
   const handleSave = async () => {
     try {
-      // Try to save to backend first
       await BottleService.addToEvent(eventId, selectedBottles);
-      
-      // If successful, also save to Firestore
-      await Promise.all(
-        selectedBottles.map(bottle => 
-          FirebaseBottleService.add({ ...bottle, eventId })
-        )
-      );
-      
       toast.success('Bottles added successfully');
       setSelectedBottles([]);
       // Reload available bottles

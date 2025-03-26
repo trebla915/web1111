@@ -140,11 +140,11 @@ export default function Header() {
         <a 
           href={isHomePage ? `#${sectionId}` : href}
           onClick={(e) => isHomePage ? scrollToSection(e, sectionId) : null}
-          className={`px-3 py-1.5 transition-all duration-200 relative rounded-full text-sm font-medium ${
+          className={`px-0.5 py-0 transition-all duration-200 relative rounded-full text-2xl font-medium ${
             isActive 
               ? 'text-white bg-white/10' 
               : 'text-gray-300 hover:text-white hover:bg-white/5'
-          }`}
+          } font-['Digital-7'] tracking-wider`}
         >
           {children}
         </a>
@@ -155,11 +155,11 @@ export default function Header() {
     return (
       <Link 
         href={href} 
-        className={`px-3 py-1.5 transition-all duration-200 relative rounded-full text-sm font-medium ${
+        className={`px-0.5 py-0 transition-all duration-200 relative rounded-full text-2xl font-medium ${
           isActive 
             ? 'text-white bg-white/10' 
             : 'text-gray-300 hover:text-white hover:bg-white/5'
-        }`}
+        } font-['Digital-7'] tracking-wider`}
       >
         {children}
       </Link>
@@ -168,7 +168,7 @@ export default function Header() {
 
   return (
     <>
-      <header className="fixed w-full top-0 left-0 bg-black text-white z-50 h-16 md:h-16 border-b-4 border-gray-800">
+      <header className="fixed w-full top-0 left-0 bg-black text-white z-[100] h-16 md:h-16 border-b-4 border-gray-800">
         <div className="max-w-screen-xl mx-auto px-4 md:px-6 h-full flex items-center justify-between">
           {/* Background effects */}
           <div className="absolute inset-0 noise opacity-5"></div>
@@ -216,22 +216,27 @@ export default function Header() {
 
               {/* Desktop menu items */}
               <div className="hidden md:flex items-center">
-                <div className="flex items-center space-x-1 bg-white/5 rounded-full px-2 py-1">
+                <div className="flex items-center">
                   <NavLink href="/" sectionId="">
                     HOME
                   </NavLink>
+                  <div className="w-px h-4 mx-2 bg-gradient-to-b from-transparent via-white/30 to-transparent"></div>
                   <NavLink href="/" sectionId="events">
                     EVENTS
                   </NavLink>
+                  <div className="w-px h-4 mx-2 bg-gradient-to-b from-transparent via-white/30 to-transparent"></div>
                   <NavLink href="/" sectionId="venue">
                     VENUE
                   </NavLink>
+                  <div className="w-px h-4 mx-2 bg-gradient-to-b from-transparent via-white/30 to-transparent"></div>
                   <NavLink href="/" sectionId="faq">
                     RULES
                   </NavLink>
+                  <div className="w-px h-4 mx-2 bg-gradient-to-b from-transparent via-white/30 to-transparent"></div>
                   <NavLink href="/" sectionId="contact">
                     CONTACT
                   </NavLink>
+                  <div className="w-px h-4 mx-2 bg-gradient-to-b from-transparent via-white/30 to-transparent"></div>
                   <NavLink href="/" sectionId="location">
                     FIND US
                   </NavLink>
@@ -253,8 +258,21 @@ export default function Header() {
               )}
             </nav>
             
-            {/* Desktop user controls - fixed to right with unique design */}
-            <div className="hidden md:flex items-center space-x-4">
+            {/* Desktop user controls and social media - fixed to right with unique design */}
+            <div className="hidden md:flex items-center space-x-6">
+              {/* Social Media Icons */}
+              <div className="flex items-center space-x-4">
+                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition-colors">
+                  <FaFacebook size={20} />
+                </a>
+                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition-colors">
+                  <FaInstagram size={20} />
+                </a>
+                <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition-colors">
+                  <FaTwitter size={20} />
+                </a>
+              </div>
+
               {/* Auth controls */}
               {user ? (
                 <div className="relative" ref={profileMenuRef}>
@@ -291,7 +309,7 @@ export default function Header() {
               ) : (
                 <button
                   onClick={() => setShowLogin(true)}
-                  className="p-2.5 bg-gradient-to-r from-cyan-400 to-cyan-500 text-black font-bold hover:from-cyan-500 hover:to-cyan-600 transition-all duration-300 rounded-full shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/30"
+                  className="p-2.5 bg-gradient-to-r from-white/90 to-white text-black font-bold hover:from-white hover:to-white/90 transition-all duration-300 rounded-full shadow-lg shadow-white/20 hover:shadow-white/30"
                   aria-label="Login"
                 >
                   <FiUser className="text-xl" />

@@ -176,13 +176,13 @@ export default function EventDetails({ event }: EventDetailsProps) {
   };
 
   return (
-    <div className="min-h-screen bg-black text-cyan-400">
+    <div className="min-h-screen bg-black text-white">
       <div className="container mx-auto py-8 px-4">
-        <Link href="/events" className="flex items-center text-cyan-400 hover:text-cyan-300 mb-8">
+        <Link href="/events" className="flex items-center text-white hover:text-white/80 mb-8">
           <FiArrowLeft className="mr-2" /> BACK TO EVENTS
         </Link>
         
-        <div className="border border-cyan-900 overflow-hidden">
+        <div className="border border-white/20 overflow-hidden">
           {/* Event Header */}
           <div className="flex flex-col md:flex-row">
             {/* Event image */}
@@ -200,76 +200,81 @@ export default function EventDetails({ event }: EventDetailsProps) {
             </div>
 
             {/* Event title and info */}
-            <div className="md:w-3/5 p-6 md:p-8 flex flex-col justify-center border-l border-cyan-900">
-              <div className="">
-                <div className="text-4xl md:text-6xl font-bold text-white mb-4 tracking-wide" style={{ fontFamily: 'Impact, sans-serif' }}>
-                  {event.title.toUpperCase()}
-                </div>
-                
-                {event.date && (
-                  <div className="flex items-center text-cyan-300 text-2xl mb-6">
-                    <FiCalendar className="mr-2" />
-                    <span>{getDayOfWeek(event.date).toUpperCase()}, {formatDateWithTime(event.date).toUpperCase()}</span>
+            <div className="md:w-3/5 p-6 md:p-8 flex flex-col justify-center border-l border-white/20">
+              <div className="relative z-10">
+                {/* Date and Title */}
+                <div className="mb-4">
+                  <div className="text-sm md:text-base text-white/60 mb-0">
+                    {formatDateWithTime(event.date)}
                   </div>
-                )}
-                
-                {event.location && (
-                  <div className="flex items-center text-cyan-300 mb-8 text-xl">
-                    <FiMapPin className="mr-2" />
-                    <span>{event.location.toUpperCase()}</span>
-                  </div>
-                )}
-                
-                {/* Action buttons */}
-                <div className="flex gap-4 flex-wrap">
-                  <button
-                    onClick={handleTablePress}
-                    className="bg-cyan-400 hover:bg-cyan-500 text-black px-5 py-3 transition-colors flex items-center font-bold"
-                  >
-                    <FiUsers className="mr-2" />
-                    RESERVE A TABLE
-                  </button>
-                  
-                  <button
-                    onClick={() => handleTicketPress(event.ticketLink)}
-                    className={`${event.ticketLink 
-                      ? 'bg-cyan-900 hover:bg-cyan-800' 
-                      : 'bg-gray-900 cursor-not-allowed'} text-cyan-400 px-5 py-3 transition-colors flex items-center font-bold border border-cyan-400`}
-                    disabled={!event.ticketLink}
-                  >
-                    <FiTag className="mr-2" />
-                    {event.ticketLink ? 'BUY TICKETS' : 'NO TICKETS AVAILABLE'}
-                  </button>
+                  <h1 className="text-2xl md:text-3xl font-bold text-white digital-glow-soft">
+                    {event.title}
+                  </h1>
                 </div>
+
+                {/* Location */}
+                <div className="flex items-center gap-2 text-white/60 text-sm md:text-base mb-4">
+                  <FiMapPin className="w-4 h-4 md:w-5 md:h-5" />
+                  <span>{event.location}</span>
+                </div>
+
+                {/* Description */}
+                <div className="prose prose-invert max-w-none mb-6">
+                  <p className="text-white/80 text-sm md:text-base leading-relaxed">
+                    {event.description}
+                  </p>
+                </div>
+              </div>
+              
+              {/* Action buttons */}
+              <div className="flex gap-4 flex-wrap">
+                <button
+                  onClick={handleTablePress}
+                  className="bg-white hover:bg-white/90 text-black px-5 py-3 transition-colors flex items-center font-bold"
+                >
+                  <FiUsers className="mr-2" />
+                  RESERVE A TABLE
+                </button>
+                
+                <button
+                  onClick={() => handleTicketPress(event.ticketLink)}
+                  className={`${event.ticketLink 
+                    ? 'bg-white/10 hover:bg-white/20' 
+                    : 'bg-gray-900 cursor-not-allowed'} text-white px-5 py-3 transition-colors flex items-center font-bold border border-white/20`}
+                  disabled={!event.ticketLink}
+                >
+                  <FiTag className="mr-2" />
+                  {event.ticketLink ? 'BUY TICKETS' : 'NO TICKETS AVAILABLE'}
+                </button>
               </div>
             </div>
           </div>
           
           {/* Event Details */}
-          <div className="p-6 md:p-8 border-t border-cyan-900">
+          <div className="p-6 md:p-8 border-t border-white/20">
             <div className="flex flex-wrap gap-8 md:flex-nowrap">
               <div className="w-full md:w-2/3">
                 <h2 className="text-2xl font-bold mb-6 tracking-wider" style={{ fontFamily: 'Impact, sans-serif' }}>EVENT DETAILS</h2>
                 {event.description ? (
-                  <p className="text-cyan-200 mb-8 whitespace-pre-line leading-relaxed">
+                  <p className="text-white mb-8 whitespace-pre-line leading-relaxed">
                     {event.description}
                   </p>
                 ) : (
-                  <p className="text-cyan-500 italic mb-8">No description available for this event.</p>
+                  <p className="text-white/60 italic mb-8">No description available for this event.</p>
                 )}
               </div>
               
-              <div className="w-full md:w-1/3 bg-cyan-900/10 p-6 border border-cyan-900">
+              <div className="w-full md:w-1/3 bg-white/5 p-6 border border-white/20">
                 <h3 className="text-xl font-bold mb-6" style={{ fontFamily: 'Impact, sans-serif' }}>EVENT INFORMATION</h3>
                 
                 <div className="mb-6">
-                  <h4 className="font-semibold mb-2 text-cyan-300 uppercase">When</h4>
-                  <p className="text-cyan-100 text-lg">
+                  <h4 className="font-semibold mb-2 text-white uppercase">When</h4>
+                  <p className="text-white text-lg">
                     {event.date ? formatToMMDDYYYY(event.date) : 'Date TBA'}
                   </p>
                   
                   {event.date && (
-                    <p className="text-cyan-400 text-sm mt-1">
+                    <p className="text-white/60 text-sm mt-1">
                       {getDayOfWeek(event.date).toUpperCase()}
                     </p>
                   )}
@@ -277,13 +282,13 @@ export default function EventDetails({ event }: EventDetailsProps) {
                 
                 {event.location && (
                   <div className="mb-6">
-                    <h4 className="font-semibold mb-2 text-cyan-300 uppercase">Where</h4>
-                    <p className="text-cyan-100 text-lg">{event.location}</p>
+                    <h4 className="font-semibold mb-2 text-white uppercase">Where</h4>
+                    <p className="text-white text-lg">{event.location}</p>
                   </div>
                 )}
                 
-                <div className="pt-4 border-t border-cyan-900/50">
-                  <p className="text-cyan-400 text-sm uppercase tracking-wide">
+                <div className="pt-4 border-t border-white/20">
+                  <p className="text-white/60 text-sm uppercase tracking-wide">
                     Share this event with your friends!
                   </p>
                 </div>

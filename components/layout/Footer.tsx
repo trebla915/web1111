@@ -6,7 +6,7 @@ import { FiInstagram, FiFacebook, FiTwitter } from "react-icons/fi";
 
 export default function Footer() {
   return (
-    <footer className="w-full bg-black text-white py-12 border-t border-cyan-500/30 relative pb-safe">
+    <footer className="w-full bg-black text-white py-12 border-t border-white/30 relative pb-safe">
       {/* Background effects */}
       <div className="absolute inset-0 noise opacity-5"></div>
       <div className="absolute inset-0 spotlight opacity-10"></div>
@@ -36,7 +36,7 @@ export default function Footer() {
 
           {/* Center Column: Newsletter Signup */}
           <div className="flex flex-col items-center text-center space-y-4">
-            <h3 className="text-cyan-400 text-lg font-bold tracking-wider uppercase digital-glow-soft">JOIN OUR LIST</h3>
+            <h3 className="text-white text-lg font-bold tracking-wider uppercase digital-glow-soft">JOIN OUR LIST</h3>
             <p className="text-sm text-neutral-300 max-w-sm tracking-wide">
               STAY UPDATED WITH EXCLUSIVE EVENTS AND VIP OFFERS
             </p>
@@ -46,11 +46,11 @@ export default function Footer() {
                   type="email"
                   placeholder="EMAIL ADDRESS"
                   required
-                  className="w-full p-3 rounded-none border border-cyan-500/50 bg-black/50 text-white placeholder-gray-500 focus:ring-1 focus:ring-cyan-400 text-sm tracking-wider focus:border-cyan-400 transition-all duration-300"
+                  className="w-full p-3 rounded-none border border-white/50 bg-black/50 text-white placeholder-gray-500 focus:ring-1 focus:ring-white text-sm tracking-wider focus:border-white transition-all duration-300"
                 />
                 <button
                   type="submit"
-                  className="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-none transition-all duration-300 tracking-wider hover:shadow-[0_0_10px_rgba(6,182,212,0.5)]"
+                  className="px-6 py-3 bg-white hover:bg-white/90 text-black font-bold rounded-none transition-all duration-300 tracking-wider hover:shadow-[0_0_10px_rgba(255,255,255,0.5)]"
                 >
                   SUBMIT
                 </button>
@@ -61,13 +61,13 @@ export default function Footer() {
           {/* Right Column: Social Links & Navigation */}
           <div className="flex flex-col items-center md:items-end space-y-4">
             {/* Social Media Links */}
-            <h3 className="text-cyan-400 text-lg font-bold tracking-wider uppercase digital-glow-soft">FOLLOW US</h3>
+            <h3 className="text-white text-lg font-bold tracking-wider uppercase digital-glow-soft">FOLLOW US</h3>
             <div className="flex space-x-6">
               <a
                 href="https://www.instagram.com/1111eptx/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-neutral-400 hover:text-cyan-400 transition-all duration-300 hover:shadow-[0_0_10px_rgba(6,182,212,0.5)]"
+                className="text-neutral-400 hover:text-white transition-all duration-300 hover:shadow-[0_0_10px_rgba(255,255,255,0.5)]"
                 aria-label="Instagram"
               >
                 <FiInstagram size={24} />
@@ -76,7 +76,7 @@ export default function Footer() {
                 href="https://www.facebook.com/1111eptx/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-neutral-400 hover:text-cyan-400 transition-all duration-300 hover:shadow-[0_0_10px_rgba(6,182,212,0.5)]"
+                className="text-neutral-400 hover:text-white transition-all duration-300 hover:shadow-[0_0_10px_rgba(255,255,255,0.5)]"
                 aria-label="Facebook"
               >
                 <FiFacebook size={24} />
@@ -85,7 +85,7 @@ export default function Footer() {
                 href="https://twitter.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-neutral-400 hover:text-cyan-400 transition-all duration-300 hover:shadow-[0_0_10px_rgba(6,182,212,0.5)]"
+                className="text-neutral-400 hover:text-white transition-all duration-300 hover:shadow-[0_0_10px_rgba(255,255,255,0.5)]"
                 aria-label="Twitter"
               >
                 <FiTwitter size={24} />
@@ -94,17 +94,17 @@ export default function Footer() {
 
             {/* Footer Menu */}
             <nav className="text-sm flex flex-col md:items-end space-y-3 mt-4">
-              <Link href="/about" className="text-neutral-300 hover:text-cyan-400 transition-all duration-300 tracking-wider group relative">
+              <Link href="/about" className="text-neutral-300 hover:text-white transition-all duration-300 tracking-wider group relative">
                 ABOUT US
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-cyan-400 transition-all duration-300 group-hover:w-full"></span>
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
               </Link>
-              <Link href="/privacy" className="text-neutral-300 hover:text-cyan-400 transition-all duration-300 tracking-wider group relative">
+              <Link href="/privacy" className="text-neutral-300 hover:text-white transition-all duration-300 tracking-wider group relative">
                 PRIVACY POLICY
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-cyan-400 transition-all duration-300 group-hover:w-full"></span>
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
               </Link>
-              <Link href="/terms" className="text-neutral-300 hover:text-cyan-400 transition-all duration-300 tracking-wider group relative">
+              <Link href="/terms" className="text-neutral-300 hover:text-white transition-all duration-300 tracking-wider group relative">
                 TERMS & CONDITIONS
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-cyan-400 transition-all duration-300 group-hover:w-full"></span>
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
               </Link>
             </nav>
           </div>

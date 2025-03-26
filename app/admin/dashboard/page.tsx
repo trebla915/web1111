@@ -21,9 +21,17 @@ export default function AdminDashboardPage() {
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('Admin dashboard - Current user:', user);
+    console.log('Admin dashboard - Loading state:', loading);
+    
     // Redirect if not authenticated or not an admin/promoter
     if (!loading && (!user || (user.role !== 'admin' && user.role !== 'promoter'))) {
-      router.push("/auth/login");
+      console.log('User not authorized for admin dashboard:', { 
+        user: user?.email, 
+        role: user?.role 
+      });
+      router.replace("/dashboard");
+      return;
     }
     
     // Close sidebar on mobile by default
@@ -124,7 +132,14 @@ export default function AdminDashboardPage() {
 
   // Don't render anything if no user or wrong role (will redirect in useEffect)
   if (!user || (user.role !== 'admin' && user.role !== 'promoter')) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black text-white">
+        <div className="flex flex-col items-center">
+          <div className="w-12 h-12 border-t-2 border-b-2 border-cyan-500 rounded-full animate-spin mb-4"></div>
+          <p className="text-cyan-400">Redirecting...</p>
+        </div>
+      </div>
+    );
   }
 
   return (

@@ -1,96 +1,79 @@
-import { apiClient, handleApiError } from '@/lib/api/client';
-import { API_ENDPOINTS } from '@/lib/api/endpoints';
-import type { Bottle } from '@/types/reservation';
+import { Bottle } from '@/types/reservation';
 
-export const BottleService = {
-  /**
-   * Fetch all bottles for a specific event
-   */
-  async getByEvent(eventId: string): Promise<Bottle[]> {
-    try {
-      console.log('Fetching bottles for event:', eventId);
-      const endpoint = API_ENDPOINTS.bottles.getByEvent(eventId);
-      console.log('Using endpoint:', endpoint);
-      
-      const response = await apiClient.get<Bottle[]>(endpoint);
-      console.log('Bottles response:', {
-        status: response.status,
-        count: response.data.length
-      });
-      
-      return response.data;
-    } catch (error) {
-      console.error('Error in getByEvent:', error);
-      handleApiError(error, 'getByEvent');
-      return [];
-    }
-  },
+export class BottleService {
+  private static baseUrl = '/api/bottles';
 
-  /**
-   * Add bottles to an event
-   */
-  async addToEvent(eventId: string, bottles: Bottle[]): Promise<void> {
+  static async getByEvent(eventId: string): Promise<Bottle[]> {
     try {
-      console.log('Adding bottles to event:', eventId);
-      const endpoint = API_ENDPOINTS.bottles.addToEvent(eventId);
-      
-      await apiClient.post(endpoint, bottles);
-      console.log('Successfully added bottles to event');
+      const response = await fetch(`${this.baseUrl}?eventId=${eventId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch bottles');
+      }
+      return await response.json();
     } catch (error) {
-      console.error('Error in addToEvent:', error);
-      handleApiError(error, 'addToEvent');
+      console.error('Error getting bottles:', error);
       throw error;
-    }
-  },
-
-  /**
-   * Remove a bottle from an event
-   */
-  async removeFromEvent(eventId: string, bottleId: string): Promise<void> {
-    try {
-      console.log('Removing bottle from event:', eventId, bottleId);
-      const endpoint = API_ENDPOINTS.bottles.removeFromEvent(eventId, bottleId);
-      
-      await apiClient.delete(endpoint);
-      console.log('Successfully removed bottle from event');
-    } catch (error) {
-      console.error('Error in removeFromEvent:', error);
-      handleApiError(error, 'removeFromEvent');
-      throw error;
-    }
-  },
-
-  /**
-   * Get a single bottle by ID
-   */
-  async getById(bottleId: string): Promise<Bottle> {
-    try {
-      console.log('Fetching bottle by ID:', bottleId);
-      const endpoint = API_ENDPOINTS.bottles.get(bottleId);
-      
-      const response = await apiClient.get<Bottle>(endpoint);
-      return response.data;
-    } catch (error) {
-      console.error('Error in getById:', error);
-      handleApiError(error, 'getById');
-      throw error;
-    }
-  },
-
-  /**
-   * Get all bottles
-   */
-  async getAll(): Promise<Bottle[]> {
-    try {
-      console.log('Fetching all bottles');
-      const endpoint = API_ENDPOINTS.bottles.list;
-      
-      const response = await apiClient.get<Bottle[]>(endpoint);
-      return response.data;
-    } catch (error) {
-      console.error('Error in getAll:', error);
-      handleApiError(error, 'getAll');
-      return [];
     }
   }
-}; 
+
+  static async addToEvent(eventId: string, bottles: Bottle[]): Promise<void> {
+    try {
+      const response = await fetch(`${this.baseUrl}/event/${eventId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ bottles }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to add bottles to event');
+      }
+    } catch (error) {
+      console.error('Error adding bottles to event:', error);
+      throw error;
+    }
+  }
+
+  static async getAll(): Promise<Bottle[]> {
+    try {
+      const response = await fetch(this.baseUrl);
+      if (!response.ok) {
+        throw new Error('Failed to fetch bottles');
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting all bottles:', error);
+      throw error;
+    }
+  }
+
+  static async getById(id: string): Promise<Bottle | null> {
+    try {
+      const response = await fetch(`${this.baseUrl}/${id}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          return null;
+        }
+        throw new Error('Failed to fetch bottle');
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting bottle:', error);
+      throw error;
+    }
+  }
+
+  static async search(query: string): Promise<Bottle[]> {
+    try {
+      const response = await fetch(`${this.baseUrl}/search?q=${encodeURIComponent(query)}`);
+      if (!response.ok) {
+        throw new Error('Failed to search bottles');
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error searching bottles:', error);
+      throw error;
+    }
+  }
+} 
