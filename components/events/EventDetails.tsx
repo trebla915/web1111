@@ -78,7 +78,7 @@ interface Event {
   description?: string;
   date?: string;
   location?: string;
-  imageUrl?: string;
+  flyerUrl?: string;
   ticketLink?: string;
   created?: string;
 }
@@ -99,7 +99,7 @@ export default function EventDetails({ event }: EventDetailsProps) {
         "@type": "Event",
         "name": event.title,
         "description": event.description || `Event at 11:11 EPTX: ${event.title}`,
-        "image": event.imageUrl || "https://www.1111eptx.com/og-image.jpg",
+        "image": event.flyerUrl || "https://www.1111eptx.com/og-image.jpg",
         "startDate": event.date,
         "endDate": event.date,
         "location": {
@@ -189,7 +189,7 @@ export default function EventDetails({ event }: EventDetailsProps) {
             <div className="md:w-2/5 relative">
               <div className="aspect-square w-full">
                 <Image
-                  src={event.imageUrl || 'https://via.placeholder.com/800x800?text=Event+Flyer'}
+                  src={event.flyerUrl || 'https://via.placeholder.com/800x800?text=Event+Flyer'}
                   alt={event.title}
                   fill
                   className="object-cover"
