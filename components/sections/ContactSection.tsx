@@ -47,7 +47,7 @@ export default function ContactSection() {
                   <FiPhone className="text-cyan-400 mt-1 mr-3 flex-shrink-0" size={20} />
                   <div>
                     <h4 className="font-bold text-cyan-300">PHONE</h4>
-                    <p className="text-white">(212) 555-1111</p>
+                    <p className="text-white">(915)999-9999</p>
                   </div>
                 </div>
                 
@@ -55,7 +55,7 @@ export default function ContactSection() {
                   <FiMail className="text-cyan-400 mt-1 mr-3 flex-shrink-0" size={20} />
                   <div>
                     <h4 className="font-bold text-cyan-300">EMAIL</h4>
-                    <p className="text-white">INFO@CLUB1111.COM</p>
+                    <p className="text-white">INFO@1111EPTX.COM</p>
                   </div>
                 </div>
               </div>

@@ -23,7 +23,7 @@ export default function MapSection() {
             </h1>
           </div>
           <p className="text-center max-w-2xl mx-auto text-cyan-300 tracking-wide">
-            LOCATED IN THE HEART OF THE CITY
+            LOCATED IN NORTHEAST EL PASO
           </p>
         </div>
 
@@ -32,7 +32,7 @@ export default function MapSection() {
             {/* This would be replaced with an actual map integration */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#06b6d4_0,_transparent_8px)] bg-[length:30px_30px] opacity-5"></div>
             <div className="relative z-10 text-center">
-              <h3 className="text-3xl font-bold text-cyan-400 mb-4" style={{ fontFamily: 'Impact, sans-serif' }}>11:11 CLUB</h3>
+              <h3 className="text-3xl font-bold text-cyan-400 mb-4" style={{ fontFamily: 'Impact, sans-serif' }}>11:11 EPTX</h3>
               <p className="text-cyan-300 text-xl">9740 DYER STREET</p>
               <p className="text-gray-400">EL PASO, TEXAS 79924</p>
               <div className="mt-6">

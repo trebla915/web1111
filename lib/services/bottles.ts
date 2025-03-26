@@ -1,7 +1,8 @@
 import { db } from '@/lib/firebase/config';
 import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 import { Bottle, Mixer } from '@/types/reservation';
-import { apiClient } from '@/lib/api';
+import { apiClient, handleApiError } from '@/lib/api';
+import { API_ENDPOINTS } from '@/lib/api/endpoints';
 
 /**
  * Fetch a single bottle by ID
@@ -89,11 +90,11 @@ export const fetchAllMixers = async (): Promise<Mixer[]> => {
 // Fetch all bottles for an event
 export const fetchAllBottlesForEvent = async (eventId: string): Promise<Bottle[]> => {
   try {
-    const response = await apiClient.get<Bottle[]>(`/bottles/${eventId}`);
+    const response = await apiClient.get<Bottle[]>(API_ENDPOINTS.bottles.getByEvent(eventId));
     return response.data;
   } catch (error) {
-    console.error('Error fetching bottles:', error);
-    return []; // Return an empty array if error occurs
+    handleApiError(error, 'fetchAllBottlesForEvent');
+    return [];
   }
 };
 
@@ -103,10 +104,38 @@ export const fetchSingleBottle = async (
   bottleId: string
 ): Promise<Bottle> => {
   try {
-    const response = await apiClient.get<Bottle>(`/bottles/${eventId}/${bottleId}`);
+    const response = await apiClient.get<Bottle>(
+      API_ENDPOINTS.bottles.removeFromEvent(eventId, bottleId)
+    );
     return response.data;
   } catch (error) {
-    console.error('Error fetching single bottle:', error);
+    handleApiError(error, 'fetchSingleBottle');
+    throw error;
+  }
+};
+
+// Add bottles to an event
+export const addBottlesToEvent = async (
+  eventId: string,
+  bottles: Bottle[]
+): Promise<void> => {
+  try {
+    await apiClient.post(API_ENDPOINTS.bottles.addToEvent(eventId), bottles);
+  } catch (error) {
+    handleApiError(error, 'addBottlesToEvent');
+    throw error;
+  }
+};
+
+// Remove a bottle from an event
+export const removeBottleFromEvent = async (
+  eventId: string,
+  bottleId: string
+): Promise<void> => {
+  try {
+    await apiClient.delete(API_ENDPOINTS.bottles.removeFromEvent(eventId, bottleId));
+  } catch (error) {
+    handleApiError(error, 'removeBottleFromEvent');
     throw error;
   }
 };
