@@ -138,7 +138,7 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.8, ease: "easeOut" }}
-              className="text-2xl md:text-4xl font-bold mt-4 md:mt-2 tracking-widest text-white font-['Impact']"
+              className="text-2xl md:text-4xl font-light mt-4 md:mt-2 tracking-widest text-white font-['Impact']"
             >
               Music is Timeless
             </motion.div>
