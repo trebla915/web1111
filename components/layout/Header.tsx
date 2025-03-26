@@ -170,112 +170,110 @@ export default function Header() {
 
   return (
     <>
-      <header className={`fixed top-0 left-0 z-50 w-full transition-all duration-300 transform ${
-        hidden ? '-translate-y-full' : 'translate-y-0'
-      } ${
-        scrolled ? 'bg-gradient-to-b from-black via-black/80 to-transparent backdrop-blur-sm' : 'bg-gradient-to-b from-black to-transparent'
-      }`}>
-        {/* Background effects */}
-        <div className="absolute inset-0 noise opacity-5"></div>
-        
-        {/* Header content container */}
-        <div className="relative flex flex-col items-center justify-center max-w-7xl mx-auto px-4 z-10">
-          {/* Navigation section */}
-          <div className="w-full flex items-center justify-center py-4">
-            {/* Mobile menu button - moved to left side */}
-            <div className="absolute left-4">
-              <button
-                onClick={toggleMenu}
-                className="md:hidden p-2 text-white rounded-full hover:bg-white/10 transition-colors"
-                aria-label={menuOpen ? "Close menu" : "Open menu"}
-              >
-                {menuOpen ? <HiX size={24} /> : <HiOutlineMenu size={24} />}
-              </button>
-            </div>
-            
-            {/* Desktop navigation - centered */}
-            <nav
-              className={`${
-                menuOpen ? "flex absolute top-full left-0 right-0 bg-black/95 border-t border-white/10 shadow-xl" : "hidden md:flex"
-              } w-full md:w-auto flex-col md:flex-row md:items-center md:justify-center space-y-1 md:space-y-0 p-4 md:p-0`}
-            >
-              <NavLink href="/" sectionId="">
-                HOME
-              </NavLink>
-              <NavLink href="/" sectionId="events">
-                EVENTS
-              </NavLink>
-              <NavLink href="/" sectionId="venue">
-                VENUE
-              </NavLink>
-              <NavLink href="/" sectionId="faq">
-                RULES
-              </NavLink>
-              <NavLink href="/" sectionId="contact">
-                CONTACT
-              </NavLink>
-              <NavLink href="/" sectionId="location">
-                FIND US
-              </NavLink>
-              
-              {/* Mobile-only user menu */}
-              {user && (
-                <div className="md:hidden mt-4 w-full border-t border-white/10 pt-4">
-                  <Link href="/dashboard" className="flex items-center gap-2 p-2 text-white hover:bg-white/10 rounded transition-colors">
-                    <FiUser />
-                    <span className="text-base font-bold">DASHBOARD</span>
-                  </Link>
-                  <button onClick={logout} className="flex w-full items-center gap-2 p-2 text-red-200 hover:bg-red-900/20 rounded transition-colors">
-                    <FiLogOut />
-                    <span className="text-base font-bold">SIGN OUT</span>
-                  </button>
-                </div>
-              )}
-            </nav>
-            
-            {/* Desktop user controls - moved to right side */}
-            <div className="absolute right-4 hidden md:flex items-center space-x-4">
-              {/* Auth controls */}
-              {user ? (
-                <div className="relative" ref={profileMenuRef}>
-                  <button
-                    onClick={toggleProfileMenu}
-                    className="flex items-center gap-2 py-1 px-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all duration-300"
-                    aria-label="Profile menu"
-                  >
-                    <FaUserCircle className="text-white text-xl" />
-                    <span className="hidden sm:inline text-sm">{user.email?.split('@')[0]}</span>
-                    <FiChevronDown className={`transition-transform duration-300 ${profileMenuOpen ? 'rotate-180' : ''}`} />
-                  </button>
-                  
-                  {/* Profile Dropdown */}
-                  {profileMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-48 rounded-md overflow-hidden bg-black/95 backdrop-blur-md border border-white/20 shadow-lg shadow-black/20 z-60">
-                      <Link 
-                        href="/dashboard" 
-                        className="flex items-center gap-2 px-4 py-3 text-white hover:bg-white/10 transition-colors"
-                      >
-                        <FiUser />
-                        <span>Dashboard</span>
-                      </Link>
-                      <button 
-                        onClick={logout} 
-                        className="flex items-center gap-2 w-full text-left px-4 py-3 text-red-200 hover:bg-red-900/10 transition-colors"
-                      >
-                        <FiLogOut />
-                        <span>Sign Out</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
+      <header className="fixed w-full top-0 left-0 bg-black text-white z-50 h-20 md:h-20 border-b-4 border-gray-800">
+        <div className="max-w-screen-xl mx-auto px-4 md:px-6 h-full flex items-center justify-between">
+          {/* Background effects */}
+          <div className="absolute inset-0 noise opacity-5"></div>
+          
+          {/* Header content container */}
+          <div className="relative flex flex-col items-center justify-center max-w-7xl mx-auto px-4 z-10">
+            {/* Navigation section */}
+            <div className="w-full flex items-center justify-center py-4">
+              {/* Mobile menu button - moved to left side */}
+              <div className="absolute left-4">
                 <button
-                  onClick={() => setShowLogin(true)}
-                  className="px-4 py-2 bg-white text-black font-bold hover:bg-cyan-100 transition-colors"
+                  onClick={toggleMenu}
+                  className="md:hidden p-2 text-white rounded-full hover:bg-white/10 transition-colors"
+                  aria-label={menuOpen ? "Close menu" : "Open menu"}
                 >
-                  LOGIN
+                  {menuOpen ? <HiX size={24} /> : <HiOutlineMenu size={24} />}
                 </button>
-              )}
+              </div>
+              
+              {/* Desktop navigation - centered */}
+              <nav
+                className={`${
+                  menuOpen ? "flex absolute top-full left-0 right-0 bg-black/95 border-t border-white/10 shadow-xl" : "hidden md:flex"
+                } w-full md:w-auto flex-col md:flex-row md:items-center md:justify-center space-y-1 md:space-y-0 p-4 md:p-0`}
+              >
+                <NavLink href="/" sectionId="">
+                  HOME
+                </NavLink>
+                <NavLink href="/" sectionId="events">
+                  EVENTS
+                </NavLink>
+                <NavLink href="/" sectionId="venue">
+                  VENUE
+                </NavLink>
+                <NavLink href="/" sectionId="faq">
+                  RULES
+                </NavLink>
+                <NavLink href="/" sectionId="contact">
+                  CONTACT
+                </NavLink>
+                <NavLink href="/" sectionId="location">
+                  FIND US
+                </NavLink>
+                
+                {/* Mobile-only user menu */}
+                {user && (
+                  <div className="md:hidden mt-4 w-full border-t border-white/10 pt-4">
+                    <Link href="/dashboard" className="flex items-center gap-2 p-2 text-white hover:bg-white/10 rounded transition-colors">
+                      <FiUser />
+                      <span className="text-base font-bold">DASHBOARD</span>
+                    </Link>
+                    <button onClick={logout} className="flex w-full items-center gap-2 p-2 text-red-200 hover:bg-red-900/20 rounded transition-colors">
+                      <FiLogOut />
+                      <span className="text-base font-bold">SIGN OUT</span>
+                    </button>
+                  </div>
+                )}
+              </nav>
+              
+              {/* Desktop user controls - moved to right side */}
+              <div className="absolute right-4 hidden md:flex items-center space-x-4">
+                {/* Auth controls */}
+                {user ? (
+                  <div className="relative" ref={profileMenuRef}>
+                    <button
+                      onClick={toggleProfileMenu}
+                      className="flex items-center gap-2 py-1 px-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all duration-300"
+                      aria-label="Profile menu"
+                    >
+                      <FaUserCircle className="text-white text-xl" />
+                      <span className="hidden sm:inline text-sm">{user.email?.split('@')[0]}</span>
+                      <FiChevronDown className={`transition-transform duration-300 ${profileMenuOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    
+                    {/* Profile Dropdown */}
+                    {profileMenuOpen && (
+                      <div className="absolute right-0 mt-2 w-48 rounded-md overflow-hidden bg-black/95 backdrop-blur-md border border-white/20 shadow-lg shadow-black/20 z-60">
+                        <Link 
+                          href="/dashboard" 
+                          className="flex items-center gap-2 px-4 py-3 text-white hover:bg-white/10 transition-colors"
+                        >
+                          <FiUser />
+                          <span>Dashboard</span>
+                        </Link>
+                        <button 
+                          onClick={logout} 
+                          className="flex items-center gap-2 w-full text-left px-4 py-3 text-red-200 hover:bg-red-900/10 transition-colors"
+                        >
+                          <FiLogOut />
+                          <span>Sign Out</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowLogin(true)}
+                    className="px-4 py-2 bg-white text-black font-bold hover:bg-cyan-100 transition-colors"
+                  >
+                    LOGIN
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>

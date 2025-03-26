@@ -117,7 +117,7 @@ export default function HeroSection() {
       <div className="absolute inset-0 opacity-3 bg-[linear-gradient(45deg,_transparent_25%,_#06b6d4_25%,_#06b6d4_50%,_transparent_50%,_transparent_75%,_#06b6d4_75%)] bg-[length:40px_40px]"></div>
       
       {/* Main Content */}
-      <div className="z-50 max-w-6xl px-6 text-white space-y-12 relative">
+      <div className="z-50 max-w-6xl px-6 text-white space-y-12 relative pb-24 md:pb-0">
         {/* Logo/Brand */}
         <div className="mb-8">
           <motion.div
@@ -182,9 +182,9 @@ export default function HeroSection() {
       </div>
       
       {/* Scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex flex-col items-center z-50">
+      <div className="absolute bottom-4 md:bottom-8 left-1/2 transform -translate-x-1/2 flex flex-col items-center z-50">
         <span className="text-cyan-400 text-sm mb-2">SCROLL DOWN</span>
-        <div className="w-0.5 h-8 bg-cyan-400/50 relative overflow-hidden">
+        <div className="w-0.5 h-6 md:h-8 bg-cyan-400/50 relative overflow-hidden">
           <div className="absolute top-0 w-full h-1/2 bg-cyan-400 animate-bounce"></div>
         </div>
       </div>
