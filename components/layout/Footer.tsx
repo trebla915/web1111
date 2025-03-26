@@ -16,13 +16,18 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Left Column: Logo & Copyright */}
           <div className="flex flex-col items-center md:items-start space-y-4">
-            <div className="relative w-24 h-24">
-              <div className="text-3xl font-bold tracking-wider text-cyan-400 digital-glow-soft hover:digital-glow transition-all duration-300" style={{ fontFamily: 'Digital Dismay, sans-serif' }}>
-                11:11
-                <div className="text-sm font-normal tracking-widest text-white mt-2">
-                  CLUB & LOUNGE
-                </div>
-              </div>
+            <div className="relative w-32 h-32">
+              <Image
+                src="/1111logo.png"
+                alt="1111 Logo"
+                fill
+                className="object-contain"
+                priority
+                sizes="(max-width: 768px) 100px, 150px"
+              />
+            </div>
+            <div className="text-sm font-light tracking-widest text-white" style={{ fontFamily: 'Impact, sans-serif' }}>
+              Music is Timeless
             </div>
             <p className="text-sm text-neutral-400 text-center md:text-left tracking-wide">
               © 2025 11:11 CLUB. <span>ALL RIGHTS RESERVED.</span>
