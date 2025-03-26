@@ -90,9 +90,19 @@ export const fetchAllMixers = async (): Promise<Mixer[]> => {
 // Fetch all bottles for an event
 export const fetchAllBottlesForEvent = async (eventId: string): Promise<Bottle[]> => {
   try {
-    const response = await apiClient.get<Bottle[]>(API_ENDPOINTS.bottles.getByEvent(eventId));
+    console.log('Fetching bottles for event:', eventId);
+    const endpoint = API_ENDPOINTS.bottles.getByEvent(eventId);
+    console.log('Using endpoint:', endpoint);
+    
+    const response = await apiClient.get<Bottle[]>(endpoint);
+    console.log('Bottles response:', {
+      status: response.status,
+      count: response.data.length
+    });
+    
     return response.data;
   } catch (error) {
+    console.error('Error in fetchAllBottlesForEvent:', error);
     handleApiError(error, 'fetchAllBottlesForEvent');
     return [];
   }

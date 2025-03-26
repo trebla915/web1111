@@ -14,12 +14,22 @@ apiClient.interceptors.request.use(
   (config) => {
     // Get auth token from cookie
     const token = Cookies.get('authToken');
+    console.log('API Request:', {
+      url: config.url,
+      method: config.method,
+      hasToken: !!token,
+      tokenLength: token?.length
+    });
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      console.warn('No auth token found in cookies');
     }
     return config;
   },
   (error) => {
+    console.error('Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
@@ -29,7 +39,14 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     // Handle errors here
-    console.error('API Error:', error.response?.data || error.message);
+    console.error('API Error:', {
+      url: error.config?.url,
+      method: error.config?.method,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      headers: error.config?.headers
+    });
     return Promise.reject(error);
   }
 );
@@ -37,6 +54,10 @@ apiClient.interceptors.response.use(
 // Helper function to handle API errors
 export const handleApiError = (error: any, context: string) => {
   const errorMessage = error.response?.data?.message || error.message || 'An unknown error occurred';
-  console.error(`[${context}] Error:`, errorMessage);
+  console.error(`[${context}] Error:`, {
+    message: errorMessage,
+    status: error.response?.status,
+    data: error.response?.data
+  });
   throw new Error(errorMessage);
 }; 

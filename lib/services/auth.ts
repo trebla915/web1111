@@ -63,7 +63,18 @@ export const loginUser = async (email: string, password: string): Promise<User> 
     
     // Get token and store in cookie
     const token = await getIdToken(userCredential.user, true);
-    Cookies.set('authToken', token, { expires: 7 }); // 7 days expiry
+    console.log('Setting auth token:', {
+      tokenLength: token.length,
+      uid: user.uid,
+      role: user.role
+    });
+    
+    Cookies.set('authToken', token, { 
+      expires: 7, // 7 days expiry
+      path: '/', // Make sure cookie is available across all paths
+      secure: true, // Only send over HTTPS
+      sameSite: 'lax' // Allow cross-site requests
+    });
     
     // Also store the user's role and basic info in a separate cookie for the middleware
     const userInfo = {
@@ -71,10 +82,16 @@ export const loginUser = async (email: string, password: string): Promise<User> 
       email: user.email,
       role: user.role,
     };
-    Cookies.set('userInfo', JSON.stringify(userInfo), { expires: 7 });
+    Cookies.set('userInfo', JSON.stringify(userInfo), { 
+      expires: 7,
+      path: '/',
+      secure: true,
+      sameSite: 'lax'
+    });
     
     return user;
   } catch (error: any) {
+    console.error('Login error:', error);
     throw new Error(error.message);
   }
 };
