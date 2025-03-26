@@ -192,6 +192,29 @@ export default function Header() {
                 menuOpen ? "flex absolute top-full left-0 right-0 bg-black/95 border-t border-white/10 shadow-xl" : "hidden md:flex"
               } w-full md:w-auto flex-col md:flex-row md:items-center md:justify-center space-y-1 md:space-y-0 p-4 md:p-0 md:absolute md:left-1/2 md:-translate-x-1/2 md:bg-black/80 md:backdrop-blur-sm md:rounded-full md:px-4 md:py-1.5 md:border md:border-white/10 md:shadow-lg`}
             >
+              {/* Mobile menu items */}
+              <div className="flex md:hidden flex-col space-y-2">
+                <NavLink href="/" sectionId="">
+                  HOME
+                </NavLink>
+                <NavLink href="/" sectionId="events">
+                  EVENTS
+                </NavLink>
+                <NavLink href="/" sectionId="venue">
+                  VENUE
+                </NavLink>
+                <NavLink href="/" sectionId="faq">
+                  RULES
+                </NavLink>
+                <NavLink href="/" sectionId="contact">
+                  CONTACT
+                </NavLink>
+                <NavLink href="/" sectionId="location">
+                  FIND US
+                </NavLink>
+              </div>
+
+              {/* Desktop menu items */}
               <div className="hidden md:flex items-center">
                 <div className="flex items-center space-x-1 bg-white/5 rounded-full px-2 py-1">
                   <NavLink href="/" sectionId="">
