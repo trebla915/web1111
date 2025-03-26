@@ -49,6 +49,8 @@ export default function PaymentPage() {
               eventName: reservationDetails?.eventName ?? '',
               tableId: reservationDetails?.tableId ?? '',
               tableNumber: reservationDetails?.tableNumber ?? 0,
+              tablePrice: reservationDetails?.tablePrice ?? 0,
+              capacity: reservationDetails?.capacity ?? 1,
               guestCount: reservationDetails?.guestCount ?? 1,
               bottles: reservationDetails?.bottles ?? [],
               mixers: reservationDetails?.mixers ?? [],
@@ -171,7 +173,14 @@ export default function PaymentPage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-zinc-400">Date:</span>
-                <span className="text-white">{reservationDetails.eventDate}</span>
+                <span className="text-white">
+                  {new Date(reservationDetails.eventDate).toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-zinc-400">Table:</span>
@@ -181,33 +190,50 @@ export default function PaymentPage() {
                 <span className="text-zinc-400">Guests:</span>
                 <span className="text-white">{reservationDetails.guestCount}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-400">Bottles:</span>
-                <span className="text-white">{reservationDetails.bottles?.length || 0}</span>
-              </div>
             </div>
           </div>
           
           {/* Cost Breakdown */}
           <div className="p-6 border-b border-cyan-900/30">
             <h2 className="text-xl font-bold text-white mb-4">Cost Breakdown</h2>
-            <div className="space-y-2">
+            <div className="space-y-4">
+              {/* Table Price */}
               <div className="flex justify-between">
                 <span className="text-zinc-400">Table Price:</span>
                 <span className="text-white">${costBreakdown.tablePrice.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-400">Bottles:</span>
-                <span className="text-white">${costBreakdown.bottlesCost.toFixed(2)}</span>
-              </div>
+
+              {/* Bottles Breakdown */}
+              {reservationDetails.bottles && reservationDetails.bottles.length > 0 && (
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-zinc-400">Bottles:</span>
+                    <span className="text-white">${costBreakdown.bottlesCost.toFixed(2)}</span>
+                  </div>
+                  <div className="ml-4 space-y-1">
+                    {reservationDetails.bottles.map((bottle) => (
+                      <div key={bottle.id} className="flex justify-between text-sm">
+                        <span className="text-zinc-500">{bottle.name}</span>
+                        <span className="text-zinc-400">${bottle.price.toFixed(2)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Mixers */}
               <div className="flex justify-between">
                 <span className="text-zinc-400">Mixers:</span>
                 <span className="text-white">${costBreakdown.mixersCost.toFixed(2)}</span>
               </div>
+
+              {/* Service Fee */}
               <div className="flex justify-between">
                 <span className="text-zinc-400">Service Fee:</span>
                 <span className="text-white">${costBreakdown.serviceFee.toFixed(2)}</span>
               </div>
+
+              {/* Total */}
               <div className="border-t border-zinc-700 pt-2 mt-2 flex justify-between font-bold">
                 <span className="text-white">Total:</span>
                 <span className="text-cyan-400">${costBreakdown.total.toFixed(2)}</span>

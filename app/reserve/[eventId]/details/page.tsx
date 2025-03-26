@@ -84,23 +84,24 @@ export default function ReservationDetailsPage() {
     router.push(`/reserve/${eventId}/payment`);
   };
 
-  // Format date to MM-DD-YY
+  // Format date to a more readable format
   const formatDate = (dateStr: string): string => {
     try {
       const date = new Date(dateStr);
       if (isNaN(date.getTime())) return 'Invalid date';
       
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const year = String(date.getFullYear()).slice(2);
-      
-      return `${month}-${day}-${year}`;
+      return date.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
     } catch {
       return 'Invalid date';
     }
   };
   
-  if (loading) {
+  if (loading || !reservationDetails) {
     return (
       <div className="min-h-screen pt-28 pb-12 flex flex-col items-center">
         <div className="w-full max-w-2xl mx-auto px-4">
