@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { FiRefreshCw, FiCookie } from 'react-icons/fi';
+import { FiCookie } from 'react-icons/fi';
+import { FiRefreshCw } from 'react-icons/fi';
 
 export default function CookiesSection() {
   const [cookies, setCookies] = useState<Record<string, string>>({});
