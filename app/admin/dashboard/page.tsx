@@ -18,6 +18,7 @@ export default function AdminDashboardPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("Dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
 
   useEffect(() => {
     // Redirect if not authenticated or not an admin/promoter
@@ -102,7 +103,7 @@ export default function AdminDashboardPage() {
       case "AddBottleToCatalog":
         return <AddBottleToCatalogTab />;
       case "AddBottlesToEvent":
-        return <AddBottlesToEventTab />;
+        return <AddBottlesToEventTab eventId={selectedEventId} />;
       case "PushNotifications":
         return <PushNotificationsTab />;
       default:
