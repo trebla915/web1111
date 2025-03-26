@@ -1,11 +1,40 @@
-module.exports = {
-  root: true,
-  extends: ['next/core-web-vitals'],
-  rules: {
-    '@typescript-eslint/no-unused-vars': 'off',
-    '@typescript-eslint/no-explicit-any': 'off',
-    'react-hooks/exhaustive-deps': 'off',
-    'react/no-unescaped-entities': 'off',
-    '@typescript-eslint/ban-ts-comment': 'off'
-  }
-} 
+import nextPlugin from '@next/eslint-plugin-next';
+import tsPlugin from '@typescript-eslint/eslint-plugin';
+import tsParser from '@typescript-eslint/parser';
+
+export default [
+  {
+    // Apply to all files
+    ignores: ['node_modules/**', '.next/**', 'out/**'],
+  },
+  {
+    // JavaScript files
+    files: ['**/*.js', '**/*.jsx'],
+    plugins: {
+      next: nextPlugin,
+    },
+    rules: {
+      // Your JavaScript-specific rules
+      'next/core-web-vitals': 'error',
+    },
+  },
+  {
+    // TypeScript files
+    files: ['**/*.ts', '**/*.tsx'],
+    plugins: {
+      '@typescript-eslint': tsPlugin,
+      next: nextPlugin,
+    },
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        project: './tsconfig.json',
+      },
+    },
+    rules: {
+      // Your TypeScript-specific rules
+      'next/core-web-vitals': 'error',
+      // Add any other TypeScript-specific rules
+    },
+  },
+]; 
