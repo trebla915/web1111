@@ -28,24 +28,24 @@ export default function AppDownloadPopup() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
-          className="fixed bottom-4 right-4 z-[1000] bg-black/90 backdrop-blur-sm border border-white/20 rounded-lg p-4 max-w-sm shadow-lg"
+          className="fixed bottom-0 left-0 right-0 sm:bottom-4 sm:left-auto sm:right-4 z-[1000] bg-black/95 backdrop-blur-sm border-t sm:border border-white/20 sm:rounded-lg p-4 w-full sm:w-auto sm:max-w-sm shadow-lg"
         >
-          <div className="flex justify-between items-start mb-4">
-            <h3 className="text-xl font-bold text-white">Download the 11:11 App</h3>
+          <div className="flex justify-between items-start mb-3">
+            <h3 className="text-lg sm:text-xl font-bold text-white">Download the 11:11 App</h3>
             <button
               onClick={handleClose}
-              className="text-white/60 hover:text-white transition-colors"
+              className="text-white/60 hover:text-white transition-colors p-1"
               aria-label="Close popup"
             >
-              <FiX size={24} />
+              <FiX size={20} />
             </button>
           </div>
           
-          <p className="text-white/80 mb-4">
+          <p className="text-sm sm:text-base text-white/80 mb-4">
             Get exclusive access to events, make reservations, and stay updated with the latest happenings at 11:11.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <a
               href="https://apps.apple.com/us/app/11-11-eptx/id6739264535"
               target="_blank"
@@ -58,6 +58,7 @@ export default function AppDownloadPopup() {
                 width={120}
                 height={40}
                 className="w-full h-auto"
+                priority
               />
             </a>
             <a
@@ -72,6 +73,7 @@ export default function AppDownloadPopup() {
                 width={120}
                 height={40}
                 className="w-full h-auto"
+                priority
               />
             </a>
           </div>
