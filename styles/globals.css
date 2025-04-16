@@ -13,6 +13,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Rubik+Glitch&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Monoton&display=swap');
 
+/* Digital-7 Font */
+@font-face {
+  font-family: 'Digital-7';
+  src: url('/fonts/digital-7.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Digital Dismay Font for 11:11 Hero */
 @font-face {
   font-family: 'Digital Dismay';
