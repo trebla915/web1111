@@ -145,7 +145,7 @@ export default function AdminDashboardPage() {
   return (
     <div className="min-h-screen bg-black text-white flex flex-col md:flex-row">
       {/* Mobile Header with Menu Toggle */}
-      <div className="md:hidden flex items-center justify-between p-4 border-b border-cyan-900/30 bg-zinc-950">
+      <div className="md:hidden flex items-center justify-between p-4 border-b border-cyan-900/30 bg-zinc-950 fixed top-0 left-0 right-0 z-50">
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className="p-2 rounded-full bg-zinc-900 border border-cyan-700/40"
@@ -165,6 +165,7 @@ export default function AdminDashboardPage() {
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
         md:translate-x-0 fixed md:relative z-40 md:z-auto transition-transform duration-300 
         w-72 min-h-screen border-r border-cyan-900/30 bg-zinc-950 backdrop-blur-lg overflow-y-auto
+        ${sidebarOpen ? 'block' : 'hidden'} md:block
       `}>
         {/* Sidebar Header - Logo */}
         <div className="hidden md:flex items-center justify-center py-7 px-4 border-b border-cyan-900/30">
@@ -237,7 +238,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Main Content */}
-      <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'md:ml-0' : 'md:ml-0'}`}>
+      <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'md:ml-0' : 'md:ml-0'} pt-16 md:pt-0`}>
         {/* Overlay for mobile when sidebar is open */}
         {sidebarOpen && (
           <div 
