@@ -11,30 +11,30 @@ import { Toaster } from "react-hot-toast";
 import "../styles/globals.css";
 
 export const metadata: Metadata = {
-  title: "11:11 EPTX | Premium Nightclub Experience in El Paso",
-  description: "Experience the best nightlife at 11:11 EPTX, featuring world-class DJs, VIP bottle service, and unforgettable events in El Paso, Texas.",
+  title: "11:11 | El Paso Texas Music and Concert Venue",
+  description: "Experience the best live music and events at 11:11, El Paso's premier music and concert venue featuring world-class performances and unforgettable experiences.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://www.1111eptx.com"),
-  keywords: "nightclub, El Paso, 11:11, EPTX, bottle service, events, VIP, DJ, music, nightlife, club",
+  keywords: "music venue, El Paso, 11:11, EPTX, concerts, events, live music, venue, Texas",
   openGraph: {
     type: "website",
     locale: "en_US",
     url: "https://www.1111eptx.com",
-    siteName: "11:11 EPTX",
-    title: "11:11 EPTX | Premium Nightclub Experience",
-    description: "Experience the best nightlife at 11:11 EPTX, featuring world-class DJs, VIP bottle service, and unforgettable events in El Paso, Texas.",
+    siteName: "11:11",
+    title: "11:11 | El Paso Texas Music and Concert Venue",
+    description: "Experience the best live music and events at 11:11, El Paso's premier music and concert venue featuring world-class performances and unforgettable experiences.",
     images: [
       {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "11:11 EPTX Nightclub"
+        alt: "11:11 Music Venue"
       }
     ]
   },
   twitter: {
     card: "summary_large_image",
-    title: "11:11 EPTX | Premium Nightclub Experience",
-    description: "Experience the best nightlife at 11:11 EPTX, featuring world-class DJs, VIP bottle service, and unforgettable events in El Paso, Texas.",
+    title: "11:11 | El Paso Texas Music and Concert Venue",
+    description: "Experience the best live music and events at 11:11, El Paso's premier music and concert venue featuring world-class performances and unforgettable experiences.",
     images: ["/og-image.jpg"],
     creator: "@1111eptx"
   },

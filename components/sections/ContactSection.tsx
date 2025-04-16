@@ -31,7 +31,7 @@ export default function ContactSection() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
           <div className="space-y-6">
             <div className="border border-white/20 p-6 bg-black">
-              <h3 className="text-2xl font-bold mb-6 text-white" style={{ fontFamily: 'Impact, sans-serif' }}>CLUB INFORMATION</h3>
+              <h3 className="text-2xl font-bold mb-6 text-white" style={{ fontFamily: 'Impact, sans-serif' }}>VENUE INFORMATION</h3>
               
               <div className="space-y-4">
                 <div className="flex items-start">

@@ -1,7 +1,7 @@
 {
-  "name": "11:11 EPTX",
+  "name": "11:11",
   "short_name": "11:11",
-  "description": "Premium nightclub experience in El Paso, Texas",
+  "description": "El Paso's premier music and concert venue",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",

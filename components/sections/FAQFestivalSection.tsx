@@ -11,7 +11,7 @@ interface FAQFestivalSectionProps {
 }
 
 export default function FAQFestivalSection({
-  title = "CLUB RULES",
+  title = "VENUE RULES",
   className = "",
   showYear = false,
   id = "faq"

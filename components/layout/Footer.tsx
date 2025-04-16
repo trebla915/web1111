@@ -30,7 +30,7 @@ export default function Footer() {
               Music is Timeless
             </div>
             <p className="text-sm text-neutral-400 text-center md:text-left tracking-wide">
-              © 2025 11:11 CLUB. <span>ALL RIGHTS RESERVED.</span>
+              © 2025 11:11. <span>ALL RIGHTS RESERVED.</span>
             </p>
           </div>
 

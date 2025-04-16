@@ -32,7 +32,7 @@ export default function VenueSection() {
           <div className="relative h-80 md:h-auto overflow-hidden rounded-lg border border-white/20">
             <Image 
               src="/images/venue.jpg" 
-              alt="Club 11:11 Venue" 
+              alt="11:11 Venue" 
               fill
               className="object-cover"
             />
