@@ -9,6 +9,7 @@ import StripeProvider from "@/components/providers/StripeProvider";
 import { ReservationProvider } from "@/components/providers/ReservationProvider";
 import { Toaster } from "react-hot-toast";
 import "../styles/globals.css";
+import AppDownloadPopup from "@/components/layout/AppDownloadPopup";
 
 export const metadata: Metadata = {
   title: "11:11 | El Paso Texas Music and Concert Venue",
@@ -78,6 +79,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 <main className="flex-1">{children}</main>
                 <Footer />
                 <CookieConsent />
+                <AppDownloadPopup />
               </ClientWrapper>
             </ReservationProvider>
           </StripeProvider>
