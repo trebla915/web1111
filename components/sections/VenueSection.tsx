@@ -72,8 +72,7 @@ export default function VenueSection() {
             
             <div className="border border-white/20 p-6 bg-black">
               <h3 className="text-2xl font-bold mb-2 text-white" style={{ fontFamily: 'Impact, sans-serif' }}>OPENING HOURS</h3>
-              <p className="text-white mb-4">THURSDAY - SATURDAY: 8PM -2AM </p>
-              <p className="text-white">SPECIAL EVENTS: CHECK SCHEDULE</p>
+              <p className="text-white">SPECIAL EVENTS: CHECK SCHEDULE ON FLYER</p>
             </div>
           </div>
         </div>

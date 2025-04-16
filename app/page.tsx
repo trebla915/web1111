@@ -33,14 +33,7 @@ export default function Home() {
       },
       "telephone": "(212) 555-1111",
       "email": "INFO@1111EPTX.COM",
-      "openingHoursSpecification": [
-        {
-          "@type": "OpeningHoursSpecification",
-          "dayOfWeek": ["Thursday", "Friday", "Saturday"],
-          "opens": "22:00",
-          "closes": "04:00"
-        }
-      ],
+      "openingHoursSpecification": [],
       "priceRange": "$$",
       "paymentAccepted": "Cash, Credit Card",
       "servesCuisine": "Cocktails, Drinks"
