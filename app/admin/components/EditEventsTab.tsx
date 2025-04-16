@@ -40,9 +40,9 @@ export default function EditEventsTab() {
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     if (query.trim() === '') {
-      setFilteredEvents(events);
+      setFilteredEvents(events || []);
     } else {
-      const filtered = events.filter((event) =>
+      const filtered = (events || []).filter((event) =>
         event.title.toLowerCase().includes(query.toLowerCase())
       );
       setFilteredEvents(filtered);
