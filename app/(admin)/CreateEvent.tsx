@@ -20,6 +20,9 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { uploadImageToStorage } from '../../src/utils/uploadImageToStorage';
 import CustomButton from '../../src/components/CustomButton';
 import { createEvent } from '../../src/utils/events';
+import { useRouter } from "expo-router";
+import * as Updates from "expo-updates";
+import Constants from "expo-constants";
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -109,9 +112,47 @@ const CreateEvent: React.FC = () => {
     }
   };
 
+  const checkForUpdates = async () => {
+    try {
+      console.log('Manual update check initiated');
+      console.log('Current runtime version:', Constants.expoConfig?.runtimeVersion);
+      const update = await Updates.checkForUpdateAsync();
+      console.log('Update check result:', JSON.stringify(update, null, 2));
+      
+      if (update.isAvailable) {
+        console.log('Update available, downloading...');
+        await Updates.fetchUpdateAsync();
+        console.log('Update downloaded successfully');
+        Alert.alert(
+          "Update Downloaded",
+          "The app will restart to apply the update.",
+          [
+            {
+              text: "OK",
+              onPress: async () => {
+                await Updates.reloadAsync();
+              },
+            },
+          ]
+        );
+      } else {
+        Alert.alert("No Updates", "Your app is up to date!");
+      }
+    } catch (error) {
+      console.error('Error checking for updates:', error);
+      Alert.alert("Error", "Failed to check for updates. Please try again later.");
+    }
+  };
+
   return (
     <KeyboardAvoidingView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.header}>
+          <Text variant="headlineMedium">Create New Event</Text>
+          <TouchableOpacity onPress={checkForUpdates} style={styles.updateButton}>
+            <Text style={styles.updateButtonText}>Check for Updates</Text>
+          </TouchableOpacity>
+        </View>
         {/* Event Name */}
         <Text style={styles.label}>Event Name *</Text>
         <NativeTextInput
@@ -259,6 +300,21 @@ const styles = StyleSheet.create({
   switchLabel: {
     color: '#fff',
     fontSize: 16,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  updateButton: {
+    backgroundColor: '#007AFF',
+    padding: 8,
+    borderRadius: 5,
+  },
+  updateButtonText: {
+    color: 'white',
+    fontSize: 12,
   },
 });
 

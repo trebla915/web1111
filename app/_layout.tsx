@@ -72,6 +72,7 @@ const AppContent: React.FC = () => {
     const checkForUpdates = async () => {
       try {
         console.log('Checking for updates...');
+        console.log('Current runtime version:', Constants.expoConfig?.runtimeVersion);
         const update = await Updates.checkForUpdateAsync();
         console.log('Update check result:', JSON.stringify(update, null, 2));
         
@@ -80,20 +81,11 @@ const AppContent: React.FC = () => {
           await Updates.fetchUpdateAsync();
           console.log('Update downloaded successfully');
           
-          Alert.alert(
-            "Update Available",
-            "A new update has been downloaded. Restart the app to apply the changes.",
-            [
-              { text: "Later", style: "cancel" },
-              {
-                text: "Restart",
-                onPress: async () => {
-                  console.log('User initiated app restart');
-                  await Updates.reloadAsync();
-                },
-              },
-            ]
-          );
+          // Force reload after 2 seconds to ensure the update is applied
+          setTimeout(async () => {
+            console.log('Forcing app reload to apply update');
+            await Updates.reloadAsync();
+          }, 2000);
         } else {
           console.log('No updates available');
         }
