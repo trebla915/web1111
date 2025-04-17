@@ -22,9 +22,8 @@ function formatToMMDDYYYY(dateStr: string): string {
   try {
     if (!dateStr) return 'Date TBA';
     
-    const utcDate = new Date(dateStr);
-    return utcDate.toLocaleString('en-US', {
-      timeZone: 'America/Denver',
+    const date = new Date(dateStr);
+    return date.toLocaleString('en-US', {
       year: 'numeric',
       month: 'numeric',
       day: 'numeric'
@@ -39,9 +38,8 @@ function formatDateWithTime(dateStr: string): string {
   try {
     if (!dateStr) return 'Date TBA';
     
-    const utcDate = new Date(dateStr);
-    return utcDate.toLocaleString('en-US', {
-      timeZone: 'America/Denver',
+    const date = new Date(dateStr);
+    return date.toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
@@ -59,9 +57,8 @@ function getDayOfWeek(dateStr: string): string {
   try {
     if (!dateStr) return 'TBA';
     
-    const utcDate = new Date(dateStr);
-    return utcDate.toLocaleString('en-US', {
-      timeZone: 'America/Denver',
+    const date = new Date(dateStr);
+    return date.toLocaleString('en-US', {
       weekday: 'long'
     });
   } catch (error) {
@@ -75,22 +72,14 @@ function debugDateInfo(dateStr: string): string {
   if (!dateStr) return 'No date provided';
   
   try {
-    const utcDate = new Date(dateStr);
-    if (isNaN(utcDate.getTime())) return 'Invalid date';
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return 'Invalid date';
     
     return `
       Original string: ${dateStr}
-      UTC Date: ${utcDate.toUTCString()}
-      Local Date: ${utcDate.toString()}
-      Mountain Time: ${utcDate.toLocaleString('en-US', {
-        timeZone: 'America/Denver',
-        year: 'numeric',
-        month: 'numeric',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: 'numeric',
-        second: 'numeric'
-      })}
+      Date: ${date.toString()}
+      ISO String: ${date.toISOString()}
+      Local String: ${date.toLocaleString()}
     `;
   } catch (error) {
     return `Error: ${error}`;

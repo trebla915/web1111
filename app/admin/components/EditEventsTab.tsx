@@ -125,8 +125,7 @@ export default function EditEventsTab() {
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric',
-      timeZone: 'America/Denver'
+      day: 'numeric'
     });
   };
 
