@@ -5,22 +5,23 @@
  */
 export function formatToMMDDYYYY(dateStr: string): string {
   try {
-    const date = new Date(dateStr);
+    // Create date in UTC
+    const utcDate = new Date(dateStr);
     
     // Check if date is valid
-    if (isNaN(date.getTime())) {
+    if (isNaN(utcDate.getTime())) {
       return 'Invalid date';
     }
     
-    // Format using Mountain Time Zone
-    const formatter = new Intl.DateTimeFormat('en-US', {
-      month: 'numeric',
-      day: 'numeric',
+    // Convert to Mountain Time
+    const options = {
+      timeZone: 'America/Denver',
       year: 'numeric',
-      timeZone: 'America/Denver' // Mountain Time Zone
-    });
+      month: 'numeric',
+      day: 'numeric'
+    };
     
-    return formatter.format(date);
+    return new Intl.DateTimeFormat('en-US', options).format(utcDate);
   } catch (error) {
     console.error('Error formatting date:', error);
     return 'Invalid date';
@@ -34,10 +35,11 @@ export function formatToMMDDYYYY(dateStr: string): string {
  */
 export function formatDateWithTime(dateStr: string): string {
   try {
-    const date = new Date(dateStr);
+    // Create date in UTC
+    const utcDate = new Date(dateStr);
     
     // Check if date is valid
-    if (isNaN(date.getTime())) {
+    if (isNaN(utcDate.getTime())) {
       return 'Invalid date';
     }
     
@@ -49,10 +51,10 @@ export function formatDateWithTime(dateStr: string): string {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
-      timeZone: 'America/Denver' // Mountain Time Zone
+      timeZone: 'America/Denver'
     };
     
-    return new Intl.DateTimeFormat('en-US', options).format(date);
+    return new Intl.DateTimeFormat('en-US', options).format(utcDate);
   } catch (error) {
     console.error('Error formatting date with time:', error);
     return 'Invalid date';
@@ -66,20 +68,21 @@ export function formatDateWithTime(dateStr: string): string {
  */
 export function getDayOfWeek(dateStr: string): string {
   try {
-    const date = new Date(dateStr);
+    // Create date in UTC
+    const utcDate = new Date(dateStr);
     
     // Check if date is valid
-    if (isNaN(date.getTime())) {
+    if (isNaN(utcDate.getTime())) {
       return 'Invalid date';
     }
     
     // Format using Mountain Time Zone
     const options: Intl.DateTimeFormatOptions = {
       weekday: 'long',
-      timeZone: 'America/Denver' // Mountain Time Zone
+      timeZone: 'America/Denver'
     };
     
-    return new Intl.DateTimeFormat('en-US', options).format(date);
+    return new Intl.DateTimeFormat('en-US', options).format(utcDate);
   } catch (error) {
     console.error('Error getting day of week:', error);
     return 'Invalid date';
@@ -93,15 +96,15 @@ export function getDayOfWeek(dateStr: string): string {
  */
 export function isDateInFuture(dateStr: string): boolean {
   try {
-    const date = new Date(dateStr);
+    const utcDate = new Date(dateStr);
     const now = new Date();
     
     // Check if date is valid
-    if (isNaN(date.getTime())) {
+    if (isNaN(utcDate.getTime())) {
       return false;
     }
     
-    return date > now;
+    return utcDate > now;
   } catch (error) {
     console.error('Error checking if date is in future:', error);
     return false;

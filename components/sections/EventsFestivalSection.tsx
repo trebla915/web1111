@@ -54,7 +54,7 @@ export default function EventsFestivalSection({
 
   // Helper for adjusting dates to correct timezone issues
   const adjustDateForTimezone = (dateStr: string): Date => {
-    const originalDate = new Date(dateStr);
+    const utcDate = new Date(dateStr);
     const options = {
       timeZone: 'America/Denver',
       year: 'numeric',
@@ -65,7 +65,7 @@ export default function EventsFestivalSection({
       second: 'numeric'
     };
     
-    const mountainTimeStr = originalDate.toLocaleString('en-US', options);
+    const mountainTimeStr = utcDate.toLocaleString('en-US', options);
     return new Date(mountainTimeStr);
   };
 
