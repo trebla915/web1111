@@ -2,7 +2,7 @@ export default ({ config }) => ({
   expo: {
     name: "11:11 EPTX",
     slug: "club1111",
-    version: "1.0.4",
+    version: "1.0.3",
     orientation: "portrait",
     icon: "./src/assets/images/icon.png",
     scheme: "club1111",
