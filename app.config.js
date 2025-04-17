@@ -2,7 +2,7 @@ export default ({ config }) => ({
   expo: {
     name: "11:11 EPTX",
     slug: "club1111",
-    version: "1.0.4",
+    version: "1.0.5",
     orientation: "portrait",
     icon: "./src/assets/images/icon.png", // App icon
     scheme: "club1111",
@@ -13,7 +13,7 @@ export default ({ config }) => ({
       branch: "production",
       fallbackToCacheTimeout: 0,
     },
-    runtimeVersion: "1.0.4",
+    runtimeVersion: "1.0.5",
     platforms: ["ios", "android", "web"], // Add web to the platforms array
     ios: {
       supportsTablet: true,
