@@ -13,8 +13,8 @@ import { formatToMMDDYYYY } from '@/lib/utils/dateFormatter';
       setSelectedEventId(eventId);
       setEventTitle(selectedEvent.title || '');
       
-      // Use the standardized date formatter
-      setEventDate(selectedEvent.date ? formatToMMDDYYYY(selectedEvent.date) : '');
+      // Use the raw date from Firebase
+      setEventDate(selectedEvent.date || '');
       
       setTicketLink(selectedEvent.ticketLink || '');
       setReservationsEnabled(selectedEvent.reservationsEnabled ?? true);
@@ -29,28 +29,9 @@ import { formatToMMDDYYYY } from '@/lib/utils/dateFormatter';
 
     setLoading(true);
     try {
-      // Parse the input date string and convert to Mountain Time
-      let mtDate = null;
-      if (eventDate) {
-        const [month, day, year] = eventDate.split('/');
-        const dateObj = new Date(+year, +month - 1, +day);
-        mtDate = new Date(dateObj.toLocaleString('en-US', {
-          timeZone: 'America/Denver',
-          year: 'numeric',
-          month: 'numeric',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-          hour12: false
-        }));
-        // Set to noon Mountain Time
-        mtDate.setHours(12, 0, 0, 0);
-      }
-
       const updatedEvent = {
         title: eventTitle,
-        date: mtDate ? mtDate.toISOString() : '',
+        date: eventDate, // Use the raw date
         ticketLink,
         reservationsEnabled,
       };

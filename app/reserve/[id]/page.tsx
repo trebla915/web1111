@@ -125,7 +125,7 @@ export default function TableSelectionPage() {
       mixers: [],
       reservationTime: new Date().toISOString(),
       createdAt: new Date().toISOString(),
-      eventDate: eventDetails?.date ? formatToMMDDYYYY(eventDetails.date) : new Date().toLocaleDateString()
+      eventDate: eventDetails?.date || new Date().toISOString()
     });
     
     router.push(`/reserve/${eventId}/details`);

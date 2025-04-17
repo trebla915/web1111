@@ -77,14 +77,9 @@ export default function EventsFestivalSection({
   const getEventMonth = (dateStr: string): string => {
     try {
       if (!dateStr) return 'TBA';
-      
       const date = new Date(dateStr);
       if (isNaN(date.getTime())) return 'TBA';
-      
-      return date.toLocaleString('en-US', {
-        timeZone: 'America/Denver',
-        month: 'short'
-      }).toUpperCase();
+      return date.toLocaleString('en-US', { month: 'short' }).toUpperCase();
     } catch {
       return 'TBA';
     }
@@ -93,14 +88,9 @@ export default function EventsFestivalSection({
   const getEventDay = (dateStr: string): string => {
     try {
       if (!dateStr) return '--';
-      
       const date = new Date(dateStr);
       if (isNaN(date.getTime())) return '--';
-      
-      return date.toLocaleString('en-US', {
-        timeZone: 'America/Denver',
-        day: 'numeric'
-      });
+      return date.getDate().toString();
     } catch {
       return '--';
     }
