@@ -20,6 +20,7 @@ export default function CreateEventTab() {
   const [loading, setLoading] = useState(false);
   const [debugInfo, setDebugInfo] = useState<string | null>(null);
   const [envVarsChecked, setEnvVarsChecked] = useState(false);
+  const [reservationsEnabled, setReservationsEnabled] = useState(true);
 
   // Check environment variables on component mount
   useEffect(() => {
@@ -252,32 +253,32 @@ export default function CreateEventTab() {
         }
       }
 
-      // Create event without flyer or with uploaded flyer URL
       const eventData = {
         title: eventName.trim(),
-        date: selectedDate?.toISOString(),
+        date: selectedDate?.toISOString() || '',
         ticketLink: ticketLink.trim(),
         flyerUrl,
         createdBy: user.uid,
         createdAt: new Date().toISOString(),
+        reservationsEnabled
       };
 
-      const event = await createEvent(eventData);
-      console.log(`[handleCreateEvent] Event created successfully:`, event);
-      toast.success('Event created successfully!');
+      console.log('Creating event with data:', eventData);
+      await createEvent(eventData);
       
+      toast.success('Event created successfully!');
       // Reset form
       setEventName('');
+      setSelectedDate(null);
+      setTicketLink('');
       setFlyerFile(null);
       if (flyerPreview) {
         URL.revokeObjectURL(flyerPreview);
         setFlyerPreview(null);
       }
-      setTicketLink('');
-      setSelectedDate(null);
     } catch (error) {
       console.error('Error creating event:', error);
-      toast.error('Failed to create event');
+      toast.error('Failed to create event. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -426,6 +427,20 @@ export default function CreateEventTab() {
                 </div>
               </div>
             )}
+          </div>
+
+          <div className="flex items-center space-x-4">
+            <label className="text-white">Enable Reservations</label>
+            <div className="relative inline-block w-12 h-6">
+              <input
+                type="checkbox"
+                checked={reservationsEnabled}
+                onChange={(e) => setReservationsEnabled(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-12 h-6 bg-gray-600 rounded-full peer peer-checked:bg-blue-500 transition-colors duration-200"></div>
+              <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 peer-checked:translate-x-6"></div>
+            </div>
           </div>
         </div>
 

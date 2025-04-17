@@ -8,4 +8,5 @@ export interface Event {
   createdBy: string;
   createdAt: string;
   updatedAt?: string;
+  reservationsEnabled?: boolean;
 } 

@@ -231,7 +231,7 @@ export default function EventDetails({ event }: EventDetailsProps) {
           <div className="flex flex-col md:flex-row">
             {/* Event image */}
             <div className="w-full md:w-2/5 relative">
-              <div className="aspect-square w-full cursor-pointer" onClick={() => setShowFullImage(true)}>
+              <div className="aspect-square w-full cursor-pointer pt-2 p-1 md:p-2" onClick={() => setShowFullImage(true)}>
                 <Image
                   src={event.flyerUrl || 'https://via.placeholder.com/800x800?text=Event+Flyer'}
                   alt={event.title}
@@ -396,9 +396,9 @@ export default function EventDetails({ event }: EventDetailsProps) {
       </div>
       
       {/* Mobile-only sticky action bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-md border-t border-white/20 flex items-center justify-between py-2 px-4 z-50 safe-area-bottom">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-md border-t border-white/20 flex items-center justify-between py-4 px-4 z-50 safe-area-bottom">
         <div className="flex items-start flex-col">
-          <h3 className="text-white font-bold text-responsive-sm truncate max-w-[180px]">
+          <h3 className="text-white font-bold text-responsive-sm truncate max-w-[150px]">
             {event.title}
           </h3>
           <span className="text-white/60 text-responsive-xs">
@@ -419,13 +419,17 @@ export default function EventDetails({ event }: EventDetailsProps) {
             className="p-2 bg-white/10 hover:bg-white/20 rounded-full touch-target"
             aria-label="Share"
           >
-            <FiShare2 size={20} />
+            <FiShare2 size={18} />
           </button>
           <button
-            onClick={handleTablePress}
-            className="px-4 py-2 bg-white hover:bg-white/90 text-black rounded-full flex items-center touch-target"
+            onClick={() => handleTicketPress(event.ticketLink)}
+            className={`${event.ticketLink 
+              ? 'bg-white hover:bg-white/90' 
+              : 'bg-gray-800 cursor-not-allowed'} text-black px-2 py-1.5 rounded-full flex items-center touch-target`}
+            disabled={!event.ticketLink}
           >
-            <span className="font-bold">RESERVE</span>
+            <FiTag className="mr-1" size={14} />
+            <span className="font-bold text-xs whitespace-nowrap">BUY TICKETS</span>
           </button>
         </div>
       </div>

@@ -131,8 +131,9 @@ export default function PaymentPage() {
 
         const paymentReservationDetails = {
           userId: user.uid,
-          eventId: params.eventId as string,
-          tableId: reservationDetails.tableId
+          eventId: params.id as string,
+          tableId: reservationDetails.tableId,
+          reservationId: reservationDetails.reservationId || params.id
         };
 
         const { clientSecret } = await PaymentService.createPaymentIntent(
@@ -150,7 +151,7 @@ export default function PaymentPage() {
     };
 
     initializePayment();
-  }, [reservationDetails, user, params.eventId]);
+  }, [reservationDetails, user, params.id]);
 
   const calculateTotal = () => {
     if (!reservationDetails) return 0;
@@ -177,7 +178,7 @@ export default function PaymentPage() {
 
       // Create the reservation
       const reservation = await createReservation({
-        eventId: params.eventId as string,
+        eventId: params.id as string,
         eventName: reservationDetails.eventName,
         tableId: reservationDetails.tableId,
         tableNumber: reservationDetails.tableNumber,
@@ -196,7 +197,7 @@ export default function PaymentPage() {
 
       // Clear reservation details and redirect to confirmation
       clearReservationDetails();
-      router.push(`/reserve/${params.eventId}/confirmation`);
+      router.push(`/reserve/${params.id}/confirmation`);
     } catch (err) {
       console.error('Error creating reservation:', err);
       toast.error('Failed to create reservation');
@@ -213,7 +214,7 @@ export default function PaymentPage() {
               <h2 className="text-xl font-semibold text-white mb-2">No Reservation Details</h2>
               <p className="text-zinc-400 mb-4">Please start the reservation process again.</p>
               <button
-                onClick={() => router.push(`/reserve/${params.eventId}`)}
+                onClick={() => router.push(`/reserve/${params.id}`)}
                 className="px-4 py-2 bg-cyan-600 text-white rounded-md hover:bg-cyan-700 transition-colors"
               >
                 Start Over

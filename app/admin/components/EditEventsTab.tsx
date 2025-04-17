@@ -18,6 +18,7 @@ export default function EditEventsTab() {
   const [ticketLink, setTicketLink] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [reservationsEnabled, setReservationsEnabled] = useState(true);
 
   useEffect(() => {
     loadEvents();
@@ -56,6 +57,7 @@ export default function EditEventsTab() {
       setEventTitle(selectedEvent.title || '');
       setEventDate(selectedEvent.date ? selectedEvent.date.split('T')[0] : '');
       setTicketLink(selectedEvent.ticketLink || '');
+      setReservationsEnabled(selectedEvent.reservationsEnabled ?? true);
       setConfirmDelete(null); // Reset the confirm delete state
     }
   };
@@ -72,6 +74,7 @@ export default function EditEventsTab() {
         title: eventTitle,
         date: eventDate ? new Date(eventDate).toISOString() : undefined,
         ticketLink,
+        reservationsEnabled
       };
       await updateEvent(selectedEventId, updatedEvent);
       toast.success('Event updated successfully.');
@@ -104,6 +107,7 @@ export default function EditEventsTab() {
       setEventTitle('');
       setEventDate('');
       setTicketLink('');
+      setReservationsEnabled(true);
       setConfirmDelete(null);
       await loadEvents();
     } catch (error) {
@@ -283,6 +287,20 @@ export default function EditEventsTab() {
                           onChange={(e) => setTicketLink(e.target.value)}
                           placeholder="Enter Ticket Link"
                         />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-4">
+                      <label className="text-sm font-medium text-gray-300">Enable Reservations</label>
+                      <div className="relative inline-block w-12 h-6">
+                        <input
+                          type="checkbox"
+                          checked={reservationsEnabled}
+                          onChange={(e) => setReservationsEnabled(e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-12 h-6 bg-gray-600 rounded-full peer peer-checked:bg-blue-500 transition-colors duration-200"></div>
+                        <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 peer-checked:translate-x-6"></div>
                       </div>
                     </div>
 
