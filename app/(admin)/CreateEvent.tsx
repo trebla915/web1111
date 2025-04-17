@@ -115,7 +115,7 @@ const CreateEvent: React.FC = () => {
   const checkForUpdates = async () => {
     try {
       console.log('Manual update check initiated');
-      console.log('Current runtime version:', Constants.expoConfig?.runtimeVersion);
+      console.log('Current runtime version:', Updates.runtimeVersion);
       const update = await Updates.checkForUpdateAsync();
       console.log('Update check result:', JSON.stringify(update, null, 2));
       
@@ -125,7 +125,7 @@ const CreateEvent: React.FC = () => {
         console.log('Update downloaded successfully');
         Alert.alert(
           "Update Downloaded",
-          "The app will restart to apply the update.",
+          `Current version: ${Updates.runtimeVersion}\nThe app will restart to apply the update.`,
           [
             {
               text: "OK",
@@ -136,7 +136,7 @@ const CreateEvent: React.FC = () => {
           ]
         );
       } else {
-        Alert.alert("No Updates", "Your app is up to date!");
+        Alert.alert("No Updates", `Your app is up to date!\nCurrent version: ${Updates.runtimeVersion}`);
       }
     } catch (error) {
       console.error('Error checking for updates:', error);
@@ -148,7 +148,12 @@ const CreateEvent: React.FC = () => {
     <KeyboardAvoidingView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.header}>
-          <Text variant="headlineMedium">Create New Event</Text>
+          <View>
+            <Text variant="headlineMedium">Create New Event</Text>
+            <Text style={styles.versionText}>
+              App: {Constants.expoConfig?.version} | Runtime: {Constants.expoConfig?.runtimeVersion}
+            </Text>
+          </View>
           <TouchableOpacity onPress={checkForUpdates} style={styles.updateButton}>
             <Text style={styles.updateButtonText}>Check for Updates</Text>
           </TouchableOpacity>
@@ -315,6 +320,11 @@ const styles = StyleSheet.create({
   updateButtonText: {
     color: 'white',
     fontSize: 12,
+  },
+  versionText: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
   },
 });
 

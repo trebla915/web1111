@@ -71,26 +71,29 @@ const AppContent: React.FC = () => {
 
     const checkForUpdates = async () => {
       try {
-        console.log('Checking for updates...');
-        console.log('Current runtime version:', Constants.expoConfig?.runtimeVersion);
+        console.log('🔍 Checking for updates...');
+        console.log('📱 Current runtime version:', Updates.runtimeVersion);
+        console.log('📦 Update URL:', Constants.expoConfig?.updates?.url);
+        console.log('🌿 Branch:', Constants.expoConfig?.updates?.branch);
+        
         const update = await Updates.checkForUpdateAsync();
-        console.log('Update check result:', JSON.stringify(update, null, 2));
+        console.log('📊 Update check result:', JSON.stringify(update, null, 2));
         
         if (update.isAvailable) {
-          console.log('Update available, downloading...');
+          console.log('📥 Update available, downloading...');
           await Updates.fetchUpdateAsync();
-          console.log('Update downloaded successfully');
+          console.log('✅ Update downloaded successfully');
           
           // Force reload after 2 seconds to ensure the update is applied
           setTimeout(async () => {
-            console.log('Forcing app reload to apply update');
+            console.log('🔄 Forcing app reload to apply update');
             await Updates.reloadAsync();
           }, 2000);
         } else {
-          console.log('No updates available');
+          console.log('ℹ️ No updates available');
         }
       } catch (error) {
-        console.error('Error checking for updates:', error);
+        console.error('❌ Error checking for updates:', error);
       }
     };
 
@@ -143,6 +146,7 @@ export default function RootLayout() {
   // Add runtime version logging
   useEffect(() => {
     console.log("📦 ShellRuntime:", Updates.runtimeVersion);
+    console.log("📦 AppVersion:", Constants.expoConfig?.version);
   }, []);
 
   return (
