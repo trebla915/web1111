@@ -9,18 +9,60 @@ export function convertToMountainTime(dateStr: string): Date {
 }
 
 /**
- * Format date string to MM/DD/YYYY format
- * @param dateStr Date string in ISO format or any format that can be parsed by Date
- * @returns Formatted date string in MM/DD/YYYY format
+ * Format date string to display format without timezone conversion
+ * @param dateStr Date string in ISO format
+ * @returns Formatted date string
  */
-export function formatToMMDDYYYY(dateStr: string): string {
+export function formatDate(dateStr: string): string {
+  if (!dateStr) return 'Date TBA';
+  
   try {
-    if (!dateStr) return 'Date TBA';
-    
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) return 'Invalid date';
     
-    return date.toLocaleDateString('en-US', {
+    // Create a new date using UTC components to preserve the date
+    const utcDate = new Date(Date.UTC(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate(),
+      date.getUTCHours(),
+      date.getUTCMinutes()
+    ));
+    
+    return utcDate.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return 'Invalid date';
+  }
+}
+
+/**
+ * Format date string to MM/DD/YYYY format without timezone conversion
+ * @param dateStr Date string in ISO format
+ * @returns Formatted date string
+ */
+export function formatToMMDDYYYY(dateStr: string): string {
+  if (!dateStr) return 'Date TBA';
+  
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return 'Invalid date';
+    
+    // Create a new date using UTC components to preserve the date
+    const utcDate = new Date(Date.UTC(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate()
+    ));
+    
+    return utcDate.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'numeric',
       day: 'numeric'
@@ -32,44 +74,25 @@ export function formatToMMDDYYYY(dateStr: string): string {
 }
 
 /**
- * Format date string to display format with time
- * @param dateStr Date string in ISO format or any format that can be parsed by Date
- * @returns Formatted date string (e.g., "Jan 15, 2023 at 7:30 PM")
- */
-export function formatDateWithTime(dateStr: string): string {
-  try {
-    if (!dateStr) return 'Date TBA';
-    
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return 'Invalid date';
-    
-    return date.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
-  } catch (error) {
-    console.error('Error formatting date with time:', error);
-    return 'Invalid date';
-  }
-}
-
-/**
- * Get day of week from date string
- * @param dateStr Date string in ISO format or any format that can be parsed by Date
- * @returns Day of week (e.g., "Monday", "Tuesday", etc.)
+ * Get day of week from date string without timezone conversion
+ * @param dateStr Date string in ISO format
+ * @returns Day of week
  */
 export function getDayOfWeek(dateStr: string): string {
+  if (!dateStr) return 'TBA';
+  
   try {
-    if (!dateStr) return 'TBA';
-    
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) return 'Invalid date';
     
-    return date.toLocaleString('en-US', {
+    // Create a new date using UTC components to preserve the date
+    const utcDate = new Date(Date.UTC(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate()
+    ));
+    
+    return utcDate.toLocaleString('en-US', {
       weekday: 'long'
     });
   } catch (error) {
@@ -80,7 +103,7 @@ export function getDayOfWeek(dateStr: string): string {
 
 /**
  * Check if date is in the future
- * @param dateStr Date string in ISO format or any format that can be parsed by Date
+ * @param dateStr Date string in ISO format
  * @returns Boolean indicating if date is in the future
  */
 export function isDateInFuture(dateStr: string): boolean {
