@@ -19,17 +19,10 @@ export function formatDate(dateStr: string): string {
   try {
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) return 'Invalid date';
-    
-    // Create a new date using UTC components to preserve the date
-    const utcDate = new Date(Date.UTC(
-      date.getUTCFullYear(),
-      date.getUTCMonth(),
-      date.getUTCDate(),
-      date.getUTCHours(),
-      date.getUTCMinutes()
-    ));
-    
-    return utcDate.toLocaleString('en-US', {
+
+    // Keep the date in UTC
+    return new Date(dateStr).toLocaleString('en-US', {
+      timeZone: 'UTC',
       month: 'short',
       day: 'numeric',
       year: 'numeric',
@@ -54,15 +47,10 @@ export function formatToMMDDYYYY(dateStr: string): string {
   try {
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) return 'Invalid date';
-    
-    // Create a new date using UTC components to preserve the date
-    const utcDate = new Date(Date.UTC(
-      date.getUTCFullYear(),
-      date.getUTCMonth(),
-      date.getUTCDate()
-    ));
-    
-    return utcDate.toLocaleDateString('en-US', {
+
+    // Keep the date in UTC
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      timeZone: 'UTC',
       year: 'numeric',
       month: 'numeric',
       day: 'numeric'
@@ -84,15 +72,10 @@ export function getDayOfWeek(dateStr: string): string {
   try {
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) return 'Invalid date';
-    
-    // Create a new date using UTC components to preserve the date
-    const utcDate = new Date(Date.UTC(
-      date.getUTCFullYear(),
-      date.getUTCMonth(),
-      date.getUTCDate()
-    ));
-    
-    return utcDate.toLocaleString('en-US', {
+
+    // Keep the date in UTC
+    return new Date(dateStr).toLocaleString('en-US', {
+      timeZone: 'UTC',
       weekday: 'long'
     });
   } catch (error) {

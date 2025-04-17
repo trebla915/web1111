@@ -4,14 +4,9 @@ function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
   if (isNaN(date.getTime())) return 'Invalid date';
   
-  // Create a new date using UTC components to preserve the date
-  const utcDate = new Date(Date.UTC(
-    date.getUTCFullYear(),
-    date.getUTCMonth(),
-    date.getUTCDate()
-  ));
-  
-  return utcDate.toLocaleString('en-US', {
+  // Keep the date in UTC
+  return new Date(dateStr).toLocaleString('en-US', {
+    timeZone: 'UTC',
     month: 'short',
     day: 'numeric',
     year: 'numeric'
@@ -24,14 +19,9 @@ function getDayOfWeek(dateStr: string): string {
   const date = new Date(dateStr);
   if (isNaN(date.getTime())) return 'Invalid date';
   
-  // Create a new date using UTC components to preserve the date
-  const utcDate = new Date(Date.UTC(
-    date.getUTCFullYear(),
-    date.getUTCMonth(),
-    date.getUTCDate()
-  ));
-  
-  return utcDate.toLocaleString('en-US', {
+  // Keep the date in UTC
+  return new Date(dateStr).toLocaleString('en-US', {
+    timeZone: 'UTC',
     weekday: 'long'
   });
 } 
