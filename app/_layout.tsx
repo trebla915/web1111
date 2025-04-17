@@ -148,6 +148,11 @@ const AppContent: React.FC = () => {
 };
 
 export default function RootLayout() {
+  // Add runtime version logging
+  useEffect(() => {
+    console.log("📦 ShellRuntime:", Updates.runtimeVersion);
+  }, []);
+
   return (
     <AuthProvider>
       <NotificationProvider>
