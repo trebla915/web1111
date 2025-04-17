@@ -21,6 +21,7 @@ export default ({ config }) => ({
     ios: {
       supportsTablet: true,
       bundleIdentifier: "com.your.club1111",
+      buildNumber: "8",
       googleServicesFile: "./src/config/GoogleService-Info.plist",
       infoPlist: {
         NSPhotoLibraryUsageDescription:
@@ -41,6 +42,7 @@ export default ({ config }) => ({
         backgroundColor: "#000000",
       },
       package: "com.your.club1111",
+      versionCode: 9,
       googleServicesFile: "./src/config/google-services.json",
       permissions: [
         "android.permission.CAMERA",
