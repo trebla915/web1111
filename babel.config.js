@@ -6,33 +6,7 @@ module.exports = function (api) {
       'babel-preset-expo', 
     ],
     plugins: [
-      
-      [
-        'module-resolver',
-        {
-          root: ['./app'],
-          alias: {
-            '@': './',
-            '@components': './components',
-            '@tabs': './(tabs)',
-            '@hooks': './hooks',
-            '@utils': './utils',
-            '@assets': './assets',
-            '@contexts': './contexts',
-            '@screens': './screens',
-          },
-          extensions: [
-            '.js',
-            '.jsx',
-            '.ts',
-            '.tsx',
-            '.json',
-            '.web.js',
-          ],
-        },
-      ],
-
-     
+      'nativewind/babel',
       'react-native-reanimated/plugin',
     ],
   };

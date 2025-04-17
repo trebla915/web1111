@@ -15,6 +15,7 @@ import { NotificationProvider } from "../src/contexts/NotificationContext";
 import Constants from "expo-constants";
 import * as Updates from "expo-updates";
 import { registerForPushNotificationsAsync } from "../src/utils/notifications";
+import '../src/styles/global.css';
 
 // Notifications setup
 Notifications.setNotificationHandler({

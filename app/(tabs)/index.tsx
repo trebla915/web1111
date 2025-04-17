@@ -5,7 +5,6 @@ import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   Image,
   ActivityIndicator,
@@ -16,6 +15,12 @@ import { useUser } from "../../src/contexts/UserContext"; // Use UserContext to 
 import { fetchAllEvents } from "../../src/utils/events";
 import { Event } from "../../src/utils/types";
 import { formatDate, toMountainTime } from '../../src/utils/dateFormatter';
+import { styled } from 'nativewind';
+
+const StyledView = styled(View);
+const StyledText = styled(Text);
+const StyledImage = styled(Image);
+const StyledScrollView = styled(ScrollView);
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -61,136 +66,74 @@ export const HomeScreen = () => {
   }, []);
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Club Logo */}
-      <View style={styles.logoContainer}>
-        <Image
+    <StyledScrollView className="flex-1 bg-black">
+      {/* Hero Section with Logo */}
+      <StyledView className="items-center justify-center py-8 px-4">
+        <StyledImage
           source={require("@/src/assets/logo.png")}
-          style={styles.clubLogo}
+          className="w-4/5 h-24"
+          resizeMode="contain"
         />
-      </View>
+      </StyledView>
 
       {/* Welcome Section */}
-      <View style={styles.section}>
-        <Text style={styles.welcomeText}>
+      <StyledView className="px-6 py-4 mb-6">
+        <StyledText className="text-3xl font-bold text-white text-center mb-2">
           Welcome, {userLoading ? "Loading..." : userData?.name || "Guest"}!
-        </Text>
-        <Text style={styles.subText}>
+        </StyledText>
+        <StyledText className="text-base text-gray-400 text-center italic">
           Every moment is a chance to align with your purpose.
-        </Text>
-      </View>
+        </StyledText>
+      </StyledView>
 
       {/* Upcoming Event Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Upcoming Event</Text>
+      <StyledView className="px-6 mb-8">
+        <StyledText className="text-xl font-bold text-white mb-4">
+          Upcoming Event
+        </StyledText>
+        
         {loading ? (
-          <ActivityIndicator size="large" color="#fff" />
+          <StyledView className="items-center justify-center py-8">
+            <ActivityIndicator size="large" color="#fff" />
+          </StyledView>
         ) : error ? (
-          <Text style={styles.noEventText}>{error}</Text>
+          <StyledText className="text-base text-gray-400 text-center">
+            {error}
+          </StyledText>
         ) : upcomingEvent ? (
-          <View style={styles.eventCard}>
-            <Image
+          <StyledView className="bg-[#1c1c1c] rounded-xl overflow-hidden">
+            <StyledImage
               source={{ uri: upcomingEvent.flyerUrl || 'https://via.placeholder.com/150' }}
-              style={styles.eventImage}
+              className="w-full h-80 rounded-t-xl"
+              resizeMode="cover"
             />
-            <View style={styles.eventInfo}>
-              <Text style={styles.eventTitle}>{upcomingEvent.title}</Text>
+            <StyledView className="p-4">
+              <StyledText className="text-xl font-bold text-white mb-2">
+                {upcomingEvent.title}
+              </StyledText>
               {upcomingEvent.date && (
-                <Text style={styles.eventDate}>
+                <StyledText className="text-base text-gray-400 mb-4">
                   {formatDate(upcomingEvent.date)}
-                </Text>
+                </StyledText>
               )}
               {upcomingEvent.ticketLink && (
-                <Text
-                  style={styles.ticketLink}
+                <StyledText
+                  className="text-base text-gray-400 text-center underline"
                   onPress={() => Linking.openURL(upcomingEvent.ticketLink!)}
                 >
                   Get Tickets
-                </Text>
+                </StyledText>
               )}
-            </View>
-          </View>
+            </StyledView>
+          </StyledView>
         ) : (
-          <Text style={styles.noEventText}>No upcoming events.</Text>
+          <StyledText className="text-base text-gray-400 text-center">
+            No upcoming events.
+          </StyledText>
         )}
-      </View>
-    </ScrollView>
+      </StyledView>
+    </StyledScrollView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#000",
-    paddingHorizontal: 20,
-  },
-  logoContainer: {
-    alignItems: "center",
-    marginBottom: 10,
-    marginTop: 10,
-  },
-  clubLogo: {
-    width: screenWidth * 0.8,
-    height: screenWidth * 0.3,
-    resizeMode: "contain",
-  },
-  section: {
-    marginBottom: 20,
-  },
-  welcomeText: {
-    fontSize: 26,
-    fontWeight: "bold",
-    color: "#fff",
-    textAlign: "center",
-    marginBottom: 5,
-    marginTop: -5,
-  },
-  subText: {
-    fontSize: 16,
-    color: "#aaa",
-    textAlign: "center",
-    fontStyle: "italic",
-  },
-  sectionTitle: {
-    fontSize: 20,
-    color: "#fff",
-    marginBottom: 10,
-  },
-  eventCard: {
-    backgroundColor: "#1c1c1c",
-    borderRadius: 10,
-    padding: 10,
-    alignItems: "center",
-  },
-  eventImage: {
-    width: screenWidth - 40,
-    height: screenWidth - 40,
-    borderRadius: 10,
-    marginBottom: 10,
-    resizeMode: "cover",
-  },
-  eventInfo: {
-    alignItems: "center",
-  },
-  eventTitle: {
-    fontSize: 18,
-    color: "#fff",
-    marginBottom: 5,
-  },
-  eventDate: {
-    fontSize: 16,
-    color: "#aaa",
-  },
-  ticketLink: {
-    fontSize: 16,
-    color: "#aaa",
-    textAlign: "center",
-  },
-  noEventText: {
-    fontSize: 16,
-    color: "#aaa",
-    textAlign: "center",
-  },
-});
 
 export default HomeScreen;
