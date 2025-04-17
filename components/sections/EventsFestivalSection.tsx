@@ -55,19 +55,28 @@ export default function EventsFestivalSection({
   // Helper for adjusting dates to correct timezone issues
   const adjustDateForTimezone = (dateStr: string): Date => {
     const originalDate = new Date(dateStr);
+    const options = {
+      timeZone: 'America/Denver',
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      second: 'numeric'
+    };
     
-    // Add one day to compensate for timezone conversion issues
-    const adjustedDate = new Date(originalDate);
-    adjustedDate.setDate(originalDate.getDate() + 1);
-    
-    return adjustedDate;
+    const mountainTimeStr = originalDate.toLocaleString('en-US', options);
+    return new Date(mountainTimeStr);
   };
 
   // Format date for festival style display
   const getEventMonth = (dateStr: string): string => {
     try {
       const date = adjustDateForTimezone(dateStr);
-      return date.toLocaleString('default', { month: 'short' }).toUpperCase();
+      return date.toLocaleString('default', { 
+        month: 'short',
+        timeZone: 'America/Denver'
+      }).toUpperCase();
     } catch {
       return 'TBA';
     }
@@ -76,7 +85,10 @@ export default function EventsFestivalSection({
   const getEventDay = (dateStr: string): string => {
     try {
       const date = adjustDateForTimezone(dateStr);
-      return date.getDate().toString();
+      return date.toLocaleString('default', { 
+        day: 'numeric',
+        timeZone: 'America/Denver'
+      });
     } catch {
       return '--';
     }
