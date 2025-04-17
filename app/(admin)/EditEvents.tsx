@@ -59,6 +59,11 @@ const EditEvents: React.FC = () => {
   const handleEventSelection = (eventId: string) => {
     const selectedEvent = events.find((event) => event.id === eventId);
     if (selectedEvent) {
+      console.log('Selected event:', {
+        id: selectedEvent.id,
+        title: selectedEvent.title,
+        reservationsEnabled: selectedEvent.reservationsEnabled
+      });
       setSelectedEventId(eventId);
       setEventTitle(selectedEvent.title || '');
       setEventDate(selectedEvent.date || '');
@@ -81,7 +86,12 @@ const EditEvents: React.FC = () => {
         ticketLink,
         reservationsEnabled,
       };
-      await updateEvent(selectedEventId, updatedEvent);
+      console.log('Updating event:', {
+        eventId: selectedEventId,
+        ...updatedEvent
+      });
+      const response = await updateEvent(selectedEventId, updatedEvent);
+      console.log('Update response:', response);
       Alert.alert('Success', 'Event updated successfully.');
       loadEvents(); // Reload events to reflect updates
     } catch (error) {
