@@ -14,9 +14,12 @@ export default ({ config }) => ({
       channel: "production",
       fallbackToCacheTimeout: 0,
       checkAutomatically: "ON_LOAD",
-      enabled: true
+      enabled: true,
+      sdkVersion: "52.0.0"
     },
-    runtimeVersion: "1.0.4",
+    runtimeVersion: {
+      policy: "sdkVersion"
+    },
     platforms: ["ios", "android", "web"],
     ios: {
       supportsTablet: true,
