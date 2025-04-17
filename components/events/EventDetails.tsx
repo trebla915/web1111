@@ -11,22 +11,10 @@ import { useAuth } from '@/lib/hooks/useAuth';
 
 // Proper timezone handling for Mountain Time
 function adjustToMountainTime(dateStr: string): Date {
-  // Parse the original date string
-  const originalDate = new Date(dateStr);
-  
-  // Convert to Mountain Time without adding a day
-  const options: Intl.DateTimeFormatOptions = {
-    timeZone: 'America/Denver',
-    year: 'numeric',
-    month: 'numeric',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: 'numeric',
-    second: 'numeric'
-  };
-  
-  const mountainTimeStr = new Intl.DateTimeFormat('en-US', options).format(originalDate);
-  return new Date(mountainTimeStr);
+  const utcDate = new Date(dateStr);
+  return new Date(utcDate.toLocaleString('en-US', {
+    timeZone: 'America/Denver'
+  }));
 }
 
 // Date formatting utilities
@@ -34,15 +22,13 @@ function formatToMMDDYYYY(dateStr: string): string {
   try {
     if (!dateStr) return 'Date TBA';
     
-    // Use the adjusted date
-    const date = adjustToMountainTime(dateStr);
-    
-    // Format as MM/DD/YYYY
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
-    const year = date.getFullYear();
-    
-    return `${month}/${day}/${year}`;
+    const utcDate = new Date(dateStr);
+    return utcDate.toLocaleString('en-US', {
+      timeZone: 'America/Denver',
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric'
+    });
   } catch (error) {
     console.error('Error formatting date:', error);
     return 'Invalid date';
@@ -53,21 +39,16 @@ function formatDateWithTime(dateStr: string): string {
   try {
     if (!dateStr) return 'Date TBA';
     
-    // Use the adjusted date 
-    const date = adjustToMountainTime(dateStr);
-    
-    // Format with time
-    const options: Intl.DateTimeFormatOptions = {
+    const utcDate = new Date(dateStr);
+    return utcDate.toLocaleString('en-US', {
+      timeZone: 'America/Denver',
       month: 'short',
       day: 'numeric',
       year: 'numeric',
       hour: 'numeric',
       minute: '2-digit',
-      hour12: true,
-      timeZone: 'America/Denver'
-    };
-    
-    return date.toLocaleString('en-US', options);
+      hour12: true
+    });
   } catch (error) {
     console.error('Error formatting date with time:', error);
     return 'Invalid date';
@@ -78,12 +59,11 @@ function getDayOfWeek(dateStr: string): string {
   try {
     if (!dateStr) return 'TBA';
     
-    // Use the adjusted date
-    const date = adjustToMountainTime(dateStr);
-    
-    // Get day of week
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    return days[date.getDay()];
+    const utcDate = new Date(dateStr);
+    return utcDate.toLocaleString('en-US', {
+      timeZone: 'America/Denver',
+      weekday: 'long'
+    });
   } catch (error) {
     console.error('Error getting day of week:', error);
     return 'Invalid date';
@@ -95,22 +75,22 @@ function debugDateInfo(dateStr: string): string {
   if (!dateStr) return 'No date provided';
   
   try {
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return 'Invalid date';
+    const utcDate = new Date(dateStr);
+    if (isNaN(utcDate.getTime())) return 'Invalid date';
     
     return `
       Original string: ${dateStr}
-      UTC Date: ${date.toUTCString()}
-      Local Date: ${date.toString()}
-      Mountain Time: ${new Intl.DateTimeFormat('en-US', {
-        year: 'numeric', 
-        month: 'numeric', 
+      UTC Date: ${utcDate.toUTCString()}
+      Local Date: ${utcDate.toString()}
+      Mountain Time: ${utcDate.toLocaleString('en-US', {
+        timeZone: 'America/Denver',
+        year: 'numeric',
+        month: 'numeric',
         day: 'numeric',
         hour: 'numeric',
         minute: 'numeric',
-        second: 'numeric',
-        timeZone: 'America/Denver'
-      }).format(date)}
+        second: 'numeric'
+      })}
     `;
   } catch (error) {
     return `Error: ${error}`;

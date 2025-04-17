@@ -1,11 +1,22 @@
 /**
+ * Convert UTC date string to Mountain Time
+ * @param dateStr Date string in ISO format
+ * @returns Date object in Mountain Time
+ */
+export function convertToMountainTime(dateStr: string): Date {
+  const utcDate = new Date(dateStr);
+  return new Date(utcDate.toLocaleString('en-US', {
+    timeZone: 'America/Denver'
+  }));
+}
+
+/**
  * Format date string to MM/DD/YYYY format
  * @param dateStr Date string in ISO format or any format that can be parsed by Date
  * @returns Formatted date string in MM/DD/YYYY format
  */
 export function formatToMMDDYYYY(dateStr: string): string {
   try {
-    // Create date in UTC
     const utcDate = new Date(dateStr);
     
     // Check if date is valid
@@ -13,15 +24,13 @@ export function formatToMMDDYYYY(dateStr: string): string {
       return 'Invalid date';
     }
     
-    // Convert to Mountain Time
-    const options = {
+    // Format in Mountain Time
+    return utcDate.toLocaleString('en-US', {
       timeZone: 'America/Denver',
       year: 'numeric',
       month: 'numeric',
       day: 'numeric'
-    };
-    
-    return new Intl.DateTimeFormat('en-US', options).format(utcDate);
+    });
   } catch (error) {
     console.error('Error formatting date:', error);
     return 'Invalid date';
@@ -35,7 +44,6 @@ export function formatToMMDDYYYY(dateStr: string): string {
  */
 export function formatDateWithTime(dateStr: string): string {
   try {
-    // Create date in UTC
     const utcDate = new Date(dateStr);
     
     // Check if date is valid
@@ -43,18 +51,16 @@ export function formatDateWithTime(dateStr: string): string {
       return 'Invalid date';
     }
     
-    // Format options with Mountain Time Zone
-    const options: Intl.DateTimeFormatOptions = {
+    // Format in Mountain Time
+    return utcDate.toLocaleString('en-US', {
+      timeZone: 'America/Denver',
       month: 'short',
       day: 'numeric',
       year: 'numeric',
       hour: 'numeric',
       minute: '2-digit',
-      hour12: true,
-      timeZone: 'America/Denver'
-    };
-    
-    return new Intl.DateTimeFormat('en-US', options).format(utcDate);
+      hour12: true
+    });
   } catch (error) {
     console.error('Error formatting date with time:', error);
     return 'Invalid date';
@@ -68,7 +74,6 @@ export function formatDateWithTime(dateStr: string): string {
  */
 export function getDayOfWeek(dateStr: string): string {
   try {
-    // Create date in UTC
     const utcDate = new Date(dateStr);
     
     // Check if date is valid
@@ -76,13 +81,11 @@ export function getDayOfWeek(dateStr: string): string {
       return 'Invalid date';
     }
     
-    // Format using Mountain Time Zone
-    const options: Intl.DateTimeFormatOptions = {
-      weekday: 'long',
-      timeZone: 'America/Denver'
-    };
-    
-    return new Intl.DateTimeFormat('en-US', options).format(utcDate);
+    // Format in Mountain Time
+    return utcDate.toLocaleString('en-US', {
+      timeZone: 'America/Denver',
+      weekday: 'long'
+    });
   } catch (error) {
     console.error('Error getting day of week:', error);
     return 'Invalid date';
@@ -104,7 +107,11 @@ export function isDateInFuture(dateStr: string): boolean {
       return false;
     }
     
-    return utcDate > now;
+    // Convert both dates to Mountain Time for comparison
+    const mtDate = new Date(utcDate.toLocaleString('en-US', { timeZone: 'America/Denver' }));
+    const mtNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/Denver' }));
+    
+    return mtDate > mtNow;
   } catch (error) {
     console.error('Error checking if date is in future:', error);
     return false;
@@ -117,16 +124,9 @@ export function isDateInFuture(dateStr: string): boolean {
  * @returns Filtered array with only future events
  */
 export function filterFutureEvents<T extends { date?: string }>(events: T[]): T[] {
-  const now = new Date();
   return events.filter(event => {
     if (!event.date) return false;
-    
-    try {
-      const eventDate = new Date(event.date);
-      return !isNaN(eventDate.getTime()) && eventDate >= now;
-    } catch (e) {
-      return false;
-    }
+    return isDateInFuture(event.date);
   });
 }
 
@@ -141,11 +141,14 @@ export function sortEventsByDate<T extends { date?: string }>(events: T[]): T[] 
     if (!a.date) return 1; // Move undefined dates to the end
     if (!b.date) return -1; // Move undefined dates to the end
     
-    // Convert to Date objects for comparison
+    // Convert to Mountain Time for comparison
     const dateA = new Date(a.date);
     const dateB = new Date(b.date);
     
+    const mtDateA = new Date(dateA.toLocaleString('en-US', { timeZone: 'America/Denver' }));
+    const mtDateB = new Date(dateB.toLocaleString('en-US', { timeZone: 'America/Denver' }));
+    
     // Sort by date (ascending order - closest dates first)
-    return dateA.getTime() - dateB.getTime();
+    return mtDateA.getTime() - mtDateB.getTime();
   });
 } 
