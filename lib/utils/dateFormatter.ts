@@ -5,9 +5,22 @@
  */
 export function convertToMountainTime(dateStr: string): Date {
   const utcDate = new Date(dateStr);
-  return new Date(utcDate.toLocaleString('en-US', {
-    timeZone: 'America/Denver'
-  }));
+  // Create a date string in Mountain Time
+  const mtString = utcDate.toLocaleString('en-US', {
+    timeZone: 'America/Denver',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  });
+  // Parse the Mountain Time string back to a date
+  const [datePart, timePart] = mtString.split(', ');
+  const [month, day, year] = datePart.split('/');
+  const [hours, minutes, seconds] = timePart.split(':');
+  return new Date(+year, +month - 1, +day, +hours, +minutes, +seconds);
 }
 
 /**
@@ -25,12 +38,14 @@ export function formatToMMDDYYYY(dateStr: string): string {
     }
     
     // Format in Mountain Time
-    return utcDate.toLocaleString('en-US', {
+    const mtString = utcDate.toLocaleString('en-US', {
       timeZone: 'America/Denver',
       year: 'numeric',
       month: 'numeric',
       day: 'numeric'
     });
+    
+    return mtString;
   } catch (error) {
     console.error('Error formatting date:', error);
     return 'Invalid date';
@@ -107,9 +122,13 @@ export function isDateInFuture(dateStr: string): boolean {
       return false;
     }
     
-    // Convert both dates to Mountain Time for comparison
-    const mtDate = new Date(utcDate.toLocaleString('en-US', { timeZone: 'America/Denver' }));
-    const mtNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/Denver' }));
+    // Convert both dates to Mountain Time strings for comparison
+    const mtDateStr = utcDate.toLocaleString('en-US', { timeZone: 'America/Denver' });
+    const mtNowStr = now.toLocaleString('en-US', { timeZone: 'America/Denver' });
+    
+    // Parse back to dates for comparison
+    const mtDate = new Date(mtDateStr);
+    const mtNow = new Date(mtNowStr);
     
     return mtDate > mtNow;
   } catch (error) {
@@ -141,12 +160,15 @@ export function sortEventsByDate<T extends { date?: string }>(events: T[]): T[] 
     if (!a.date) return 1; // Move undefined dates to the end
     if (!b.date) return -1; // Move undefined dates to the end
     
-    // Convert to Mountain Time for comparison
+    // Convert both dates to Mountain Time for comparison
     const dateA = new Date(a.date);
     const dateB = new Date(b.date);
     
-    const mtDateA = new Date(dateA.toLocaleString('en-US', { timeZone: 'America/Denver' }));
-    const mtDateB = new Date(dateB.toLocaleString('en-US', { timeZone: 'America/Denver' }));
+    const mtDateAStr = dateA.toLocaleString('en-US', { timeZone: 'America/Denver' });
+    const mtDateBStr = dateB.toLocaleString('en-US', { timeZone: 'America/Denver' });
+    
+    const mtDateA = new Date(mtDateAStr);
+    const mtDateB = new Date(mtDateBStr);
     
     // Sort by date (ascending order - closest dates first)
     return mtDateA.getTime() - mtDateB.getTime();

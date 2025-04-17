@@ -55,17 +55,31 @@ export default function EventsFestivalSection({
   // Helper for adjusting dates to correct timezone issues
   const adjustDateForTimezone = (dateStr: string): Date => {
     const utcDate = new Date(dateStr);
-    return new Date(utcDate.toLocaleString('en-US', {
-      timeZone: 'America/Denver'
-    }));
+    // Create a date string in Mountain Time
+    const mtString = utcDate.toLocaleString('en-US', {
+      timeZone: 'America/Denver',
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+    // Parse the Mountain Time string back to a date
+    const [datePart, timePart] = mtString.split(', ');
+    const [month, day, year] = datePart.split('/');
+    const [hours, minutes, seconds] = timePart.split(':');
+    return new Date(+year, +month - 1, +day, +hours, +minutes, +seconds);
   };
 
   // Format date for festival style display
   const getEventMonth = (dateStr: string): string => {
     try {
       const utcDate = new Date(dateStr);
-      return utcDate.toLocaleString('en-US', {
-        timeZone: 'America/Denver',
+      // Use the adjusted date for display
+      const mtDate = adjustDateForTimezone(dateStr);
+      return mtDate.toLocaleString('en-US', {
         month: 'short'
       }).toUpperCase();
     } catch {
@@ -76,8 +90,9 @@ export default function EventsFestivalSection({
   const getEventDay = (dateStr: string): string => {
     try {
       const utcDate = new Date(dateStr);
-      return utcDate.toLocaleString('en-US', {
-        timeZone: 'America/Denver',
+      // Use the adjusted date for display
+      const mtDate = adjustDateForTimezone(dateStr);
+      return mtDate.toLocaleString('en-US', {
         day: 'numeric'
       });
     } catch {

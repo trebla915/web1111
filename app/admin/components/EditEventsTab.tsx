@@ -126,6 +126,7 @@ export default function EditEventsTab() {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
+      timeZone: 'America/Denver'
     });
   };
 
