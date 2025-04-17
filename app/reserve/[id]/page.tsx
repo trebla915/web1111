@@ -9,6 +9,7 @@ import { getTablesByEvent } from '@/lib/services/tables';
 import { useReservation } from '@/components/providers/ReservationProvider';
 import { Table, Event } from '@/types/reservation';
 import { toast } from 'react-hot-toast';
+import { formatToMMDDYYYY } from '@/lib/utils/dateFormatter';
 
 export default function TableSelectionPage() {
   const params = useParams();
@@ -124,7 +125,7 @@ export default function TableSelectionPage() {
       mixers: [],
       reservationTime: new Date().toISOString(),
       createdAt: new Date().toISOString(),
-      eventDate: eventDetails?.date || new Date().toLocaleDateString()
+      eventDate: eventDetails?.date ? formatToMMDDYYYY(eventDetails.date) : new Date().toLocaleDateString()
     });
     
     router.push(`/reserve/${eventId}/details`);

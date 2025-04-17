@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { FiArrowRight } from 'react-icons/fi';
 import { getUpcomingEvents } from '@/lib/services/events';
-import { sortEventsByDate } from '@/lib/utils/dateFormatter';
+import { getDayOfWeek, formatToMMDDYYYY, sortEventsByDate } from '@/lib/utils/dateFormatter';
 
 interface EventsFestivalSectionProps {
   title?: string;
@@ -76,10 +76,13 @@ export default function EventsFestivalSection({
   // Format date for festival style display
   const getEventMonth = (dateStr: string): string => {
     try {
-      const utcDate = new Date(dateStr);
-      // Use the adjusted date for display
-      const mtDate = adjustDateForTimezone(dateStr);
-      return mtDate.toLocaleString('en-US', {
+      if (!dateStr) return 'TBA';
+      
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return 'TBA';
+      
+      return date.toLocaleString('en-US', {
+        timeZone: 'America/Denver',
         month: 'short'
       }).toUpperCase();
     } catch {
@@ -89,10 +92,13 @@ export default function EventsFestivalSection({
 
   const getEventDay = (dateStr: string): string => {
     try {
-      const utcDate = new Date(dateStr);
-      // Use the adjusted date for display
-      const mtDate = adjustDateForTimezone(dateStr);
-      return mtDate.toLocaleString('en-US', {
+      if (!dateStr) return '--';
+      
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return '--';
+      
+      return date.toLocaleString('en-US', {
+        timeZone: 'America/Denver',
         day: 'numeric'
       });
     } catch {

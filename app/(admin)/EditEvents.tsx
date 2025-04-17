@@ -1,3 +1,5 @@
+import { formatToMMDDYYYY } from '@/lib/utils/dateFormatter';
+
   // ... existing code ...
 
   const handleEventSelection = (eventId: string) => {
@@ -11,19 +13,8 @@
       setSelectedEventId(eventId);
       setEventTitle(selectedEvent.title || '');
       
-      // Convert the stored UTC date to Mountain Time for display
-      if (selectedEvent.date) {
-        const utcDate = new Date(selectedEvent.date);
-        const mtString = utcDate.toLocaleString('en-US', {
-          timeZone: 'America/Denver',
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit'
-        });
-        setEventDate(mtString);
-      } else {
-        setEventDate('');
-      }
+      // Use the standardized date formatter
+      setEventDate(selectedEvent.date ? formatToMMDDYYYY(selectedEvent.date) : '');
       
       setTicketLink(selectedEvent.ticketLink || '');
       setReservationsEnabled(selectedEvent.reservationsEnabled ?? true);

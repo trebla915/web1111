@@ -5,22 +5,7 @@
  */
 export function convertToMountainTime(dateStr: string): Date {
   const utcDate = new Date(dateStr);
-  // Create a date string in Mountain Time
-  const mtString = utcDate.toLocaleString('en-US', {
-    timeZone: 'America/Denver',
-    year: 'numeric',
-    month: 'numeric',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false
-  });
-  // Parse the Mountain Time string back to a date
-  const [datePart, timePart] = mtString.split(', ');
-  const [month, day, year] = datePart.split('/');
-  const [hours, minutes, seconds] = timePart.split(':');
-  return new Date(+year, +month - 1, +day, +hours, +minutes, +seconds);
+  return new Date(utcDate.toLocaleString('en-US', { timeZone: 'America/Denver' }));
 }
 
 /**
@@ -30,22 +15,17 @@ export function convertToMountainTime(dateStr: string): Date {
  */
 export function formatToMMDDYYYY(dateStr: string): string {
   try {
+    if (!dateStr) return 'Date TBA';
+    
     const utcDate = new Date(dateStr);
+    if (isNaN(utcDate.getTime())) return 'Invalid date';
     
-    // Check if date is valid
-    if (isNaN(utcDate.getTime())) {
-      return 'Invalid date';
-    }
-    
-    // Format in Mountain Time
-    const mtString = utcDate.toLocaleString('en-US', {
+    return utcDate.toLocaleDateString('en-US', {
       timeZone: 'America/Denver',
       year: 'numeric',
       month: 'numeric',
       day: 'numeric'
     });
-    
-    return mtString;
   } catch (error) {
     console.error('Error formatting date:', error);
     return 'Invalid date';
@@ -59,14 +39,11 @@ export function formatToMMDDYYYY(dateStr: string): string {
  */
 export function formatDateWithTime(dateStr: string): string {
   try {
+    if (!dateStr) return 'Date TBA';
+    
     const utcDate = new Date(dateStr);
+    if (isNaN(utcDate.getTime())) return 'Invalid date';
     
-    // Check if date is valid
-    if (isNaN(utcDate.getTime())) {
-      return 'Invalid date';
-    }
-    
-    // Format in Mountain Time
     return utcDate.toLocaleString('en-US', {
       timeZone: 'America/Denver',
       month: 'short',
@@ -89,14 +66,11 @@ export function formatDateWithTime(dateStr: string): string {
  */
 export function getDayOfWeek(dateStr: string): string {
   try {
+    if (!dateStr) return 'TBA';
+    
     const utcDate = new Date(dateStr);
+    if (isNaN(utcDate.getTime())) return 'Invalid date';
     
-    // Check if date is valid
-    if (isNaN(utcDate.getTime())) {
-      return 'Invalid date';
-    }
-    
-    // Format in Mountain Time
     return utcDate.toLocaleString('en-US', {
       timeZone: 'America/Denver',
       weekday: 'long'
@@ -114,23 +88,13 @@ export function getDayOfWeek(dateStr: string): string {
  */
 export function isDateInFuture(dateStr: string): boolean {
   try {
+    if (!dateStr) return false;
+    
     const utcDate = new Date(dateStr);
+    if (isNaN(utcDate.getTime())) return false;
+    
     const now = new Date();
-    
-    // Check if date is valid
-    if (isNaN(utcDate.getTime())) {
-      return false;
-    }
-    
-    // Convert both dates to Mountain Time strings for comparison
-    const mtDateStr = utcDate.toLocaleString('en-US', { timeZone: 'America/Denver' });
-    const mtNowStr = now.toLocaleString('en-US', { timeZone: 'America/Denver' });
-    
-    // Parse back to dates for comparison
-    const mtDate = new Date(mtDateStr);
-    const mtNow = new Date(mtNowStr);
-    
-    return mtDate > mtNow;
+    return utcDate > now;
   } catch (error) {
     console.error('Error checking if date is in future:', error);
     return false;
@@ -156,21 +120,12 @@ export function filterFutureEvents<T extends { date?: string }>(events: T[]): T[
  */
 export function sortEventsByDate<T extends { date?: string }>(events: T[]): T[] {
   return [...events].sort((a, b) => {
-    // Handle undefined dates
-    if (!a.date) return 1; // Move undefined dates to the end
-    if (!b.date) return -1; // Move undefined dates to the end
+    if (!a.date) return 1;
+    if (!b.date) return -1;
     
-    // Convert both dates to Mountain Time for comparison
     const dateA = new Date(a.date);
     const dateB = new Date(b.date);
     
-    const mtDateAStr = dateA.toLocaleString('en-US', { timeZone: 'America/Denver' });
-    const mtDateBStr = dateB.toLocaleString('en-US', { timeZone: 'America/Denver' });
-    
-    const mtDateA = new Date(mtDateAStr);
-    const mtDateB = new Date(mtDateBStr);
-    
-    // Sort by date (ascending order - closest dates first)
-    return mtDateA.getTime() - mtDateB.getTime();
+    return dateA.getTime() - dateB.getTime();
   });
 } 
