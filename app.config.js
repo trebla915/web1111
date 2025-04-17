@@ -2,7 +2,7 @@ export default ({ config }) => ({
   expo: {
     name: "11:11 EPTX",
     slug: "club1111",
-    version: "1.0.4",
+    version: "1.0.3",
     orientation: "portrait",
     icon: "./src/assets/images/icon.png", // App icon
     scheme: "club1111",
@@ -14,6 +14,7 @@ export default ({ config }) => ({
     runtimeVersion: {
       policy: "appVersion",
     },
+    platforms: ["ios", "android", "web"], // Add web to the platforms array
     ios: {
       supportsTablet: true,
       bundleIdentifier: "com.your.club1111",
@@ -49,14 +50,17 @@ export default ({ config }) => ({
         "android.permission.VIBRATE",
       ],
       notification: {
-        "icon": "./assets/notification-icon.png",
-        "color": "#fff"
+        icon: "./assets/notification-icon.png",
+        color: "#fff",
       },
     },
     web: {
-      bundler: "metro",
-      output: "static",
-      favicon: "./src/assets/images/favicon.png",
+      bundler: "metro", // Use metro bundler for web
+      output: "static", // Output as static files
+      favicon: "./src/assets/images/favicon.png", // Web favicon
+      build: {
+        publicPath: "/",
+      },
     },
     plugins: [
       "expo-router",
