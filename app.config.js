@@ -16,7 +16,9 @@ export default ({ config }) => ({
       checkAutomatically: "ON_LOAD",
       enabled: true
     },
-    runtimeVersion: "1.0.3",
+    runtimeVersion: {
+      policy: "appVersion"
+    },
     platforms: ["ios", "android", "web"],
     ios: {
       supportsTablet: true,
