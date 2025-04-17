@@ -10,30 +10,55 @@
       "distribution": "internal",
       "channel": "development",
       "ios": {
-        "simulator": true
+        "simulator": true,
+        "resourceClass": "medium"
       },
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleDebug"
       }
     },
     "preview": {
       "distribution": "internal",
-      "channel": "preview"
+      "channel": "preview",
+      "ios": {
+        "simulator": true,
+        "resourceClass": "medium"
+      },
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease"
+      }
     },
     "production": {
       "android": {
         "buildType": "app-bundle",
         "channel": "production",
-        "autoIncrement": true
+        "autoIncrement": true,
+        "gradleCommand": ":app:bundleRelease",
+        "resourceClass": "medium"
       },
       "ios": {
         "channel": "production",
-        "autoIncrement": true
+        "autoIncrement": true,
+        "simulator": false,
+        "resourceClass": "medium"
       },
-      "channel": "production"
+      "channel": "production",
+      "autoIncrement": true
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "appleId": "your-apple-id@example.com",
+        "ascAppId": "your-app-store-connect-id",
+        "appleTeamId": "your-team-id"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./path-to-your-service-account.json",
+        "track": "production"
+      }
+    }
   }
 } 

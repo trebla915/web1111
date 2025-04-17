@@ -21,7 +21,6 @@ import { uploadImageToStorage } from '../../src/utils/uploadImageToStorage';
 import CustomButton from '../../src/components/CustomButton';
 import { createEvent } from '../../src/utils/events';
 import { useRouter } from "expo-router";
-import * as Updates from "expo-updates";
 import Constants from "expo-constants";
 
 const screenWidth = Dimensions.get('window').width;
@@ -121,38 +120,6 @@ const CreateEvent: React.FC = () => {
     }
   };
 
-  const checkForUpdates = async () => {
-    try {
-      console.log('Manual update check initiated');
-      console.log('Current runtime version:', Updates.runtimeVersion);
-      const update = await Updates.checkForUpdateAsync();
-      console.log('Update check result:', JSON.stringify(update, null, 2));
-      
-      if (update.isAvailable) {
-        console.log('Update available, downloading...');
-        await Updates.fetchUpdateAsync();
-        console.log('Update downloaded successfully');
-        Alert.alert(
-          "Update Downloaded",
-          `Current version: ${Updates.runtimeVersion}\nThe app will restart to apply the update.`,
-          [
-            {
-              text: "OK",
-              onPress: async () => {
-                await Updates.reloadAsync();
-              },
-            },
-          ]
-        );
-      } else {
-        Alert.alert("No Updates", `Your app is up to date!\nCurrent version: ${Updates.runtimeVersion}`);
-      }
-    } catch (error) {
-      console.error('Error checking for updates:', error);
-      Alert.alert("Error", "Failed to check for updates. Please try again later.");
-    }
-  };
-
   return (
     <KeyboardAvoidingView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -163,9 +130,6 @@ const CreateEvent: React.FC = () => {
               App: {String(Constants.expoConfig?.version)} | Runtime: {String(Constants.expoConfig?.runtimeVersion)}
             </Text>
           </View>
-          <TouchableOpacity onPress={checkForUpdates} style={styles.updateButton}>
-            <Text style={styles.updateButtonText}>Check for Updates</Text>
-          </TouchableOpacity>
         </View>
         {/* Event Name */}
         <Text style={styles.label}>Event Name *</Text>
@@ -255,9 +219,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
   },
   scrollContainer: {
-    padding: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
+    padding: 20,
+  },
+  header: {
+    marginBottom: 20,
+  },
+  headline: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 5,
+  },
+  versionText: {
+    fontSize: 12,
+    color: '#666',
   },
   label: {
     fontSize: 18,
@@ -314,31 +289,6 @@ const styles = StyleSheet.create({
   switchLabel: {
     color: '#fff',
     fontSize: 16,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  updateButton: {
-    backgroundColor: '#007AFF',
-    padding: 8,
-    borderRadius: 5,
-  },
-  updateButtonText: {
-    color: 'white',
-    fontSize: 12,
-  },
-  versionText: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 4,
-  },
-  headline: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
   },
 });
 

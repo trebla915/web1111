@@ -10,13 +10,19 @@ export default ({ config }) => ({
     newArchEnabled: true,
     updates: {
       url: "https://u.expo.dev/e3775235-7f75-42c8-906e-8171c4a1e54b",
-      branch: "production",
       channel: "production",
       fallbackToCacheTimeout: 0,
       checkAutomatically: "ON_LOAD",
-      enabled: true
+      enabled: true,
+      codeSigningCertificate: "./code-signing/certificate.pem",
+      codeSigningMetadata: {
+        alg: "rsa-v1_5-sha256",
+        keyid: "main"
+      }
     },
-    runtimeVersion: "1.0.3",
+    runtimeVersion: {
+      policy: "sdkVersion"
+    },
     platforms: ["ios", "android", "web"],
     ios: {
       supportsTablet: true,

@@ -71,37 +71,19 @@ const AppContent: React.FC = () => {
 
     const checkForUpdates = async () => {
       try {
-        console.log('🔍 Checking for updates...');
-        console.log('📱 Current runtime version:', Updates.runtimeVersion);
-        console.log('📦 Update URL:', Constants.expoConfig?.updates?.url);
-        // Branch is not available in the updates config type, removing that log
-        
         const update = await Updates.checkForUpdateAsync();
-        console.log('📊 Update check result:', JSON.stringify(update, null, 2));
         if (update.isAvailable) {
-          console.log('📥 Update available, downloading...');
           await Updates.fetchUpdateAsync();
-          console.log('✅ Update downloaded successfully');
-          
-          // Force reload after 2 seconds to ensure the update is applied
-          setTimeout(async () => {
-            console.log('🔄 Forcing app reload to apply update');
-            await Updates.reloadAsync();
-          }, 2000);
-        } else {
-          console.log('ℹ️ No updates available');
+          await Updates.reloadAsync();
         }
       } catch (error) {
-        console.error('❌ Error checking for updates:', error);
+        console.error('Error checking for updates:', error);
       }
     };
 
     // Check for updates when app starts
     checkForUpdates();
-
-    // Also check for updates every 5 minutes while app is running
-    const interval = setInterval(checkForUpdates, 5 * 60 * 1000);
-    return () => clearInterval(interval);
+    prepareApp();
   }, []);
 
   useEffect(() => {

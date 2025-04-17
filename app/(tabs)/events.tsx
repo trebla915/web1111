@@ -18,7 +18,6 @@ import { useLoading } from '../../src/contexts/LoadingContext'; // Use global lo
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Pressable } from 'react-native';
 import { useAuth } from '../../src/contexts/AuthContext'; // Import Auth context
-import * as Updates from 'expo-updates';
 import { formatDate } from '../../src/utils/dateFormatter';
 
 const EventsScreen: React.FC = () => {
@@ -31,45 +30,6 @@ const EventsScreen: React.FC = () => {
   const { setLoading } = useLoading(); // Use global loading context
   const { isGuest } = useAuth(); // Access guest mode
   const router = useRouter();
-
-  // Manual update check function
-  const manualCheckForUpdates = async () => {
-    try {
-      setLoading(true);
-      console.log('🔍 Checking for updates...');
-      console.log('📱 Current runtime version:', Updates.runtimeVersion);
-      
-      const update = await Updates.checkForUpdateAsync();
-      console.log('📊 Update check result:', JSON.stringify(update, null, 2));
-      
-      if (update.isAvailable) {
-        console.log('📥 Update available, downloading...');
-        await Updates.fetchUpdateAsync();
-        console.log('✅ Update downloaded successfully');
-        
-        Alert.alert(
-          'Update Available',
-          'A new update has been downloaded. Would you like to restart the app now?',
-          [
-            { text: 'Later', style: 'cancel' },
-            {
-              text: 'Restart Now',
-              onPress: async () => {
-                await Updates.reloadAsync();
-              },
-            },
-          ]
-        );
-      } else {
-        Alert.alert('Up to Date', `Your app is up to date!\nCurrent version: ${Updates.runtimeVersion}`);
-      }
-    } catch (error) {
-      console.error('❌ Error checking for updates:', error);
-      Alert.alert('Update Error', 'Failed to check for updates. Please try again later.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Fetch and sort events by date
   const fetchEvents = useCallback(async () => {
@@ -227,14 +187,7 @@ const EventsScreen: React.FC = () => {
             onChangeText={handleSearch}
           />
         </View>
-        <TouchableOpacity 
-          style={styles.updateButton}
-          onPress={manualCheckForUpdates}
-        >
-          <Icon name="refresh" size={20} color="#fff" />
-        </TouchableOpacity>
       </View>
-      <Text style={styles.testMessage}>Update Test - SDK 52</Text>
       {error ? (
         <Text style={styles.errorText}>{error}</Text>
       ) : (
@@ -256,10 +209,37 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
+  },
+  headerContainer: {
+    flexDirection: 'row',
     padding: 10,
+    backgroundColor: '#000',
+    alignItems: 'center',
+  },
+  searchContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1a1a1a',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    marginRight: 10,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    color: '#fff',
+    paddingVertical: 8,
+  },
+  errorText: {
+    color: 'red',
+    textAlign: 'center',
+    marginTop: 20,
   },
   list: {
-    paddingVertical: 10,
+    padding: 10,
   },
   card: {
     flexDirection: 'row',
@@ -312,47 +292,6 @@ const styles = StyleSheet.create({
   },
   buttonPressed: {
     opacity: 0.7,
-  },
-  errorText: {
-    color: 'red',
-    textAlign: 'center',
-    fontSize: 16,
-    marginTop: 20,
-  },
-  headerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  searchContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1c1c1c',
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    marginRight: 10,
-  },
-  searchIcon: {
-    marginRight: 8, // Add spacing between the icon and the text input
-  },
-  searchInput: {
-    flex: 1,
-    height: 40,
-    color: '#fff',
-  },
-  updateButton: {
-    backgroundColor: '#1c1c1c',
-    padding: 10,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  testMessage: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 20,
   },
 });
 
