@@ -9,7 +9,7 @@ export function convertToMountainTime(dateStr: string): Date {
 }
 
 /**
- * Format date string to display format without timezone conversion
+ * Format date string to display format
  * @param dateStr Date string in ISO format
  * @returns Formatted date string
  */
@@ -17,12 +17,15 @@ export function formatDate(dateStr: string): string {
   if (!dateStr) return 'Date TBA';
   
   try {
-    const date = new Date(dateStr);
+    // Parse the ISO string directly
+    const [datePart] = dateStr.split('T');
+    const [year, month, day] = datePart.split('-').map(Number);
+    
+    // Create date object using the parsed components
+    const date = new Date(year, month - 1, day);
     if (isNaN(date.getTime())) return 'Invalid date';
-
-    // Keep the date in UTC
-    return new Date(dateStr).toLocaleString('en-US', {
-      timeZone: 'UTC',
+    
+    return date.toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
@@ -37,7 +40,7 @@ export function formatDate(dateStr: string): string {
 }
 
 /**
- * Format date string to MM/DD/YYYY format without timezone conversion
+ * Format date string to MM/DD/YYYY format
  * @param dateStr Date string in ISO format
  * @returns Formatted date string
  */
@@ -45,12 +48,15 @@ export function formatToMMDDYYYY(dateStr: string): string {
   if (!dateStr) return 'Date TBA';
   
   try {
-    const date = new Date(dateStr);
+    // Parse the ISO string directly
+    const [datePart] = dateStr.split('T');
+    const [year, month, day] = datePart.split('-').map(Number);
+    
+    // Create date object using the parsed components
+    const date = new Date(year, month - 1, day);
     if (isNaN(date.getTime())) return 'Invalid date';
-
-    // Keep the date in UTC
-    return new Date(dateStr).toLocaleDateString('en-US', {
-      timeZone: 'UTC',
+    
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'numeric',
       day: 'numeric'
@@ -62,7 +68,7 @@ export function formatToMMDDYYYY(dateStr: string): string {
 }
 
 /**
- * Get day of week from date string without timezone conversion
+ * Get day of week from date string
  * @param dateStr Date string in ISO format
  * @returns Day of week
  */
@@ -70,12 +76,15 @@ export function getDayOfWeek(dateStr: string): string {
   if (!dateStr) return 'TBA';
   
   try {
-    const date = new Date(dateStr);
+    // Parse the ISO string directly
+    const [datePart] = dateStr.split('T');
+    const [year, month, day] = datePart.split('-').map(Number);
+    
+    // Create date object using the parsed components
+    const date = new Date(year, month - 1, day);
     if (isNaN(date.getTime())) return 'Invalid date';
-
-    // Keep the date in UTC
-    return new Date(dateStr).toLocaleString('en-US', {
-      timeZone: 'UTC',
+    
+    return date.toLocaleString('en-US', {
       weekday: 'long'
     });
   } catch (error) {
@@ -93,7 +102,12 @@ export function isDateInFuture(dateStr: string): boolean {
   try {
     if (!dateStr) return false;
     
-    const date = new Date(dateStr);
+    // Parse the ISO string directly
+    const [datePart] = dateStr.split('T');
+    const [year, month, day] = datePart.split('-').map(Number);
+    
+    // Create date object using the parsed components
+    const date = new Date(year, month - 1, day);
     if (isNaN(date.getTime())) return false;
     
     const now = new Date();
