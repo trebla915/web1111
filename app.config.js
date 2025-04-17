@@ -33,7 +33,7 @@ export default ({ config }) => ({
     android: {
       adaptiveIcon: {
         foregroundImage: "./src/assets/images/adaptive-icon.png",
-        backgroundColor: "#000",
+        backgroundColor: "#000000",
       },
       package: "com.your.club1111",
       googleServicesFile: "./src/config/google-services.json",
