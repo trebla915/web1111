@@ -11,9 +11,7 @@ export default ({ config }) => ({
     updates: {
       url: "https://u.expo.dev/e3775235-7f75-42c8-906e-8171c4a1e54b",
     },
-    runtimeVersion: {
-      policy: "appVersion",
-    },
+    runtimeVersion: "1.0.3",
     platforms: ["ios", "android", "web"], // Add web to the platforms array
     ios: {
       supportsTablet: true,
