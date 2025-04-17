@@ -9,16 +9,24 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '@/lib/hooks/useAuth';
 
-// Manual date adjustment for Mountain Time - directly adds a day to fix timezone issues
+// Proper timezone handling for Mountain Time
 function adjustToMountainTime(dateStr: string): Date {
   // Parse the original date string
   const originalDate = new Date(dateStr);
   
-  // Add one day to compensate for timezone conversion issues
-  const adjustedDate = new Date(originalDate);
-  adjustedDate.setDate(originalDate.getDate() + 1);
+  // Convert to Mountain Time without adding a day
+  const options: Intl.DateTimeFormatOptions = {
+    timeZone: 'America/Denver',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric'
+  };
   
-  return adjustedDate;
+  const mountainTimeStr = new Intl.DateTimeFormat('en-US', options).format(originalDate);
+  return new Date(mountainTimeStr);
 }
 
 // Date formatting utilities
@@ -55,7 +63,8 @@ function formatDateWithTime(dateStr: string): string {
       year: 'numeric',
       hour: 'numeric',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
+      timeZone: 'America/Denver'
     };
     
     return date.toLocaleString('en-US', options);
