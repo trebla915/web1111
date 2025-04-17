@@ -29,7 +29,8 @@
       "ios": {
         "channel": "production",
         "autoIncrement": true
-      }
+      },
+      "channel": "production"
     }
   },
   "submit": {
