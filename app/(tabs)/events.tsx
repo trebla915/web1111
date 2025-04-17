@@ -18,6 +18,7 @@ import { useLoading } from '../../src/contexts/LoadingContext'; // Use global lo
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Pressable } from 'react-native';
 import { useAuth } from '../../src/contexts/AuthContext'; // Import Auth context
+import * as Updates from 'expo-updates';
 
 const EventsScreen: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
@@ -29,6 +30,35 @@ const EventsScreen: React.FC = () => {
   const { setLoading } = useLoading(); // Use global loading context
   const { isGuest } = useAuth(); // Access guest mode
   const router = useRouter();
+
+  // Check for updates
+  useEffect(() => {
+    async function checkForUpdates() {
+      try {
+        const update = await Updates.checkForUpdateAsync();
+        if (update.isAvailable) {
+          await Updates.fetchUpdateAsync();
+          Alert.alert(
+            'Update Available',
+            'A new update has been downloaded. Restart the app to apply the changes.',
+            [
+              { text: 'Later', style: 'cancel' },
+              {
+                text: 'Restart',
+                onPress: async () => {
+                  await Updates.reloadAsync();
+                },
+              },
+            ]
+          );
+        }
+      } catch (error) {
+        // Handle error but don't alert the user
+        console.log('Error checking for updates:', error);
+      }
+    }
+    checkForUpdates();
+  }, []);
 
   // Fetch and sort events by date
   const fetchEvents = useCallback(async () => {
@@ -82,6 +112,12 @@ const EventsScreen: React.FC = () => {
       Alert.alert('Error', 'Event details are missing. Please try again.');
       return;
     }
+
+    console.log('Event reservations status:', {
+      eventId: event.id,
+      eventTitle: event.title,
+      reservationsEnabled: event.reservationsEnabled
+    });
 
     if (!event.reservationsEnabled) {
       Alert.alert(

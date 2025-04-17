@@ -71,28 +71,44 @@ const AppContent: React.FC = () => {
 
     const checkForUpdates = async () => {
       try {
+        console.log('Checking for updates...');
         const update = await Updates.checkForUpdateAsync();
+        console.log('Update check result:', JSON.stringify(update, null, 2));
+        
         if (update.isAvailable) {
+          console.log('Update available, downloading...');
           await Updates.fetchUpdateAsync();
+          console.log('Update downloaded successfully');
+          
           Alert.alert(
             "Update Available",
-            "An update has been downloaded and will be applied on restart.",
+            "A new update has been downloaded. Restart the app to apply the changes.",
             [
+              { text: "Later", style: "cancel" },
               {
-                text: "Restart Now",
-                onPress: () => Updates.reloadAsync(),
+                text: "Restart",
+                onPress: async () => {
+                  console.log('User initiated app restart');
+                  await Updates.reloadAsync();
+                },
               },
             ]
           );
+        } else {
+          console.log('No updates available');
         }
       } catch (error) {
-        console.error("Error checking for updates:", error);
+        console.error('Error checking for updates:', error);
       }
     };
 
+    // Check for updates when app starts
     checkForUpdates();
-    prepareApp();
-  }, [fadeAnim]);
+
+    // Also check for updates every 5 minutes while app is running
+    const interval = setInterval(checkForUpdates, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const handleNavigation = async () => {
