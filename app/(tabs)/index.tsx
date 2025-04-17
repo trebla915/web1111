@@ -10,12 +10,12 @@ import {
   Image,
   ActivityIndicator,
   Dimensions,
+  Linking,
 } from "react-native";
 import { useUser } from "../../src/contexts/UserContext"; // Use UserContext to fetch the user's name
 import { fetchAllEvents } from "../../src/utils/events";
 import { Event } from "../../src/utils/types";
-import { formatToMMDDYYYY } from "../../src/utils/dateFormatter";
-
+import { formatDate, toMountainTime } from '../../src/utils/dateFormatter';
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -31,16 +31,22 @@ export const HomeScreen = () => {
       try {
         const events = await fetchAllEvents();
 
+        // Get current date in Mountain Time
+        const now = toMountainTime(new Date());
+
         // Filter and find the next upcoming event
-        const now = new Date();
         const nextEvent = events
-          .filter((event) => new Date(event.date || "") > now)
-          .reduce((soonest, current) =>
-            new Date(current.date || "").getTime() < new Date(soonest.date || "").getTime()
-              ? current
-              : soonest,
-            events[0]
-          );
+          .filter((event) => {
+            if (!event.date) return false;
+            const eventDate = toMountainTime(event.date);
+            return eventDate > now;
+          })
+          .reduce((soonest, current) => {
+            if (!current.date || !soonest.date) return soonest;
+            const currentDate = toMountainTime(current.date);
+            const soonestDate = toMountainTime(soonest.date);
+            return currentDate < soonestDate ? current : soonest;
+          }, events[0]);
 
         setUpcomingEvent(nextEvent || null);
       } catch (err) {
@@ -84,17 +90,25 @@ export const HomeScreen = () => {
         ) : upcomingEvent ? (
           <View style={styles.eventCard}>
             <Image
-              source={{
-                uri: upcomingEvent.flyerUrl || "https://via.placeholder.com/300",
-              }}
+              source={{ uri: upcomingEvent.flyerUrl || 'https://via.placeholder.com/150' }}
               style={styles.eventImage}
             />
-            <Text style={styles.eventTitle}>{upcomingEvent.title}</Text>
-            <Text style={styles.eventDate}>
-              {upcomingEvent.date
-                ? formatToMMDDYYYY(upcomingEvent.date)
-                : "Date not available"}
-            </Text>
+            <View style={styles.eventInfo}>
+              <Text style={styles.eventTitle}>{upcomingEvent.title}</Text>
+              {upcomingEvent.date && (
+                <Text style={styles.eventDate}>
+                  {formatDate(upcomingEvent.date)}
+                </Text>
+              )}
+              {upcomingEvent.ticketLink && (
+                <Text
+                  style={styles.ticketLink}
+                  onPress={() => Linking.openURL(upcomingEvent.ticketLink!)}
+                >
+                  Get Tickets
+                </Text>
+              )}
+            </View>
           </View>
         ) : (
           <Text style={styles.noEventText}>No upcoming events.</Text>
@@ -155,6 +169,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     resizeMode: "cover",
   },
+  eventInfo: {
+    alignItems: "center",
+  },
   eventTitle: {
     fontSize: 18,
     color: "#fff",
@@ -163,6 +180,11 @@ const styles = StyleSheet.create({
   eventDate: {
     fontSize: 16,
     color: "#aaa",
+  },
+  ticketLink: {
+    fontSize: 16,
+    color: "#aaa",
+    textAlign: "center",
   },
   noEventText: {
     fontSize: 16,

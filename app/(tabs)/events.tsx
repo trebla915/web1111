@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { fetchAllEvents } from '../../src/utils/events';
-import { formatToMMDDYYYY } from '../../src/utils/dateFormatter';
 import { Event } from '../../src/utils/types';
 import { Linking } from 'react-native';
 import { useLoading } from '../../src/contexts/LoadingContext'; // Use global loading context
@@ -19,6 +18,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { Pressable } from 'react-native';
 import { useAuth } from '../../src/contexts/AuthContext'; // Import Auth context
 import * as Updates from 'expo-updates';
+import { formatDate } from '../../src/utils/dateFormatter';
 
 const EventsScreen: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
@@ -172,7 +172,11 @@ const EventsScreen: React.FC = () => {
       />
       <View style={styles.infoContainer}>
         <Text style={styles.title}>{item.title}</Text>
-        {item.date && <Text style={styles.dateText}>Date: {formatToMMDDYYYY(item.date)}</Text>}
+        {item.date && (
+          <Text style={styles.dateText}>
+            Date: {formatDate(item.date)}
+          </Text>
+        )}
         <View style={styles.actions}>
           <Pressable
             style={({ pressed }) => [

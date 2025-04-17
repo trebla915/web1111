@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   Alert,
   StyleSheet,
   Modal,
@@ -14,6 +13,7 @@ import {
   Image,
   Switch,
 } from 'react-native';
+import { Text } from '@react-native-material/core';
 import { useAuth } from '../../src/contexts/AuthContext';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -27,6 +27,8 @@ import Constants from "expo-constants";
 const screenWidth = Dimensions.get('window').width;
 
 const CreateEvent: React.FC = () => {
+  console.log('CreateEvent component rendered');
+  
   const { firebaseUser, token } = useAuth();
   const [eventName, setEventName] = useState('');
   const [flyerUri, setFlyerUri] = useState<string | null>(null);
@@ -35,6 +37,13 @@ const CreateEvent: React.FC = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [loading, setLoading] = useState(false);
   const [reservationsEnabled, setReservationsEnabled] = useState(true);
+
+  useEffect(() => {
+    console.log('CreateEvent mounted');
+    return () => {
+      console.log('CreateEvent unmounted');
+    };
+  }, []);
 
   const validateForm = () => {
     if (!eventName.trim()) {
@@ -149,9 +158,9 @@ const CreateEvent: React.FC = () => {
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.header}>
           <View>
-            <Text variant="headlineMedium">Create New Event</Text>
+            <Text style={styles.headline}>Create New Event</Text>
             <Text style={styles.versionText}>
-              App: {Constants.expoConfig?.version} | Runtime: {Constants.expoConfig?.runtimeVersion}
+              App: {String(Constants.expoConfig?.version)} | Runtime: {String(Constants.expoConfig?.runtimeVersion)}
             </Text>
           </View>
           <TouchableOpacity onPress={checkForUpdates} style={styles.updateButton}>
@@ -325,6 +334,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     marginTop: 4,
+  },
+  headline: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
   },
 });
 

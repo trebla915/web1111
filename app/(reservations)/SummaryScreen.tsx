@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useUser } from '../../src/contexts/UserContext';
-import { formatToMMDDYYYY } from '../../src/utils/dateFormatter';
 
 export default function SummaryScreen() {
   const router = useRouter();
@@ -54,9 +53,16 @@ export default function SummaryScreen() {
         <Text style={styles.detailText}>
           Event: {reservationDetails?.eventName || eventTitle || 'N/A'}
         </Text>
-        <Text style={styles.detailText}>
-          Date: {eventDate ? formatToMMDDYYYY(eventDate) : 'N/A'}
-        </Text>
+        {eventDate && (
+          <Text style={styles.eventDate}>
+            Date: {new Date(eventDate).toLocaleDateString('en-US', {
+              month: '2-digit',
+              day: '2-digit',
+              year: 'numeric',
+              timeZone: 'America/Denver'
+            })}
+          </Text>
+        )}
         <Text style={styles.detailText}>
           Table: {reservationDetails?.tableNumber || '-'}
         </Text>
@@ -139,6 +145,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   detailText: {
+    color: '#aaa',
+    fontSize: 16,
+    marginBottom: 10,
+  },
+  eventDate: {
     color: '#aaa',
     fontSize: 16,
     marginBottom: 10,

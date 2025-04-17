@@ -15,6 +15,9 @@ import PushNotifications from './PushNotifications'; // Ensure correct import
 const Tab = createMaterialTopTabNavigator();
 
 export default function Dashboard() {
+  console.log('Dashboard rendered');
+  console.log('CreateEvent component:', CreateEvent);
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -32,13 +35,27 @@ export default function Dashboard() {
         },
       }}
     >
-      <Tab.Screen name="Create Event" component={CreateEvent} />
-      <Tab.Screen name="Edit Events" component={EditEvents} />
-      <Tab.Screen name="Manage Users" component={ManageUsers} />
-      <Tab.Screen name="Manage Reservations" component={ManageReservations} />
-      <Tab.Screen name="Add Bottle to Catalog" component={AddBottleToCatalog} />
-      <Tab.Screen name="Add Bottles to Event" component={AddBottlesToEvent} />
-      <Tab.Screen name="Push Notifications" component={PushNotifications} />
+      <Tab.Screen 
+        name="CreateEvent" 
+        component={CreateEvent}
+        options={{
+          title: 'Create Event',
+          tabBarLabel: 'Create Event'
+        }}
+      />
+      <Tab.Screen 
+        name="EditEvents" 
+        component={EditEvents}
+        options={{
+          title: 'Edit Events',
+          tabBarLabel: 'Edit Events'
+        }}
+      />
+      <Tab.Screen name="ManageUsers" component={ManageUsers} />
+      <Tab.Screen name="ManageReservations" component={ManageReservations} />
+      <Tab.Screen name="AddBottleToCatalog" component={AddBottleToCatalog} />
+      <Tab.Screen name="AddBottlesToEvent" component={AddBottlesToEvent} />
+      <Tab.Screen name="PushNotifications" component={PushNotifications} />
     </Tab.Navigator>
   );
 }

@@ -74,11 +74,10 @@ const AppContent: React.FC = () => {
         console.log('🔍 Checking for updates...');
         console.log('📱 Current runtime version:', Updates.runtimeVersion);
         console.log('📦 Update URL:', Constants.expoConfig?.updates?.url);
-        console.log('🌿 Branch:', Constants.expoConfig?.updates?.branch);
+        // Branch is not available in the updates config type, removing that log
         
         const update = await Updates.checkForUpdateAsync();
         console.log('📊 Update check result:', JSON.stringify(update, null, 2));
-        
         if (update.isAvailable) {
           console.log('📥 Update available, downloading...');
           await Updates.fetchUpdateAsync();
