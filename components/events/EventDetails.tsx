@@ -34,37 +34,31 @@ function formatToMMDDYYYY(dateStr: string): string {
   }
 }
 
-function formatDateWithTime(dateStr: string): string {
-  try {
-    if (!dateStr) return 'Date TBA';
-    
-    const date = new Date(dateStr);
-    return date.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
-  } catch (error) {
-    console.error('Error formatting date with time:', error);
-    return 'Invalid date';
-  }
+function formatDate(dateStr: string): string {
+  if (!dateStr) return 'Date TBA';
+  
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return 'Invalid date';
+  
+  return date.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  });
 }
 
 function getDayOfWeek(dateStr: string): string {
-  try {
-    if (!dateStr) return 'TBA';
-    
-    const date = new Date(dateStr);
-    return date.toLocaleString('en-US', {
-      weekday: 'long'
-    });
-  } catch (error) {
-    console.error('Error getting day of week:', error);
-    return 'Invalid date';
-  }
+  if (!dateStr) return 'TBA';
+  
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return 'Invalid date';
+  
+  return date.toLocaleString('en-US', {
+    weekday: 'long'
+  });
 }
 
 // Add a debug function to help diagnose the issue
@@ -230,7 +224,7 @@ export default function EventDetails({ event }: EventDetailsProps) {
                 {/* Date and Title */}
                 <div className="mb-4">
                   <div className="text-responsive-sm text-white/60 mb-0">
-                    {formatDateWithTime(event.date)}
+                    {formatDate(event.date)}
                   </div>
                   <h1 className="text-responsive-2xl font-bold text-white digital-glow-soft">
                     {event.title}

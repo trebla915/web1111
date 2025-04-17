@@ -17,11 +17,10 @@ export function formatToMMDDYYYY(dateStr: string): string {
   try {
     if (!dateStr) return 'Date TBA';
     
-    const utcDate = new Date(dateStr);
-    if (isNaN(utcDate.getTime())) return 'Invalid date';
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return 'Invalid date';
     
-    return utcDate.toLocaleDateString('en-US', {
-      timeZone: 'America/Denver',
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'numeric',
       day: 'numeric'
@@ -41,11 +40,10 @@ export function formatDateWithTime(dateStr: string): string {
   try {
     if (!dateStr) return 'Date TBA';
     
-    const utcDate = new Date(dateStr);
-    if (isNaN(utcDate.getTime())) return 'Invalid date';
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return 'Invalid date';
     
-    return utcDate.toLocaleString('en-US', {
-      timeZone: 'America/Denver',
+    return date.toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
@@ -68,11 +66,10 @@ export function getDayOfWeek(dateStr: string): string {
   try {
     if (!dateStr) return 'TBA';
     
-    const utcDate = new Date(dateStr);
-    if (isNaN(utcDate.getTime())) return 'Invalid date';
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return 'Invalid date';
     
-    return utcDate.toLocaleString('en-US', {
-      timeZone: 'America/Denver',
+    return date.toLocaleString('en-US', {
       weekday: 'long'
     });
   } catch (error) {
@@ -90,11 +87,11 @@ export function isDateInFuture(dateStr: string): boolean {
   try {
     if (!dateStr) return false;
     
-    const utcDate = new Date(dateStr);
-    if (isNaN(utcDate.getTime())) return false;
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return false;
     
     const now = new Date();
-    return utcDate > now;
+    return date > now;
   } catch (error) {
     console.error('Error checking if date is in future:', error);
     return false;
