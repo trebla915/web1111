@@ -117,6 +117,7 @@ interface Event {
   flyerUrl?: string;
   ticketLink?: string;
   created?: string;
+  reservationsEnabled?: boolean;
 }
 
 interface EventDetailsProps {
@@ -196,17 +197,16 @@ export default function EventDetails({ event }: EventDetailsProps) {
       return;
     }
 
-    if (isGuest) {
-      toast.error('You need an account to reserve a table.');
-      
-      // Ask if they want to sign up
-      if (confirm('You need an account to reserve a table. Would you like to sign up?')) {
-        router.push('/auth/register');
-      }
+    if (!event.reservationsEnabled) {
+      toast.error('Table reservations are not available for this event.');
       return;
     }
 
-    // Navigate to the reserve route with the event ID
+    if (isGuest) {
+      toast.error('You need an account to reserve a table.');
+      return;
+    }
+
     router.push(`/reserve/${event.id}`);
   };
 

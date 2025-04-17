@@ -38,6 +38,13 @@ export default function TableSelectionPage() {
       const eventData = await getEvent(eventId) as Event;
       
       if (eventData) {
+        // Check if reservations are enabled for this event
+        if (!eventData.reservationsEnabled) {
+          toast.error('Table reservations are not available for this event.');
+          router.push('/events');
+          return;
+        }
+
         setEventDetails({
           title: eventData.title,
           date: eventData.date || new Date().toLocaleDateString(),
@@ -80,7 +87,7 @@ export default function TableSelectionPage() {
     } finally {
       setLoading(false);
     }
-  }, [eventId]);
+  }, [eventId, router]);
 
   // Call fetchTables on component mount
   useEffect(() => {
