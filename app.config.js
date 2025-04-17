@@ -20,9 +20,7 @@ export default ({ config }) => ({
         keyid: "main"
       }
     },
-    runtimeVersion: {
-      policy: "sdkVersion"
-    },
+    runtimeVersion: "1.0.0",
     platforms: ["ios", "android", "web"],
     ios: {
       supportsTablet: true,
@@ -45,8 +43,6 @@ export default ({ config }) => ({
         foregroundImage: "./src/assets/images/adaptive-icon.png",
         backgroundColor: "#000000",
       },
-      package: "com.your.club1111",
-      versionCode: 10,
       googleServicesFile: "./src/config/google-services.json",
       permissions: [
         "android.permission.CAMERA",
