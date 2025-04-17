@@ -15,9 +15,7 @@ export default ({ config }) => ({
       checkAutomatically: "ON_LOAD",
       enabled: true
     },
-    runtimeVersion: {
-      policy: "appVersion"
-    },
+    runtimeVersion: "1.0.5",
     platforms: ["ios", "android", "web"], // Add web to the platforms array
     ios: {
       supportsTablet: true,
