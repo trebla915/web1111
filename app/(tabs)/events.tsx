@@ -83,6 +83,15 @@ const EventsScreen: React.FC = () => {
       return;
     }
 
+    if (!event.reservationsEnabled) {
+      Alert.alert(
+        'Reservations Disabled',
+        'Table reservations are not available for this event.',
+        [{ text: 'OK', style: 'cancel' }]
+      );
+      return;
+    }
+
     if (isGuest) {
       Alert.alert(
         'Account Required',

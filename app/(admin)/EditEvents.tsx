@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
+  Switch,
 } from 'react-native';
 import { fetchAllEvents, updateEvent, deleteEvent } from '../../src/utils/events';
 import { Event } from '../../src/utils/types';
@@ -23,6 +24,7 @@ const EditEvents: React.FC = () => {
   const [eventDate, setEventDate] = useState('');
   const [ticketLink, setTicketLink] = useState('');
   const [searchQuery, setSearchQuery] = useState(''); // State for search query
+  const [reservationsEnabled, setReservationsEnabled] = useState(true);
 
   useEffect(() => {
     loadEvents();
@@ -61,6 +63,7 @@ const EditEvents: React.FC = () => {
       setEventTitle(selectedEvent.title || '');
       setEventDate(selectedEvent.date || '');
       setTicketLink(selectedEvent.ticketLink || '');
+      setReservationsEnabled(selectedEvent.reservationsEnabled ?? true);
     }
   };
 
@@ -76,6 +79,7 @@ const EditEvents: React.FC = () => {
         title: eventTitle,
         date: eventDate,
         ticketLink,
+        reservationsEnabled,
       };
       await updateEvent(selectedEventId, updatedEvent);
       Alert.alert('Success', 'Event updated successfully.');
@@ -192,6 +196,16 @@ const EditEvents: React.FC = () => {
                 onChangeText={setTicketLink}
               />
 
+              <View style={styles.switchContainer}>
+                <Text style={styles.switchLabel}>Enable Reservations</Text>
+                <Switch
+                  value={reservationsEnabled}
+                  onValueChange={setReservationsEnabled}
+                  trackColor={{ false: '#767577', true: '#81b0ff' }}
+                  thumbColor={reservationsEnabled ? '#6200ea' : '#f4f3f4'}
+                />
+              </View>
+
               <View style={styles.buttonContainer}>
                 <View style={styles.buttonWrapper}>
                   <CustomButton title="Update Event" onPress={handleUpdateEvent} />
@@ -280,6 +294,17 @@ const styles = StyleSheet.create({
   buttonWrapper: {
     flex: 1,
     marginHorizontal: 8,
+  },
+  switchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+    paddingHorizontal: 10,
+  },
+  switchLabel: {
+    color: '#fff',
+    fontSize: 16,
   },
 });
 

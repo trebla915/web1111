@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   Dimensions,
   Image,
+  Switch,
 } from 'react-native';
 import { useAuth } from '../../src/contexts/AuthContext';
 import * as ImagePicker from 'expo-image-picker';
@@ -30,6 +31,7 @@ const CreateEvent: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [reservationsEnabled, setReservationsEnabled] = useState(true);
 
   const validateForm = () => {
     if (!eventName.trim()) {
@@ -83,6 +85,7 @@ const CreateEvent: React.FC = () => {
         flyerUrl,
         userId: firebaseUser.uid,
         imageUrl: '', // Placeholder for compatibility
+        reservationsEnabled,
       };
 
       await createEvent(eventData);
@@ -94,6 +97,7 @@ const CreateEvent: React.FC = () => {
       setFlyerUri(null);
       setTicketLink('');
       setSelectedDate(null);
+      setReservationsEnabled(true);
     } catch (error) {
       console.error('[handleCreateEvent] Error creating event:', error);
       Alert.alert('Error', 'Failed to create event.');
@@ -160,6 +164,16 @@ const CreateEvent: React.FC = () => {
             <CustomButton title="Remove Flyer" onPress={() => setFlyerUri(null)} outlined />
           </View>
         )}
+
+        <View style={styles.switchContainer}>
+          <Text style={styles.switchLabel}>Enable Reservations</Text>
+          <Switch
+            value={reservationsEnabled}
+            onValueChange={setReservationsEnabled}
+            trackColor={{ false: '#767577', true: '#81b0ff' }}
+            thumbColor={reservationsEnabled ? '#6200ea' : '#f4f3f4'}
+          />
+        </View>
 
         {/* Create Event Button */}
         <CustomButton title="Create Event" onPress={handleCreateEvent} disabled={loading} />
@@ -231,6 +245,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  },
+  switchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+    paddingHorizontal: 10,
+  },
+  switchLabel: {
+    color: '#fff',
+    fontSize: 16,
   },
 });
 

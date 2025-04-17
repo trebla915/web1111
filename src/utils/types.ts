@@ -6,6 +6,7 @@ export type Event = {
   date?: string; // Optional date for the event
   flyerUrl?: string; // Optional flyer URL for the event
   status?: string; // Optional status of the event
+  reservationsEnabled?: boolean; // Whether reservations are enabled for this event
 };
 
 export type BackendTable = {
