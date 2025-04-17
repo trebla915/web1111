@@ -118,15 +118,27 @@ export default function EditEventsTab() {
     }
   };
 
-  const formatEventDate = (dateString?: string) => {
+  const formatEventDate = (dateString?: string): string => {
     if (!dateString) return 'No date set';
     
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+    try {
+      // Parse the ISO string directly
+      const [datePart] = dateString.split('T');
+      const [year, month, day] = datePart.split('-').map(Number);
+      
+      // Create date object using the parsed components
+      const date = new Date(year, month - 1, day);
+      if (isNaN(date.getTime())) return 'Invalid date';
+      
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Invalid date';
+    }
   };
 
   return (

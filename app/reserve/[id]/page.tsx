@@ -131,22 +131,21 @@ export default function TableSelectionPage() {
     router.push(`/reserve/${eventId}/details`);
   };
   
-  // Helper function to format date to MM-DD-YY with timezone fix
+  // Helper function to format date to MM-DD-YY
   const formatDate = (dateStr: string): string => {
     try {
-      const originalDate = new Date(dateStr);
-      if (isNaN(originalDate.getTime())) return 'Invalid date';
+      if (!dateStr) return 'Invalid date';
       
-      // Add one day to fix timezone issue
-      const adjustedDate = new Date(originalDate);
-      adjustedDate.setDate(originalDate.getDate() + 1);
+      // Parse the ISO string directly
+      const [datePart] = dateStr.split('T');
+      const [year, month, day] = datePart.split('-').map(Number);
       
       // Format date
-      const month = String(adjustedDate.getMonth() + 1).padStart(2, '0');
-      const day = String(adjustedDate.getDate()).padStart(2, '0');
-      const year = String(adjustedDate.getFullYear()).slice(2);
+      const formattedMonth = String(month).padStart(2, '0');
+      const formattedDay = String(day).padStart(2, '0');
+      const formattedYear = String(year).slice(2);
       
-      return `${month}-${day}-${year}`;
+      return `${formattedMonth}-${formattedDay}-${formattedYear}`;
     } catch {
       return 'Invalid date';
     }

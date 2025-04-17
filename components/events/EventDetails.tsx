@@ -19,11 +19,18 @@ function adjustToMountainTime(dateStr: string): Date {
 
 // Date formatting utilities
 function formatToMMDDYYYY(dateStr: string): string {
+  if (!dateStr) return 'Date TBA';
+  
   try {
-    if (!dateStr) return 'Date TBA';
+    // Parse the ISO string directly
+    const [datePart] = dateStr.split('T');
+    const [year, month, day] = datePart.split('-').map(Number);
     
-    const date = new Date(dateStr);
-    return date.toLocaleString('en-US', {
+    // Create date object using the parsed components
+    const date = new Date(year, month - 1, day);
+    if (isNaN(date.getTime())) return 'Invalid date';
+    
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'numeric',
       day: 'numeric'
@@ -37,28 +44,48 @@ function formatToMMDDYYYY(dateStr: string): string {
 function formatDate(dateStr: string): string {
   if (!dateStr) return 'Date TBA';
   
-  const date = new Date(dateStr);
-  if (isNaN(date.getTime())) return 'Invalid date';
-  
-  return date.toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true
-  });
+  try {
+    // Parse the ISO string directly
+    const [datePart] = dateStr.split('T');
+    const [year, month, day] = datePart.split('-').map(Number);
+    
+    // Create date object using the parsed components
+    const date = new Date(year, month - 1, day);
+    if (isNaN(date.getTime())) return 'Invalid date';
+    
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return 'Invalid date';
+  }
 }
 
 function getDayOfWeek(dateStr: string): string {
   if (!dateStr) return 'TBA';
   
-  const date = new Date(dateStr);
-  if (isNaN(date.getTime())) return 'Invalid date';
-  
-  return date.toLocaleString('en-US', {
-    weekday: 'long'
-  });
+  try {
+    // Parse the ISO string directly
+    const [datePart] = dateStr.split('T');
+    const [year, month, day] = datePart.split('-').map(Number);
+    
+    // Create date object using the parsed components
+    const date = new Date(year, month - 1, day);
+    if (isNaN(date.getTime())) return 'Invalid date';
+    
+    return date.toLocaleString('en-US', {
+      weekday: 'long'
+    });
+  } catch (error) {
+    console.error('Error getting day of week:', error);
+    return 'Invalid date';
+  }
 }
 
 // Add a debug function to help diagnose the issue

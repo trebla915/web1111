@@ -56,8 +56,15 @@ export default function EventsFestivalSection({
   const getEventMonth = (dateStr: string): string => {
     try {
       if (!dateStr) return 'TBA';
-      const date = new Date(dateStr);
+      
+      // Parse the ISO string directly
+      const [datePart] = dateStr.split('T');
+      const [year, month, day] = datePart.split('-').map(Number);
+      
+      // Create date object using the parsed components
+      const date = new Date(year, month - 1, day);
       if (isNaN(date.getTime())) return 'TBA';
+      
       return date.toLocaleString('en-US', { month: 'short' }).toUpperCase();
     } catch {
       return 'TBA';
@@ -67,8 +74,15 @@ export default function EventsFestivalSection({
   const getEventDay = (dateStr: string): string => {
     try {
       if (!dateStr) return '--';
-      const date = new Date(dateStr);
+      
+      // Parse the ISO string directly
+      const [datePart] = dateStr.split('T');
+      const [year, month, day] = datePart.split('-').map(Number);
+      
+      // Create date object using the parsed components
+      const date = new Date(year, month - 1, day);
       if (isNaN(date.getTime())) return '--';
+      
       return date.getDate().toString();
     } catch {
       return '--';
