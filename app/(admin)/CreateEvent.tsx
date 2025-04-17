@@ -78,9 +78,12 @@ const CreateEvent: React.FC = () => {
         flyerUrl = await uploadImageToStorage(flyerUri, filePath);
       }
 
+      // Ensure the date is stored in UTC
+      const eventDate = selectedDate ? new Date(selectedDate.setHours(12, 0, 0, 0)).toISOString() : '';
+
       const eventData = {
         title: eventName.trim(),
-        date: selectedDate?.toISOString(),
+        date: eventDate,
         ticketLink: ticketLink.trim(),
         flyerUrl,
         userId: firebaseUser.uid,
