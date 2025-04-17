@@ -176,12 +176,6 @@ export default function CreateEventTab() {
       return;
     }
 
-    console.log('Current user:', {
-      uid: user.uid,
-      email: user.email,
-      isAnonymous: user.isAnonymous,
-    });
-
     if (!validateForm()) {
       console.error('Form validation failed');
       return;
@@ -194,48 +188,28 @@ export default function CreateEventTab() {
       if (flyerFile) {
         try {
           const timestamp = Date.now();
-          // Use sanitized filename and include timestamp
           const sanitizedFilename = eventName.trim().replace(/[^a-z0-9]/gi, '_');
           const filePath = `flyers/${user.uid}/${timestamp}_${sanitizedFilename}.jpg`;
           
           console.log(`[handleCreateEvent] Preparing flyer image for upload:`);
           console.log(`- Event name: ${eventName}`);
           console.log(`- File path: ${filePath}`);
-          console.log(`- File details:`, {
-            name: flyerFile.name,
-            type: flyerFile.type,
-            size: Math.round(flyerFile.size / 1024) + 'KB',
-            lastModified: new Date(flyerFile.lastModified).toISOString()
-          });
-          
-          // Convert image to Base64 for alternative upload if needed
-          const convertToBase64 = () => {
-            return new Promise<string>((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onload = () => resolve(reader.result as string);
-              reader.onerror = error => reject(error);
-              reader.readAsDataURL(flyerFile);
-            });
-          };
           
           try {
-            // Try standard upload first
             console.log(`[handleCreateEvent] Starting standard image upload...`);
             flyerUrl = await uploadImageToStorage(flyerFile, filePath);
             console.log(`[handleCreateEvent] Standard image upload successful: ${flyerUrl}`);
           } catch (uploadError) {
             console.error(`[handleCreateEvent] Standard upload failed, trying event service direct upload...`, uploadError);
             
-            // Convert to base64 and try direct upload through createEvent
             const base64Data = await convertToBase64();
             console.log(`[handleCreateEvent] Image converted to base64. Creating event with inline image...`);
             
-            // Store the event with base64 image directly
             const eventData = {
               title: eventName.trim(),
               date: selectedDate?.toISOString(),
               ticketLink: ticketLink.trim(),
-              flyerUrl: '', // Will be populated by server
+              flyerUrl: '',
               flyerBase64: base64Data,
               createdBy: user.uid,
               createdAt: new Date().toISOString(),
