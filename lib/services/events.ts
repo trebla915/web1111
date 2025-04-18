@@ -70,7 +70,21 @@ export const getUpcomingEvents = async (): Promise<Event[]> => {
     
     const filteredEvents = events.filter((event: Event) => {
       try {
-        const eventDate = new Date(event.date);
+        // Handle incomplete date formats
+        let eventDateStr = event.date;
+        if (!eventDateStr.includes('T')) {
+          // If no time is specified, assume midnight UTC
+          eventDateStr = `${eventDateStr}T00:00:00.000Z`;
+        }
+        
+        const eventDate = new Date(eventDateStr);
+        
+        // Check if the date is valid
+        if (isNaN(eventDate.getTime())) {
+          console.warn(`Invalid date format for event "${event.title}": ${event.date}`);
+          return false;
+        }
+        
         // Convert event date to local timezone
         const localEventDate = new Date(eventDate.getTime() - (eventDate.getTimezoneOffset() * 60000));
         // Set to start of day for comparison
@@ -81,8 +95,7 @@ export const getUpcomingEvents = async (): Promise<Event[]> => {
         console.log(`Event "${event.title}" (${event.date} -> ${localEventDate.toISOString()}): ${isIncluded ? 'INCLUDED' : 'EXCLUDED'}`);
         return isIncluded;
       } catch (err) {
-        // If date is invalid, exclude the event
-        console.warn('Event with invalid date:', event);
+        console.warn(`Error processing event "${event.title}":`, err);
         return false;
       }
     });
