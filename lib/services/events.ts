@@ -65,18 +65,26 @@ export const getUpcomingEvents = async (): Promise<Event[]> => {
     const events = Array.isArray(response.data) ? response.data : 
                   (response.data && response.data.events ? response.data.events : []);
     
-    return events.filter((event: Event) => {
+    console.log('Current date for comparison:', now.toISOString());
+    console.log('All events:', events.map((e: Event) => ({ title: e.title, date: e.date })));
+    
+    const filteredEvents = events.filter((event: Event) => {
       try {
         const eventDate = new Date(event.date);
         // Set time to start of day for comparison
         eventDate.setHours(0, 0, 0, 0);
-        return eventDate >= now;  // Changed to >= to include today's events
+        const isIncluded = eventDate >= now;
+        console.log(`Event "${event.title}" (${event.date}): ${isIncluded ? 'INCLUDED' : 'EXCLUDED'}`);
+        return isIncluded;
       } catch (err) {
         // If date is invalid, exclude the event
         console.warn('Event with invalid date:', event);
         return false;
       }
     });
+    
+    console.log('Filtered events:', filteredEvents.map((e: Event) => ({ title: e.title, date: e.date })));
+    return filteredEvents;
   } catch (error) {
     console.error('Error getting upcoming events:', error);
     // Return empty array instead of throwing to prevent UI errors
