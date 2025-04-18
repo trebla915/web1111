@@ -58,6 +58,8 @@ export const getUpcomingEvents = async (): Promise<Event[]> => {
   try {
     const response = await apiClient.get('/events');
     const now = new Date();
+    // Set time to start of day for comparison
+    now.setHours(0, 0, 0, 0);
     
     // Check the response structure and access the events array properly
     const events = Array.isArray(response.data) ? response.data : 
@@ -65,7 +67,10 @@ export const getUpcomingEvents = async (): Promise<Event[]> => {
     
     return events.filter((event: Event) => {
       try {
-        return new Date(event.date) > now;
+        const eventDate = new Date(event.date);
+        // Set time to start of day for comparison
+        eventDate.setHours(0, 0, 0, 0);
+        return eventDate >= now;  // Changed to >= to include today's events
       } catch (err) {
         // If date is invalid, exclude the event
         console.warn('Event with invalid date:', event);
