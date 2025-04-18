@@ -58,8 +58,8 @@ export const getUpcomingEvents = async (): Promise<Event[]> => {
   try {
     const response = await apiClient.get('/events');
     const now = new Date();
-    // Set time to start of day in local timezone
-    now.setHours(0, 0, 0, 0);
+    // Set time to start of day in UTC
+    now.setUTCHours(0, 0, 0, 0);
     
     // Check the response structure and access the events array properly
     const events = Array.isArray(response.data) ? response.data : 
@@ -85,13 +85,12 @@ export const getUpcomingEvents = async (): Promise<Event[]> => {
           return false;
         }
         
-        // Convert event date to local timezone and set to start of day
-        const localEventDate = new Date(eventDate.getTime() - (eventDate.getTimezoneOffset() * 60000));
-        localEventDate.setHours(0, 0, 0, 0);
+        // Set event date to start of day in UTC
+        eventDate.setUTCHours(0, 0, 0, 0);
         
-        // Compare dates without time components
-        const isIncluded = localEventDate >= now;
-        console.log(`Event "${event.title}" (${event.date} -> ${localEventDate.toISOString()}): ${isIncluded ? 'INCLUDED' : 'EXCLUDED'}`);
+        // Compare dates in UTC
+        const isIncluded = eventDate >= now;
+        console.log(`Event "${event.title}" (${event.date} -> ${eventDate.toISOString()}): ${isIncluded ? 'INCLUDED' : 'EXCLUDED'}`);
         return isIncluded;
       } catch (err) {
         console.warn(`Error processing event "${event.title}":`, err);
