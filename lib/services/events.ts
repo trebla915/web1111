@@ -58,26 +58,26 @@ export const getUpcomingEvents = async (): Promise<Event[]> => {
   try {
     const response = await apiClient.get('/events');
     const now = new Date();
-    // Set time to start of day in UTC
-    now.setUTCHours(0, 0, 0, 0);
+    // Get current date in YYYY-MM-DD format
+    const currentDateStr = now.toISOString().split('T')[0];
     
     // Check the response structure and access the events array properly
     const events = Array.isArray(response.data) ? response.data : 
                   (response.data && response.data.events ? response.data.events : []);
     
-    console.log('Current date for comparison:', now.toISOString());
+    console.log('Current date for comparison:', currentDateStr);
     console.log('All events:', events.map((e: Event) => ({ title: e.title, date: e.date })));
     
     const filteredEvents = events.filter((event: Event) => {
       try {
         // Handle incomplete date formats
-        let eventDateStr = event.date;
-        if (!eventDateStr.includes('T')) {
+        let rawEventDateStr = event.date;
+        if (!rawEventDateStr.includes('T')) {
           // If no time is specified, assume midnight UTC
-          eventDateStr = `${eventDateStr}T00:00:00.000Z`;
+          rawEventDateStr = `${rawEventDateStr}T00:00:00.000Z`;
         }
         
-        const eventDate = new Date(eventDateStr);
+        const eventDate = new Date(rawEventDateStr);
         
         // Check if the date is valid
         if (isNaN(eventDate.getTime())) {
@@ -85,12 +85,12 @@ export const getUpcomingEvents = async (): Promise<Event[]> => {
           return false;
         }
         
-        // Set event date to start of day in UTC
-        eventDate.setUTCHours(0, 0, 0, 0);
+        // Get event date in YYYY-MM-DD format
+        const normalizedEventDateStr = eventDate.toISOString().split('T')[0];
         
-        // Compare dates in UTC
-        const isIncluded = eventDate >= now;
-        console.log(`Event "${event.title}" (${event.date} -> ${eventDate.toISOString()}): ${isIncluded ? 'INCLUDED' : 'EXCLUDED'}`);
+        // Compare dates as strings
+        const isIncluded = normalizedEventDateStr >= currentDateStr;
+        console.log(`Event "${event.title}" (${event.date} -> ${normalizedEventDateStr}): ${isIncluded ? 'INCLUDED' : 'EXCLUDED'}`);
         return isIncluded;
       } catch (err) {
         console.warn(`Error processing event "${event.title}":`, err);
