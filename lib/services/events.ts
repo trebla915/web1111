@@ -85,12 +85,11 @@ export const getUpcomingEvents = async (): Promise<Event[]> => {
           return false;
         }
         
-        // Convert event date to local timezone
+        // Convert event date to local timezone and set to start of day
         const localEventDate = new Date(eventDate.getTime() - (eventDate.getTimezoneOffset() * 60000));
-        // Set to start of day for comparison
         localEventDate.setHours(0, 0, 0, 0);
         
-        // Include events from today or later
+        // Compare dates without time components
         const isIncluded = localEventDate >= now;
         console.log(`Event "${event.title}" (${event.date} -> ${localEventDate.toISOString()}): ${isIncluded ? 'INCLUDED' : 'EXCLUDED'}`);
         return isIncluded;
