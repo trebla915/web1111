@@ -3,9 +3,10 @@
 export default ({ config }) => {
   // Central version bump – start fresh at 1.0.0
   const appVersion = "1.0.0";
+  const updateUrl = config.expo.updates?.url || "https://u.expo.dev/e3775235-7f75-42c8-906e-8171c4a1e54b";
+  const channel = config.expo.updates?.channel || "production";
 
   return {
-    // Preserve any other top-level config keys
     ...config,
     expo: {
       ...config.expo,
@@ -14,9 +15,10 @@ export default ({ config }) => {
       version: appVersion,
       runtimeVersion: appVersion,
 
+      // Ensure updates configuration is present
       updates: {
-        url: config.expo.updates?.url || "https://u.expo.dev/e3775235-7f75-42c8-906e-8171c4a1e54b",
-        channel: config.expo.updates?.channel || "production",
+        url: updateUrl,
+        channel: channel,
         fallbackToCacheTimeout: 0,
         checkAutomatically: "ON_LOAD",
         enabled: true,
@@ -28,6 +30,13 @@ export default ({ config }) => {
         },
       },
 
+      // Include expo-updates plugin for bare workflow
+      plugins: [
+        ...(config.expo.plugins || []),
+        'expo-updates',
+      ],
+
+      // Preserve other platform-specific configs
       ios: {
         ...config.expo.ios,
       },
@@ -35,8 +44,6 @@ export default ({ config }) => {
         ...config.expo.android,
       },
       web: config.expo.web,
-
-      plugins: config.expo.plugins,
       experiments: config.expo.experiments,
       extra: config.expo.extra,
     },
