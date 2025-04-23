@@ -1,5 +1,5 @@
 import "react-native-get-random-values";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Slot, useRouter, useSegments } from "expo-router";
 import { AuthProvider, useAuth } from "../src/contexts/AuthContext";
 import { UserProvider } from "../src/contexts/UserContext";
@@ -16,6 +16,11 @@ import Constants from "expo-constants";
 import * as Updates from "expo-updates";
 import { registerForPushNotificationsAsync } from "../src/utils/notifications";
 import '../src/styles/global.css';
+
+// Keep the splash screen visible while we fetch resources
+SplashScreen.preventAutoHideAsync().catch(() => {
+  /* reloading the app might trigger some race conditions, ignore them */
+});
 
 // Notifications setup
 Notifications.setNotificationHandler({
@@ -52,13 +57,11 @@ const AppContent: React.FC = () => {
   const router = useRouter();
   const segments = useSegments();
   const [isReady, setIsReady] = useState(false);
+  const [appIsReady, setAppIsReady] = useState(false);
 
   useEffect(() => {
     const prepareApp = async () => {
       try {
-        // Keep splash screen visible while we prepare
-        await SplashScreen.preventAutoHideAsync();
-        
         // Load auth token
         const newToken = await refreshAuthToken();
         
@@ -67,13 +70,9 @@ const AppContent: React.FC = () => {
         
         // Set ready state
         setIsReady(true);
-        
-        // Hide splash screen
-        await SplashScreen.hideAsync();
       } catch (error) {
         console.error("Error preparing app:", error);
         setIsReady(true);
-        await SplashScreen.hideAsync();
       }
     };
 
@@ -93,7 +92,16 @@ const AppContent: React.FC = () => {
       // Redirect to tabs if authenticated
       router.replace('/(tabs)');
     }
+
+    // Mark app as ready for splash screen
+    setAppIsReady(true);
   }, [token, segments, isReady]);
+
+  const onLayoutRootView = useCallback(async () => {
+    if (appIsReady) {
+      await SplashScreen.hideAsync();
+    }
+  }, [appIsReady]);
 
   const checkForUpdates = async () => {
     try {
@@ -112,7 +120,7 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} onLayout={onLayoutRootView}>
       <Slot />
     </View>
   );

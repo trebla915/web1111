@@ -3,7 +3,7 @@ import { version } from './package.json';
 
 export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
   ...config,
-  name: "Club 1111",
+  name: "11:11 EPTX",
   slug: "club-1111",
   version,
   orientation: "portrait",
@@ -19,9 +19,16 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
   ],
   ios: {
     supportsTablet: true,
-    bundleIdentifier: "com.club1111.app",
+    bundleIdentifier: "com.your.club1111",
     infoPlist: {
-      ITSAppUsesNonExemptEncryption: false
+      ITSAppUsesNonExemptEncryption: false,
+      CFBundleURLTypes: [
+        {
+          CFBundleURLSchemes: ["exp+club-1111"]
+        }
+      ],
+      CFBundleDisplayName: "11:11 EPTX",
+      CFBundleName: "11:11 EPTX"
     }
   },
   android: {
@@ -29,12 +36,23 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
       foregroundImage: "./src/assets/logo.png",
       backgroundColor: "#ffffff"
     },
-    package: "com.club1111.app"
+    package: "com.your.club1111",
+    intentFilters: [
+      {
+        action: "VIEW",
+        data: [
+          {
+            scheme: "exp+club-1111"
+          }
+        ],
+        category: ["BROWSABLE", "DEFAULT"]
+      }
+    ]
   },
   web: {
     favicon: "./src/assets/logo.png"
   },
-  scheme: "club1111",
+  scheme: "exp+club-1111",
   plugins: [
     "expo-router",
     "expo-updates"
