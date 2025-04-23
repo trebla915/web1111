@@ -1,48 +1,45 @@
 // app.config.js
+// Dynamic config for Expo SDK 52 in bare workflow
 
 export default ({ config }) => {
-  // Central version bump – start fresh at 1.0.0
+  // Starting fresh at version 1.0.0
   const appVersion = "1.0.0";
-
-  // Expo projectId for EAS linking
   const projectId = "e3775235-7f75-42c8-906e-8171c4a1e54b";
 
   return {
-    // preserve any other top-level config
+    // Preserve all existing config fields (name, slug, orientation, etc.)
     ...config,
-    expo: {
-      ...config.expo,
 
-      // sync version & runtimeVersion
-      version: appVersion,
-      runtimeVersion: appVersion,
+    // Override version & runtimeVersion
+    version: appVersion,
+    runtimeVersion: appVersion,
 
-      updates: {
-        url: config.expo.updates?.url || "https://u.expo.dev/e3775235-7f75-42c8-906e-8171c4a1e54b",
-        channel: config.expo.updates?.channel || "production",
-        fallbackToCacheTimeout: 0,
-        checkAutomatically: "ON_LOAD",
-        enabled: true,
-        codeSigning: {
-          keyId: "main",
-          algorithm: "rsa-v1_5-sha256",
-          privateKeyPath: "./code-signing/private-key.pem",
-          certificatePath: "./code-signing/certificate.pem"
-        }
-      },
+    // Ensure updates block is defined
+    updates: {
+      url: config.updates?.url || "https://u.expo.dev/e3775235-7f75-42c8-906e-8171c4a1e54b",
+      channel: config.updates?.channel || "production",
+      fallbackToCacheTimeout: 0,
+      checkAutomatically: "ON_LOAD",
+      enabled: true,
+      codeSigning: {
+        keyId: "main",
+        algorithm: "rsa-v1_5-sha256",
+        privateKeyPath: "./code-signing/private-key.pem",
+        certificatePath: "./code-signing/certificate.pem"
+      }
+    },
 
-      // include expo-updates plugin in bare
-      plugins: [
-        ...(config.expo.plugins || []),
-        'expo-updates'
-      ],
+    // Include expo-updates plugin for bare workflow
+    plugins: [
+      ...(config.plugins || []),
+      'expo-updates'
+    ],
 
-      // ensure extra.eas.projectId
-      extra: {
-        ...config.expo.extra,
-        eas: {
-          projectId
-        }
+    // Ensure EAS project ID is set for linking
+    extra: {
+      ...config.extra,
+      eas: {
+        projectId
       }
     }
   };
