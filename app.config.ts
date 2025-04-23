@@ -19,7 +19,10 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
   ],
   ios: {
     supportsTablet: true,
-    bundleIdentifier: "com.club1111.app"
+    bundleIdentifier: "com.club1111.app",
+    infoPlist: {
+      ITSAppUsesNonExemptEncryption: false
+    }
   },
   android: {
     adaptiveIcon: {
