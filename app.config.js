@@ -8,20 +8,23 @@ export default ({ config }) => ({
     scheme: "club1111",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
+
     updates: {
       url: "https://u.expo.dev/e3775235-7f75-42c8-906e-8171c4a1e54b",
       channel: "production",
       fallbackToCacheTimeout: 0,
       checkAutomatically: "ON_LOAD",
       enabled: true,
-      codeSigningCertificate: "./code-signing/certificate.pem",
+      codeSigningCertificate: "./certificate.pem",
       codeSigningMetadata: {
         alg: "rsa-v1_5-sha256",
         keyid: "main"
       }
     },
+
     runtimeVersion: "1.0.0",
     platforms: ["ios", "android", "web"],
+
     ios: {
       supportsTablet: true,
       googleServicesFile: "./src/config/GoogleService-Info.plist",
@@ -38,6 +41,7 @@ export default ({ config }) => ({
         CFBundleLocalizations: ["en", "es"],
       },
     },
+
     android: {
       adaptiveIcon: {
         foregroundImage: "./src/assets/images/adaptive-icon.png",
@@ -59,6 +63,7 @@ export default ({ config }) => ({
         color: "#fff",
       },
     },
+
     web: {
       bundler: "metro",
       output: "static",
@@ -67,6 +72,7 @@ export default ({ config }) => ({
         publicPath: "/",
       },
     },
+
     plugins: [
       "expo-router",
       [
@@ -96,9 +102,11 @@ export default ({ config }) => ({
         },
       ],
     ],
+
     experiments: {
       typedRoutes: true,
     },
+
     extra: {
       API_BASE_URL: process.env.API_BASE_URL || "",
       STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY || "",
@@ -115,5 +123,5 @@ export default ({ config }) => ({
         projectId: "e3775235-7f75-42c8-906e-8171c4a1e54b",
       },
     },
-  },
+  }
 });

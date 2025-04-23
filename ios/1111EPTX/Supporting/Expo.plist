@@ -12,33 +12,5 @@
     <string>1.0.0</string>
     <key>EXUpdatesURL</key>
     <string>https://u.expo.dev/e3775235-7f75-42c8-906e-8171c4a1e54b</string>
-    <key>EXUpdatesCodeSigningCertificate</key>
-    <string>-----BEGIN CERTIFICATE-----
-MIIDBzCCAe+gAwIBAgIUSPVEttbj/oIYRR+HT0XigwiiyOIwDQYJKoZIhvcNAQEL
-BQAwEzERMA8GA1UEAwwIQ2x1YjExMTEwHhcNMjUwNDE3MDUwMDIxWhcNMzUwNDE1
-MDUwMDIxWjATMREwDwYDVQQDDAhDbHViMTExMTCCASIwDQYJKoZIhvcNAQEBBQAD
-ggEPADCCAQoCggEBAJcz398SXlaNZstN+fWgcoTXL7/0xIKEhXKNOfF50I4yfh7j
-0mFd4AwLYdflDgf2J1ny2RweSTF83m3GGKMLsGxxq9/MU9mdOhufDKk+pvBXuC6U
-iw5WCzfEK4eVz+aHnI5pSz6TA/IdAk8UCz9wi+pexNYrUwKChwMfQ5i9vVGMtPR/
-mBbi1n4y4dWnYdZVsdEc4Y8zI71XgRtgfQUL2dJ2DRH7lIDxIY9SywNzUJd9ON3A
-Pm5kuRYbNcCC9k5NZ6QFtVsYPaoeN2iRxqAyi45xpQsjdWnbqpOh7AfWVKx4seDE
-mkkM4YXSbyOaIAe2dO8SDooQgCUd1mgX8GhIuYsCAwEAAaNTMFEwHQYDVR0OBBYE
-FHEsUmiyG3LVOdkz4wxudCwtEOC1MB8GA1UdIwQYMBaAFHEsUmiyG3LVOdkz4wxu
-dCwtEOC1MA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBAAuBjE2x
-kDOx8IjV0tWgkCEIPti9EX98nRPV760GpN1EPgycyeKX0Ks6ercTumDZOUTA/WzS
-HFQTvYBS6454+WV7pNZx+PPWtJ1R/LI+MLON9ccamniBRvhO9FStrfk6pBU2okLD
-Oumsz4T9K6Qw3c9cm3LDmBqpHLrmfjwwFKzRS3kk+zEAO+O/OeZ94uIGQtHDsTTx
-IgsF77OZMxfkLAhseXdDhcWbblJFRRuE3mFZZziAPu71SewHd/VaVnnNITN/sEL7
-0jBwhrx73a+vR4IlKqVasSz+hiTU3pAqcXWnhDHGyDwNK5Bn3D0egf7s9HABswBq
-SuCuIxj/r7QuMgs=
------END CERTIFICATE-----
-</string>
-    <key>EXUpdatesCodeSigningMetadata</key>
-    <dict>
-      <key>alg</key>
-      <string>rsa-v1_5-sha256</string>
-      <key>keyid</key>
-      <string>main</string>
-    </dict>
   </dict>
 </plist>

@@ -11,7 +11,8 @@
       "channel": "development",
       "ios": {
         "simulator": true,
-        "resourceClass": "medium"
+        "resourceClass": "medium",
+        "credentialsSource": "remote"
       },
       "android": {
         "buildType": "apk",
@@ -60,4 +61,4 @@
       }
     }
   }
-} 
+}
