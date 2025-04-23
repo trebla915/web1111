@@ -23,7 +23,9 @@ export default {
       }
     },
 
-    runtimeVersion: "1.0.0",
+    runtimeVersion: {
+      policy: "appVersion"
+    },
     platforms: ["ios", "android", "web"],
 
     ios: {
