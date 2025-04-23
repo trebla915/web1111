@@ -41,5 +41,10 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
   },
   runtimeVersion: {
     policy: "appVersion"
+  },
+  extra: {
+    eas: {
+      projectId: "8c8109aa-fdc9-4f62-bc94-c98069af3c5d"
+    }
   }
 }); 
