@@ -4,7 +4,8 @@ import { version } from './package.json';
 export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
   ...config,
   name: "11:11 EPTX",
-  slug: "club-1111",
+  slug: "club1111",
+  owner: "tr3bla915",
   version,
   orientation: "portrait",
   icon: "./src/assets/logo.png",
@@ -24,7 +25,7 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
       ITSAppUsesNonExemptEncryption: false,
       CFBundleURLTypes: [
         {
-          CFBundleURLSchemes: ["exp+club-1111"]
+          CFBundleURLSchemes: ["exp+club1111"]
         }
       ],
       CFBundleDisplayName: "11:11 EPTX",
@@ -42,7 +43,7 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
         action: "VIEW",
         data: [
           {
-            scheme: "exp+club-1111"
+            scheme: "exp+club1111"
           }
         ],
         category: ["BROWSABLE", "DEFAULT"]
@@ -52,7 +53,7 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
   web: {
     favicon: "./src/assets/logo.png"
   },
-  scheme: "exp+club-1111",
+  scheme: "exp+club1111",
   plugins: [
     "expo-router",
     "expo-updates"
@@ -65,7 +66,7 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
   },
   extra: {
     eas: {
-      projectId: "8c8109aa-fdc9-4f62-bc94-c98069af3c5d"
+      projectId: "e3775235-7f75-42c8-906e-8171c4a1e54b"
     }
   }
 }); 
