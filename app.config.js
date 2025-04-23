@@ -2,7 +2,7 @@ export default {
   expo: {
     name: "11:11 EPTX",
     slug: "club1111",
-    version: "1.0.3",
+    version: "1.0.4",
     orientation: "portrait",
     icon: "./src/assets/images/icon.png",
     scheme: "club1111",
@@ -23,8 +23,8 @@ export default {
       }
     },
 
-    // Use sdkVersion policy so existing store build on SDK52 accepts updates
-    runtimeVersion: { policy: "sdkVersion" },
+    // Manual runtimeVersion required in bare workflow
+    runtimeVersion: "1.0.4",
     platforms: ["ios", "android", "web"],
 
     ios: {
