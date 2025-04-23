@@ -46,7 +46,8 @@
         "resourceClass": "m-medium",
         "image": "latest"
       },
-      "channel": "production"
+      "channel": "production",
+      "autoIncrement": true
     }
   },
   "submit": {
@@ -55,7 +56,7 @@
         "appleId": "@apple_id",
         "ascAppId": "@asc_app_id",
         "appleTeamId": "@apple_team_id",
-        "sku": "com.club1111.app",
+        "sku": "com.your.club1111",
         "language": "en-US"
       },
       "android": {

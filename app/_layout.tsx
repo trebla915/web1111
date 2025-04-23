@@ -65,8 +65,18 @@ const AppContent: React.FC = () => {
         // Load auth token
         const newToken = await refreshAuthToken();
         
-        // Check for updates
-        await checkForUpdates();
+        // Check for updates only in production
+        if (Constants.expoConfig?.extra?.eas?.projectId) {
+          try {
+            const update = await Updates.checkForUpdateAsync();
+            if (update.isAvailable) {
+              await Updates.fetchUpdateAsync();
+              await Updates.reloadAsync();
+            }
+          } catch (error) {
+            console.log("Update check skipped in development mode");
+          }
+        }
         
         // Set ready state
         setIsReady(true);
@@ -85,11 +95,10 @@ const AppContent: React.FC = () => {
     const inAuthGroup = segments[0] === '(auth)';
     const inTabsGroup = segments[0] === '(tabs)';
 
-    if (!token && !inAuthGroup) {
-      // Redirect to login if not authenticated
+    // Only navigate if we have a valid token state
+    if (token === null && !inAuthGroup) {
       router.replace('/(auth)/login');
     } else if (token && !inTabsGroup) {
-      // Redirect to tabs if authenticated
       router.replace('/(tabs)');
     }
 
@@ -103,20 +112,12 @@ const AppContent: React.FC = () => {
     }
   }, [appIsReady]);
 
-  const checkForUpdates = async () => {
-    try {
-      const update = await Updates.checkForUpdateAsync();
-      if (update.isAvailable) {
-        await Updates.fetchUpdateAsync();
-        await Updates.reloadAsync();
-      }
-    } catch (error) {
-      console.error("Error checking for updates:", error);
-    }
-  };
-
   if (!isReady || isLoading) {
-    return null;
+    return (
+      <View style={styles.loadingContainer}>
+        {/* You can add a loading indicator here if needed */}
+      </View>
+    );
   }
 
   return (
@@ -127,12 +128,6 @@ const AppContent: React.FC = () => {
 };
 
 export default function RootLayout() {
-  // Add runtime version logging
-  useEffect(() => {
-    console.log("📦 ShellRuntime:", Updates.runtimeVersion);
-    console.log("📦 AppVersion:", Constants.expoConfig?.version);
-  }, []);
-
   return (
     <AuthProvider>
       <NotificationProvider>
@@ -156,7 +151,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#000",
+    backgroundColor: "#ffffff",
   },
   container: {
     flex: 1,
