@@ -1,9 +1,6 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Constants from 'expo-constants';
-
-// Get the API Base URL from Expo Constants
-const API_BASE_URL = Constants.expoConfig?.extra?.API_BASE_URL;
+import { API_BASE_URL } from '@env';
 
 if (!API_BASE_URL) {
   console.error('API Base URL is missing. Ensure it is set in your environment.');
@@ -26,7 +23,7 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use(
   async (config) => {
     try {
-      const token = await AsyncStorage.getItem('authToken'); // Retrieve token from storage
+      const token = await AsyncStorage.getItem('userToken');
       if (token) {
         config.headers['Authorization'] = `Bearer ${token}`;
       }

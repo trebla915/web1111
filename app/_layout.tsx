@@ -1,6 +1,6 @@
 import "react-native-get-random-values";
 import React, { useEffect, useState } from "react";
-import { Slot, useRouter } from "expo-router";
+import { Slot, useRouter, useSegments } from "expo-router";
 import { AuthProvider, useAuth } from "../src/contexts/AuthContext";
 import { UserProvider } from "../src/contexts/UserContext";
 import { View, StyleSheet, Alert, Animated } from "react-native";
@@ -48,79 +48,73 @@ TaskManager.defineTask(
 );
 
 const AppContent: React.FC = () => {
+  const { isLoading, token, refreshAuthToken } = useAuth();
   const router = useRouter();
-  const { firebaseUser, isLoading, token } = useAuth();
-  const [appReady, setAppReady] = useState(false);
-  const [notificationsRegistered, setNotificationsRegistered] = useState(false);
-  const [fadeAnim] = useState(new Animated.Value(0)); // For fade-in animation
+  const segments = useSegments();
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     const prepareApp = async () => {
       try {
-        console.log("Preparing app...");
-        await SplashScreen.preventAutoHideAsync(); // Prevent auto hide of splash screen
-        setAppReady(true); // Only after everything is ready, allow app to show
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 500,
-          useNativeDriver: true,
-        }).start();
+        // Keep splash screen visible while we prepare
+        await SplashScreen.preventAutoHideAsync();
+        
+        // Load auth token
+        const newToken = await refreshAuthToken();
+        
+        // Check for updates
+        await checkForUpdates();
+        
+        // Set ready state
+        setIsReady(true);
+        
+        // Hide splash screen
+        await SplashScreen.hideAsync();
       } catch (error) {
-        console.error("Error during app preparation:", error);
+        console.error("Error preparing app:", error);
+        setIsReady(true);
+        await SplashScreen.hideAsync();
       }
     };
 
-    const checkForUpdates = async () => {
-      try {
-        const update = await Updates.checkForUpdateAsync();
-        if (update.isAvailable) {
-          await Updates.fetchUpdateAsync();
-          await Updates.reloadAsync();
-        }
-      } catch (error) {
-        console.error('Error checking for updates:', error);
-      }
-    };
-
-    // Check for updates when app starts
-    checkForUpdates();
     prepareApp();
   }, []);
 
   useEffect(() => {
-    const handleNavigation = async () => {
-      if (!appReady || isLoading) return; // Ensure app is ready and loading is complete
+    if (!isReady) return;
 
-      setTimeout(async () => {
-        await SplashScreen.hideAsync(); // Hide splash screen
+    const inAuthGroup = segments[0] === '(auth)';
+    const inTabsGroup = segments[0] === '(tabs)';
 
-        // If a token is available, navigate to the home screen, else stay on login screen
-        if (token) {
-          console.log("Token found, user authenticated, navigating to /tabs...");
-          router.replace("/(tabs)");
+    if (!token && !inAuthGroup) {
+      // Redirect to login if not authenticated
+      router.replace('/(auth)/login');
+    } else if (token && !inTabsGroup) {
+      // Redirect to tabs if authenticated
+      router.replace('/(tabs)');
+    }
+  }, [token, segments, isReady]);
 
-          if (!notificationsRegistered) {
-            await registerForPushNotificationsAsync();
-            setNotificationsRegistered(true);
-          }
-        } else {
-          console.log("No token found, staying on /auth/Login...");
-          router.replace("/(auth)/Login"); // Stay on login screen
-        }
-      }, 700); // Adjust the timeout as necessary
-    };
+  const checkForUpdates = async () => {
+    try {
+      const update = await Updates.checkForUpdateAsync();
+      if (update.isAvailable) {
+        await Updates.fetchUpdateAsync();
+        await Updates.reloadAsync();
+      }
+    } catch (error) {
+      console.error("Error checking for updates:", error);
+    }
+  };
 
-    handleNavigation();
-  }, [appReady, isLoading, notificationsRegistered, token, router]);
-
-  if (!appReady || isLoading || token === null) {
-    return null; // Splash screen will handle the loading UI until app is ready
+  if (!isReady || isLoading) {
+    return null;
   }
 
   return (
-    <Animated.View style={{ opacity: fadeAnim }}>
-      {/* Your app content goes here */}
-    </Animated.View>
+    <View style={styles.container}>
+      <Slot />
+    </View>
   );
 };
 
@@ -138,7 +132,6 @@ export default function RootLayout() {
           <PaperProvider>
             <UserProvider>
               <LoadingProvider>
-                <Slot />
                 <AppContent />
                 <Toast />
               </LoadingProvider>
@@ -156,5 +149,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#000",
+  },
+  container: {
+    flex: 1,
   },
 });

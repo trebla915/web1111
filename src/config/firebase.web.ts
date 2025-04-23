@@ -1,27 +1,30 @@
 // firebase.web.js
-import { initializeApp } from 'firebase/app';
-import { getAuth, setPersistence, browserLocalPersistence } from 'firebase/auth';
+import { initializeApp, getApp, getApps } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
-import Constants from 'expo-constants';
+import { 
+  FIREBASE_API_KEY,
+  FIREBASE_AUTH_DOMAIN,
+  FIREBASE_PROJECT_ID,
+  FIREBASE_STORAGE_BUCKET,
+  FIREBASE_MESSAGING_SENDER_ID,
+  FIREBASE_APP_ID
+} from '@env';
 
 const firebaseConfig = {
-  apiKey: Constants.expoConfig?.extra?.firebase?.apiKey || '',
-  authDomain: Constants.expoConfig?.extra?.firebase?.authDomain || '',
-  projectId: Constants.expoConfig?.extra?.firebase?.projectId || '',
-  storageBucket: Constants.expoConfig?.extra?.firebase?.storageBucket || '',
-  messagingSenderId: Constants.expoConfig?.extra?.firebase?.messagingSenderId || '',
-  appId: Constants.expoConfig?.extra?.firebase?.appId || '',
+  apiKey: FIREBASE_API_KEY,
+  authDomain: FIREBASE_AUTH_DOMAIN,
+  projectId: FIREBASE_PROJECT_ID,
+  storageBucket: FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: FIREBASE_MESSAGING_SENDER_ID,
+  appId: FIREBASE_APP_ID
 };
 
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase only if it hasn't been initialized already
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+
 const auth = getAuth(app);
-
-// Set persistence for web
-setPersistence(auth, browserLocalPersistence).catch((error) => {
-  console.error('Error setting persistence:', error);
-});
-
 const db = getFirestore(app);
 const storage = getStorage(app);
 

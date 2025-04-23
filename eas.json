@@ -11,8 +11,8 @@
       "channel": "development",
       "ios": {
         "simulator": true,
-        "resourceClass": "medium",
-        "credentialsSource": "remote"
+        "resourceClass": "m-medium",
+        "buildConfiguration": "Debug"
       },
       "android": {
         "buildType": "apk",
@@ -25,7 +25,7 @@
       "channel": "preview",
       "ios": {
         "simulator": true,
-        "resourceClass": "medium"
+        "resourceClass": "m-medium"
       },
       "android": {
         "buildType": "apk",
@@ -43,7 +43,8 @@
       "ios": {
         "channel": "production",
         "simulator": false,
-        "resourceClass": "medium"
+        "resourceClass": "m-medium",
+        "image": "latest"
       },
       "channel": "production"
     }
@@ -51,13 +52,16 @@
   "submit": {
     "production": {
       "ios": {
-        "appleId": "albert@1111.com",
-        "ascAppId": "6471234567",
-        "appleTeamId": "ABCD123456"
+        "appleId": "@apple_id",
+        "ascAppId": "@asc_app_id",
+        "appleTeamId": "@apple_team_id",
+        "sku": "com.club1111.app",
+        "language": "en-US"
       },
       "android": {
-        "serviceAccountKeyPath": "./path/to/your/service-account-key.json",
-        "track": "production"
+        "serviceAccountKeyPath": "./google-play-service-account.json",
+        "track": "production",
+        "releaseStatus": "completed"
       }
     }
   }

@@ -15,11 +15,22 @@ import { useRouter } from 'expo-router';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../../src/contexts/AuthContext'; // Authentication context
 import { useUser } from '../../src/contexts/UserContext'; // User context for user data
+import Constants from 'expo-constants';
 
 const AccountScreen: React.FC = () => {
   const { signOut } = useAuth(); // Sign-out functionality from AuthContext
   const { userData, isLoading } = useUser(); // User data and loading state from UserContext
   const router = useRouter();
+  
+  // Debug logging
+  console.log('Constants:', {
+    appVersion: Constants.appVersion,
+    nativeAppVersion: Constants.nativeAppVersion,
+    manifest: Constants.manifest,
+    expoConfig: Constants.expoConfig
+  });
+  
+  const appVersion = Constants.appVersion || Constants.nativeAppVersion || Constants.manifest?.version || '1.0.0';
 
   // Handle user logout
   const handleLogout = async () => {
@@ -73,6 +84,7 @@ const AccountScreen: React.FC = () => {
         <Text style={styles.userName}>{userData.name || 'John Doe'}</Text>
         <Text style={styles.userEmail}>{userData.email}</Text>
         {userData.phone && <Text style={styles.userPhone}>📞 {userData.phone}</Text>}
+        <Text style={styles.appVersion}>App Version: {appVersion}</Text>
       </View>
 
       {/* Navigation and Logout Options */}
@@ -180,6 +192,12 @@ const styles = StyleSheet.create({
   outlinedCard: {
     borderWidth: 1,
     borderColor: '#fff',
+  },
+  appVersion: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 10,
+    fontStyle: 'italic',
   },
 });
 

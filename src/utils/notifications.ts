@@ -104,9 +104,9 @@ export async function registerForPushNotificationsAsync() {
       throw new Error("Permission not granted for push notifications!");
     }
 
-    const projectId = Constants.expoConfig?.extra?.eas?.projectId;
+    const projectId = process.env.EAS_PROJECT_ID;
     if (!projectId) {
-      console.error("EAS Project ID is missing in Expo Constants.");
+      console.error("EAS Project ID is missing in environment variables.");
       throw new Error("Project ID is missing.");
     }
 
