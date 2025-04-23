@@ -23,8 +23,8 @@ export default {
       }
     },
 
-    // Manually set runtimeVersion to match the shipped binary (1.0.3)
-    runtimeVersion: "1.0.3",
+    // Use sdkVersion policy so existing store build on SDK52 accepts updates
+    runtimeVersion: { policy: "sdkVersion" },
     platforms: ["ios", "android", "web"],
 
     ios: {
