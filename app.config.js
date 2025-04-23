@@ -23,9 +23,8 @@ export default {
       }
     },
 
-    runtimeVersion: {
-      policy: "appVersion"
-    },
+    // Manually set runtimeVersion to match the shipped binary (1.0.3)
+    runtimeVersion: "1.0.3",
     platforms: ["ios", "android", "web"],
 
     ios: {
