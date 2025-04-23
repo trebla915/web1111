@@ -1,4 +1,4 @@
-export default ({ config }) => ({
+export default {
   expo: {
     name: "11:11 EPTX",
     slug: "club1111",
@@ -15,10 +15,11 @@ export default ({ config }) => ({
       fallbackToCacheTimeout: 0,
       checkAutomatically: "ON_LOAD",
       enabled: true,
-      codeSigningCertificate: "./certificate.pem",
-      codeSigningMetadata: {
-        alg: "rsa-v1_5-sha256",
-        keyid: "main"
+      codeSigning: {
+        keyId: "main",
+        algorithm: "rsa-v1_5-sha256",
+        privateKeyPath: "./code-signing/private-key.pem",
+        certificatePath: "./code-signing/certificate.pem"
       }
     },
 
@@ -38,14 +39,14 @@ export default ({ config }) => ({
         FirebaseAppDelegateProxyEnabled: false,
         UIBackgroundModes: ["remote-notification"],
         CFBundleAllowMixedLocalizations: true,
-        CFBundleLocalizations: ["en", "es"],
-      },
+        CFBundleLocalizations: ["en", "es"]
+      }
     },
 
     android: {
       adaptiveIcon: {
         foregroundImage: "./src/assets/images/adaptive-icon.png",
-        backgroundColor: "#000000",
+        backgroundColor: "#000000"
       },
       googleServicesFile: "./src/config/google-services.json",
       permissions: [
@@ -56,12 +57,12 @@ export default ({ config }) => ({
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.RECEIVE_BOOT_COMPLETED",
-        "android.permission.VIBRATE",
+        "android.permission.VIBRATE"
       ],
       notification: {
         icon: "./assets/notification-icon.png",
-        color: "#fff",
-      },
+        color: "#fff"
+      }
     },
 
     web: {
@@ -69,8 +70,8 @@ export default ({ config }) => ({
       output: "static",
       favicon: "./src/assets/images/favicon.png",
       build: {
-        publicPath: "/",
-      },
+        publicPath: "/"
+      }
     },
 
     plugins: [
@@ -81,16 +82,16 @@ export default ({ config }) => ({
           image: "./src/assets/images/splash.png",
           enableFullScreenImage_legacy: true,
           resizeMode: "cover",
-          backgroundColor: "#000000",
-        },
+          backgroundColor: "#000000"
+        }
       ],
       [
         "expo-build-properties",
         {
           ios: {
-            useFrameworks: "static",
-          },
-        },
+            useFrameworks: "static"
+          }
+        }
       ],
       [
         "expo-image-picker",
@@ -98,13 +99,13 @@ export default ({ config }) => ({
           photosPermission:
             "This app requires access to your photo library to upload flyers.",
           cameraPermission:
-            "This app requires access to your camera to take photos for flyers.",
-        },
-      ],
+            "This app requires access to your camera to take photos for flyers."
+        }
+      ]
     ],
 
     experiments: {
-      typedRoutes: true,
+      typedRoutes: true
     },
 
     extra: {
@@ -117,11 +118,11 @@ export default ({ config }) => ({
         storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "",
         messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "",
         appId: process.env.FIREBASE_APP_ID || "",
-        measurementId: process.env.FIREBASE_MEASUREMENT_ID || "",
+        measurementId: process.env.FIREBASE_MEASUREMENT_ID || ""
       },
       eas: {
-        projectId: "e3775235-7f75-42c8-906e-8171c4a1e54b",
-      },
-    },
+        projectId: "e3775235-7f75-42c8-906e-8171c4a1e54b"
+      }
+    }
   }
-});
+};
