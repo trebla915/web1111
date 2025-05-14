@@ -120,6 +120,26 @@ export default function PaymentPage() {
         setLoading(true);
         const total = calculateTotal();
 
+        // Create the reservation first
+        const reservation = await createReservation({
+          eventId: params.id as string,
+          eventName: reservationDetails.eventName,
+          tableId: reservationDetails.tableId,
+          tableNumber: reservationDetails.tableNumber,
+          tablePrice: reservationDetails.tablePrice,
+          capacity: reservationDetails.capacity,
+          guestCount: reservationDetails.guestCount,
+          userId: user.uid,
+          userEmail: user.email || '',
+          userName: user.displayName || '',
+          bottles: reservationDetails.bottles || [],
+          mixers: reservationDetails.mixers || [],
+          reservationTime: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          eventDate: reservationDetails.eventDate,
+          status: 'pending'
+        });
+
         // Prepare metadata and reservation details
         const metadata = {
           name: user.displayName || 'Guest',
@@ -132,8 +152,7 @@ export default function PaymentPage() {
         const paymentReservationDetails = {
           userId: user.uid,
           eventId: params.id as string,
-          tableId: reservationDetails.tableId,
-          reservationId: reservationDetails.reservationId || params.id
+          tableId: reservationDetails.tableId
         };
 
         const { clientSecret } = await PaymentService.createPaymentIntent(
