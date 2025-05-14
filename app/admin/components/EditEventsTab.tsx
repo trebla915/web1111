@@ -69,12 +69,14 @@ export default function EditEventsTab() {
   const handleEventSelection = (eventId: string) => {
     const selectedEvent = events.find((event) => event.id === eventId);
     if (selectedEvent) {
+      console.log('Selected event:', selectedEvent);
       setSelectedEventId(eventId);
       setEventTitle(selectedEvent.title || '');
       setEventDate(selectedEvent.date ? selectedEvent.date.split('T')[0] : '');
       setTicketLink(selectedEvent.ticketLink || '');
-      setReservationsEnabled(selectedEvent.reservationsEnabled ?? true);
-      setConfirmDelete(null); // Reset the confirm delete state
+      console.log('Event reservationsEnabled:', selectedEvent.reservationsEnabled);
+      setReservationsEnabled(selectedEvent.reservationsEnabled !== false);
+      setConfirmDelete(null);
     }
   };
 
@@ -86,12 +88,20 @@ export default function EditEventsTab() {
 
     setLoading(true);
     try {
+      console.log('Updating event with data:', {
+        title: eventTitle,
+        date: eventDate,
+        ticketLink,
+        reservationsEnabled
+      });
+      
       const updatedEvent = {
         title: eventTitle,
         date: eventDate ? new Date(eventDate).toISOString() : undefined,
         ticketLink,
-        reservationsEnabled
+        reservationsEnabled: reservationsEnabled
       };
+      
       await updateEvent(selectedEventId, updatedEvent);
       toast.success('Event updated successfully.');
       await loadEvents();
@@ -318,17 +328,31 @@ export default function EditEventsTab() {
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-4">
-                      <label className="text-sm font-medium text-gray-300">Enable Reservations</label>
+                    <div className="flex items-center justify-between mb-6 bg-zinc-800 p-4 rounded-lg">
+                      <div>
+                        <label className="text-sm font-medium text-white">Enable Reservations</label>
+                        <p className="text-xs text-gray-400 mt-1">Allow users to make reservations for this event</p>
+                      </div>
                       <div className="relative inline-block w-12 h-6">
                         <input
                           type="checkbox"
                           checked={reservationsEnabled}
-                          onChange={(e) => setReservationsEnabled(e.target.checked)}
+                          onChange={(e) => {
+                            console.log('Toggle changed to:', e.target.checked);
+                            setReservationsEnabled(e.target.checked);
+                          }}
                           className="sr-only peer"
                         />
-                        <div className="w-12 h-6 bg-gray-600 rounded-full peer peer-checked:bg-blue-500 transition-colors duration-200"></div>
-                        <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 peer-checked:translate-x-6"></div>
+                        <div 
+                          className={`w-12 h-6 rounded-full transition-colors duration-200 ${
+                            reservationsEnabled ? 'bg-cyan-600' : 'bg-gray-600'
+                          } cursor-pointer`}
+                        ></div>
+                        <div 
+                          className={`absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 ${
+                            reservationsEnabled ? 'translate-x-6' : 'translate-x-0'
+                          }`}
+                        ></div>
                       </div>
                     </div>
 

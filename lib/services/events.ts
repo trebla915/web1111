@@ -1,6 +1,7 @@
 import { Event } from '@/types/event';
 import { apiClient } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/lib/api/endpoints';
+import { sendPushNotification } from './notifications';
 
 export const getAllEvents = async (): Promise<Event[]> => {
   try {
@@ -70,6 +71,24 @@ export const getEvent = async (id: string): Promise<Event | null> => {
 export const createEvent = async (eventData: Omit<Event, 'id'>): Promise<Event> => {
   try {
     const response = await apiClient.post('/events', eventData);
+    
+    // Send push notification about the new event
+    try {
+      await sendPushNotification({
+        title: 'New Event Added',
+        message: `A new event "${eventData.title}" has been added to the calendar!`,
+        data: {
+          eventId: response.data.id,
+          eventTitle: eventData.title,
+          eventDate: eventData.date,
+          type: 'event_created'
+        }
+      });
+    } catch (notificationError) {
+      // Log but don't throw the error - we don't want to fail event creation if notification fails
+      console.error('Failed to send notification for new event:', notificationError);
+    }
+
     return response.data;
   } catch (error) {
     console.error('Error creating event:', error);

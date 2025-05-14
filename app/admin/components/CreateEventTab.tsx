@@ -10,6 +10,16 @@ import { toast } from 'react-hot-toast';
 import { FiCalendar, FiLink, FiUpload, FiTrash2, FiPlus, FiInfo, FiAlertCircle } from 'react-icons/fi';
 import { getAuth } from 'firebase/auth';
 
+// Required Firebase environment variables
+const REQUIRED_ENV_VARS = [
+  'NEXT_PUBLIC_FIREBASE_API_KEY',
+  'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
+  'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
+  'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
+  'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
+  'NEXT_PUBLIC_FIREBASE_APP_ID'
+];
+
 export default function CreateEventTab() {
   const { user } = useAuth();
   const [eventName, setEventName] = useState('');
@@ -24,9 +34,18 @@ export default function CreateEventTab() {
 
   // Check environment variables on component mount
   useEffect(() => {
-    const envVarsValid = checkRequiredEnvVars();
+    console.log('Checking required env vars:', REQUIRED_ENV_VARS);
+    
+    // Debug: Log all available env vars
+    console.log('Available env vars:', Object.keys(process.env).filter(key => key.startsWith('NEXT_PUBLIC_')));
+    
+    const envVarsValid = checkRequiredEnvVars(REQUIRED_ENV_VARS);
+    console.log('Environment variables check result:', envVarsValid);
+    
     if (!envVarsValid) {
-      setDebugInfo('Warning: Some Firebase environment variables are missing. Check the console for details.');
+      const missingVars = REQUIRED_ENV_VARS.filter(envVar => !process.env[envVar]);
+      console.log('Missing environment variables:', missingVars);
+      setDebugInfo(`Warning: Missing environment variables: ${missingVars.join(', ')}`);
     } else {
       setDebugInfo('Firebase environment variables OK');
     }
@@ -77,9 +96,14 @@ export default function CreateEventTab() {
         console.log('Testing URL:', url);
         
         const response = await fetch(url, {
+          method: 'GET',
           headers: {
-            'Authorization': `Firebase ${token}`
+            'Authorization': `Firebase ${token}`,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
           },
+          mode: 'cors', // Explicitly set CORS mode
+          credentials: 'same-origin',
           // Add a timeout to the fetch request
           signal: AbortSignal.timeout(10000) // 10 second timeout
         });
@@ -90,15 +114,28 @@ export default function CreateEventTab() {
           setDebugInfo(`Auth OK: Token is valid. Storage API test successful!`);
         } else {
           const errorText = await response.text();
-          console.error('Storage API test failed:', response.status, response.statusText, errorText);
+          console.error('Storage API test failed:', {
+            status: response.status,
+            statusText: response.statusText,
+            error: errorText,
+            headers: Object.fromEntries(response.headers.entries())
+          });
           setDebugInfo(`Auth OK but Storage API test failed: ${response.status} ${response.statusText}. See console for details.`);
         }
       } catch (fetchError: any) {
-        console.error('Fetch error:', fetchError);
+        console.error('Fetch error:', {
+          name: fetchError.name,
+          message: fetchError.message,
+          stack: fetchError.stack
+        });
         
         // Provide more helpful error messages
         if (fetchError.name === 'TypeError' && fetchError.message === 'Failed to fetch') {
-          setDebugInfo(`Network error: Could not connect to Firebase Storage API. Check your network connection or CORS settings.`);
+          setDebugInfo(`Network error: Could not connect to Firebase Storage API. This could be due to:
+1. CORS restrictions
+2. Network connectivity issues
+3. Firebase Storage rules
+Please check your network connection and Firebase console settings.`);
         } else if (fetchError.name === 'AbortError') {
           setDebugInfo(`Fetch timed out: The request to Firebase Storage API took too long to complete.`);
         } else {
