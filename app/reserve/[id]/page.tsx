@@ -14,7 +14,7 @@ import { formatToMMDDYYYY } from '@/lib/utils/dateFormatter';
 export default function TableSelectionPage() {
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { setReservationDetails } = useReservation();
   
   const [tables, setTables] = useState<Table[]>([]);
@@ -98,8 +98,14 @@ export default function TableSelectionPage() {
   }, [eventId, fetchTables]);
   
   const handleTableSelect = (tableId: string, tablePrice: number) => {
+    if (authLoading) {
+      // Wait for auth state to be determined
+      return;
+    }
+    
     if (!user) {
-      toast.error('Please log in to reserve a table');
+      toast.error('You need an account to reserve a table');
+      router.push('/auth/login');
       return;
     }
     
@@ -150,6 +156,22 @@ export default function TableSelectionPage() {
       return 'Invalid date';
     }
   };
+  
+  // Show loading state while auth is being determined
+  if (authLoading) {
+    return (
+      <div className="min-h-screen pt-28 pb-12 flex flex-col items-center">
+        <div className="w-full max-w-2xl mx-auto px-4">
+          <div className="h-64 flex items-center justify-center">
+            <div className="flex flex-col items-center">
+              <div className="w-12 h-12 border-t-2 border-b-2 border-cyan-500 rounded-full animate-spin"></div>
+              <p className="mt-4 text-white">Loading...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
   
   if (loading) {
     return (

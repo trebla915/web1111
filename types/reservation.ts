@@ -6,6 +6,7 @@ export interface Table {
   reserved: boolean;
   location: 'left' | 'right' | 'center';
   eventId?: string;
+  minimumBottles: number;
 }
 
 export interface Event {

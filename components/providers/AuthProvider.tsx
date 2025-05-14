@@ -82,6 +82,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         console.log('Auth state changed - User:', user.email);
+        // Clear guest mode if it exists
+        localStorage.removeItem('guestMode');
+        
         // Get fresh token
         const token = await user.getIdToken(true);
         Cookies.set('authToken', token, { 

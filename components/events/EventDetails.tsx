@@ -201,11 +201,6 @@ export default function EventDetails({ event }: EventDetailsProps) {
       return;
     }
 
-    if (isGuest) {
-      toast.error('You need an account to reserve a table.');
-      return;
-    }
-
     router.push(`/reserve/${event.id}`);
   };
 

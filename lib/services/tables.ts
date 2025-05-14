@@ -2,37 +2,66 @@ import { Table } from '@/types/reservation';
 import { apiClient } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/lib/api/endpoints';
 
-// Mock data for local testing when API is down
+export interface TableBottleRequirements {
+  minimumBottles: number;
+}
+
+export const getTableBottleRequirements = async (eventId: string, tableId: string): Promise<TableBottleRequirements> => {
+  if (!eventId || !tableId) {
+    console.error('Event ID and Table ID are required for getting bottle requirements');
+    return { minimumBottles: 1 }; // Safe fallback
+  }
+
+  try {
+    const table = await getTable(eventId, tableId);
+    if (!table) {
+      console.warn('Table not found, using default bottle requirements');
+      return { minimumBottles: 1 };
+    }
+    
+    // Ensure minimumBottles is a valid number
+    const minimumBottles = typeof table.minimumBottles === 'number' && table.minimumBottles > 0 
+      ? table.minimumBottles 
+      : 1;
+
+    return { minimumBottles };
+  } catch (error) {
+    console.error('Error getting table bottle requirements:', error);
+    return { minimumBottles: 1 }; // Safe fallback
+  }
+};
+
+// Update mock data to match expected API response format
 const MOCK_TABLES: Table[] = [
   {
     id: 'table1',
-    number: '1',
+    number: 1,
     capacity: 4,
-    status: 'available',
-    position: { x: 100, y: 100 },
     price: 500,
-    minimumSpend: 500,
-    description: 'Standard table for 4 people'
+    reserved: false,
+    location: 'center',
+    eventId: undefined,
+    minimumBottles: 2  // This should come from the database in real API responses
   },
   {
     id: 'table2',
-    number: '2',
+    number: 2,
     capacity: 6,
-    status: 'available',
-    position: { x: 200, y: 100 },
     price: 1000,
-    minimumSpend: 1000,
-    description: 'Premium table for 6 people'
+    reserved: false,
+    location: 'center',
+    eventId: undefined,
+    minimumBottles: 2  // This should come from the database in real API responses
   },
   {
     id: 'vip1',
-    number: 'VIP-1',
+    number: 3,
     capacity: 8,
-    status: 'available',
-    position: { x: 300, y: 100 },
     price: 2000,
-    minimumSpend: 2000,
-    description: 'VIP table for 8 people'
+    reserved: false,
+    location: 'center',
+    eventId: undefined,
+    minimumBottles: 1  // This should come from the database in real API responses
   }
 ];
 
