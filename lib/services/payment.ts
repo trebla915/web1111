@@ -23,29 +23,23 @@ export interface PaymentIntentRequest {
     tableNumber: string;
     guests: string;
   };
-  reservationDetails: {
-    userId: string;
-    eventId: string;
-    tableId: string;
-    reservationId: string;
-  };
+  reservationId: string;
+  eventId: string;
+  userId: string;
 }
 
 export const PaymentService = {
   /**
    * Create a payment intent with Stripe
    */
-  createPaymentIntent: async (amount: number, metadata: PaymentIntentRequest['metadata'], reservationDetails: PaymentIntentRequest['reservationDetails']): Promise<PaymentIntent> => {
+  createPaymentIntent: async (amount: number, metadata: PaymentIntentRequest['metadata'], reservationDetails: { userId: string; eventId: string; tableId: string; reservationId: string }): Promise<PaymentIntent> => {
     try {
-      // Convert amount to cents (smallest currency unit)
-      const amountInCents = Math.round(amount * 100);
-      
       const response = await apiClient.post(API_ENDPOINTS.payments.createIntent, {
-        amount: amount,
+        amount,
+        metadata,
         reservationId: reservationDetails.reservationId,
         eventId: reservationDetails.eventId,
-        userId: reservationDetails.userId,
-        metadata
+        userId: reservationDetails.userId
       });
       return response.data;
     } catch (error) {
