@@ -58,20 +58,48 @@ export const getUpcomingEvents = async (): Promise<Event[]> => {
   try {
     const response = await apiClient.get('/events');
     const now = new Date();
+    // Get current date in YYYY-MM-DD format
+    const currentDateStr = now.toISOString().split('T')[0];
     
     // Check the response structure and access the events array properly
     const events = Array.isArray(response.data) ? response.data : 
                   (response.data && response.data.events ? response.data.events : []);
     
-    return events.filter((event: Event) => {
+    console.log('Current date for comparison:', currentDateStr);
+    console.log('All events:', events.map((e: Event) => ({ title: e.title, date: e.date })));
+    
+    const filteredEvents = events.filter((event: Event) => {
       try {
-        return new Date(event.date) > now;
+        // Handle incomplete date formats
+        let rawEventDateStr = event.date;
+        if (!rawEventDateStr.includes('T')) {
+          // If no time is specified, assume midnight UTC
+          rawEventDateStr = `${rawEventDateStr}T00:00:00.000Z`;
+        }
+        
+        const eventDate = new Date(rawEventDateStr);
+        
+        // Check if the date is valid
+        if (isNaN(eventDate.getTime())) {
+          console.warn(`Invalid date format for event "${event.title}": ${event.date}`);
+          return false;
+        }
+        
+        // Get event date in YYYY-MM-DD format
+        const normalizedEventDateStr = eventDate.toISOString().split('T')[0];
+        
+        // Compare dates as strings
+        const isIncluded = normalizedEventDateStr >= currentDateStr;
+        console.log(`Event "${event.title}" (${event.date} -> ${normalizedEventDateStr}): ${isIncluded ? 'INCLUDED' : 'EXCLUDED'}`);
+        return isIncluded;
       } catch (err) {
-        // If date is invalid, exclude the event
-        console.warn('Event with invalid date:', event);
+        console.warn(`Error processing event "${event.title}":`, err);
         return false;
       }
     });
+    
+    console.log('Filtered events:', filteredEvents.map((e: Event) => ({ title: e.title, date: e.date })));
+    return filteredEvents;
   } catch (error) {
     console.error('Error getting upcoming events:', error);
     // Return empty array instead of throwing to prevent UI errors

@@ -111,7 +111,11 @@ export function isDateInFuture(dateStr: string): boolean {
     if (isNaN(date.getTime())) return false;
     
     const now = new Date();
-    return date > now;
+    // Set time to start of day for comparison
+    now.setHours(0, 0, 0, 0);
+    date.setHours(0, 0, 0, 0);
+    
+    return date >= now;  // Changed to >= to include today's events
   } catch (error) {
     console.error('Error checking if date is in future:', error);
     return false;
