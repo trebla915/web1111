@@ -10,6 +10,7 @@ import { toast } from 'react-hot-toast';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { FiCreditCard, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import { User } from '@/types/user';
 
 // Initialize Stripe with error handling
 const stripePromise = (async () => {
@@ -20,7 +21,11 @@ const stripePromise = (async () => {
   return loadStripe(publishableKey);
 })();
 
-function PaymentForm({ clientSecret, onSuccess }: { clientSecret: string; onSuccess: () => void }) {
+function PaymentForm({ clientSecret, onSuccess, user }: { 
+  clientSecret: string; 
+  onSuccess: () => void;
+  user: User | null;
+}) {
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -61,17 +66,15 @@ function PaymentForm({ clientSecret, onSuccess }: { clientSecret: string; onSucc
       <div className="p-4 border border-white/30 rounded-lg bg-transparent">
         <PaymentElement
           options={{
-            style: {
-              base: {
-                fontSize: '16px',
-                color: '#FFFFFF',
-                '::placeholder': {
-                  color: '#AAAAAA'
-                },
-              },
-              invalid: {
-                color: '#FF4D4D',
-              },
+            layout: 'tabs',
+            defaultValues: {
+              billingDetails: {
+                name: user?.displayName || undefined,
+                email: user?.email || undefined
+              }
+            },
+            business: {
+              name: '1111'
             }
           }}
         />
@@ -123,21 +126,16 @@ export default function PaymentPage() {
         // Create the reservation first
         const reservation = await createReservation({
           eventId: params.id as string,
-          eventName: reservationDetails.eventName,
-          tableId: reservationDetails.tableId,
-          tableNumber: reservationDetails.tableNumber,
-          tablePrice: reservationDetails.tablePrice,
-          capacity: reservationDetails.capacity,
-          guestCount: reservationDetails.guestCount,
           userId: user.uid,
-          userEmail: user.email || '',
-          userName: user.displayName || '',
-          bottles: reservationDetails.bottles || [],
-          mixers: reservationDetails.mixers || [],
-          reservationTime: new Date().toISOString(),
-          createdAt: new Date().toISOString(),
-          eventDate: reservationDetails.eventDate,
-          status: 'pending'
+          tableNumber: reservationDetails.tableNumber,
+          guestCount: reservationDetails.guestCount,
+          bottles: reservationDetails.bottles?.map(bottle => ({
+            id: bottle.id,
+            name: bottle.name
+          })) || [],
+          totalAmount: total,
+          status: 'pending',
+          createdAt: new Date().toISOString()
         });
 
         // Prepare metadata and reservation details
@@ -211,20 +209,16 @@ export default function PaymentPage() {
       // Create the reservation
       const reservation = await createReservation({
         eventId: params.id as string,
-        eventName: reservationDetails.eventName,
-        tableId: reservationDetails.tableId,
-        tableNumber: reservationDetails.tableNumber,
-        tablePrice: reservationDetails.tablePrice,
-        capacity: reservationDetails.capacity,
-        guestCount: reservationDetails.guestCount,
         userId: user.uid,
-        userEmail: user.email || '',
-        userName: user.displayName || '',
-        bottles: reservationDetails.bottles || [],
-        mixers: reservationDetails.mixers || [],
-        reservationTime: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        eventDate: reservationDetails.eventDate
+        tableNumber: reservationDetails.tableNumber,
+        guestCount: reservationDetails.guestCount,
+        bottles: reservationDetails.bottles?.map(bottle => ({
+          id: bottle.id,
+          name: bottle.name
+        })) || [],
+        totalAmount: calculateTotal(),
+        status: 'pending',
+        createdAt: new Date().toISOString()
       });
 
       // Clear reservation details and redirect to confirmation
@@ -390,7 +384,11 @@ export default function PaymentPage() {
             </div>
           ) : clientSecret ? (
             <Elements stripe={stripePromise} options={{ clientSecret }}>
-              <PaymentForm clientSecret={clientSecret} onSuccess={handlePaymentSuccess} />
+              <PaymentForm 
+                clientSecret={clientSecret} 
+                onSuccess={handlePaymentSuccess}
+                user={user}
+              />
             </Elements>
           ) : null}
         </div>
