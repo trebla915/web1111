@@ -1,9 +1,17 @@
 import { Reservation } from '@/types/reservation';
 import { apiClient } from '@/lib/api/client';
 
-export const createReservation = async (reservationData: Omit<Reservation, 'id'>): Promise<Reservation> => {
+interface CreateReservationRequest {
+  paymentId: string;
+  reservationDetails: Omit<Reservation, 'id'>;
+}
+
+export const createReservation = async (reservationData: Omit<Reservation, 'id'>, paymentId: string): Promise<Reservation> => {
   try {
-    const response = await apiClient.post('/reservations', reservationData);
+    const response = await apiClient.post('/reservations', {
+      paymentId,
+      reservationDetails: reservationData
+    });
     return response.data;
   } catch (error) {
     console.error('Error creating reservation:', error);

@@ -3,7 +3,7 @@ import { API_ENDPOINTS } from '@/lib/api/endpoints';
 
 export interface PaymentIntent {
   clientSecret: string;
-  paymentIntentId: string;
+  paymentId: string;
 }
 
 export interface CostBreakdown {
@@ -33,18 +33,32 @@ export interface PaymentIntentRequest {
 export const PaymentService = {
   /**
    * Create a payment intent with Stripe
+   * @param amount Amount in dollars (will be converted to cents for Stripe)
+   * @param metadata Additional payment metadata
+   * @param reservationDetails Reservation information
    */
-  createPaymentIntent: async (amount: number, metadata: PaymentIntentRequest['metadata'], reservationDetails: { userId: string; eventId: string; tableId: string; }): Promise<PaymentIntent> => {
+  createPaymentIntent: async (
+    amount: number,
+    metadata: PaymentIntentRequest['metadata'],
+    reservationDetails: PaymentIntentRequest['reservationDetails']
+  ): Promise<PaymentIntent> => {
     try {
+      // Convert amount to cents for Stripe
+      const amountInCents = Math.round(amount * 100);
+      
       const response = await apiClient.post(API_ENDPOINTS.payments.createIntent, {
-        amount,
+        amount: amountInCents,
         metadata,
         reservationDetails
       });
-      return response.data;
+
+      return {
+        clientSecret: response.data.clientSecret,
+        paymentId: response.data.paymentId
+      };
     } catch (error) {
       console.error('Error creating payment intent:', error);
-      throw error;
+      throw new Error('Failed to create payment intent. Please try again.');
     }
   },
 

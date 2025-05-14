@@ -19,7 +19,7 @@
   src: url('/fonts/digital-7.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
-  font-display: swap;
+  font-display: block;
 }
 
 /* Digital Dismay Font for 11:11 Hero */
@@ -28,7 +28,7 @@
   src: url('/fonts/Digital-Dismay.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
-  font-display: swap;
+  font-display: block;
 }
 
 /* Tailwind Base Styles */

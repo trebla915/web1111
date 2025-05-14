@@ -123,45 +123,36 @@ export default function PaymentPage() {
         setLoading(true);
         const total = calculateTotal();
 
-        // Create the reservation first
-        const reservation = await createReservation({
-          eventId: params.id as string,
-          userId: user.uid,
-          tableNumber: reservationDetails.tableNumber,
-          guestCount: reservationDetails.guestCount,
-          bottles: reservationDetails.bottles?.map(bottle => ({
-            id: bottle.id,
-            name: bottle.name
-          })) || [],
-          totalAmount: total,
-          status: 'pending',
-          createdAt: new Date().toISOString()
-        });
-
-        // Prepare metadata and reservation details
+        // Prepare metadata for the payment
         const metadata = {
           name: user.displayName || 'Guest',
           email: user.email || '',
           eventName: reservationDetails.eventName,
           tableNumber: reservationDetails.tableNumber.toString(),
-          guests: reservationDetails.guestCount.toString()
+          guests: reservationDetails.guestCount.toString(),
         };
 
-        const paymentReservationDetails = {
-          userId: user.uid,
-          eventId: params.id as string,
-          tableId: reservationDetails.tableId
-        };
-
-        const { clientSecret } = await PaymentService.createPaymentIntent(
+        // Create payment intent
+        const { clientSecret, paymentId } = await PaymentService.createPaymentIntent(
           total,
           metadata,
-          paymentReservationDetails
+          {
+            userId: user.uid,
+            eventId: params.id as string,
+            tableId: reservationDetails.tableId,
+          }
         );
+
+        if (!clientSecret) {
+          throw new Error('Failed to get client secret from payment intent');
+        }
+
         setClientSecret(clientSecret);
       } catch (err) {
         console.error('Error initializing payment:', err);
-        setError('Failed to initialize payment');
+        const errorMessage = err instanceof Error ? err.message : 'Failed to initialize payment';
+        setError(errorMessage);
+        toast.error(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -206,10 +197,12 @@ export default function PaymentPage() {
         return;
       }
 
-      // Create the reservation
+      // Create the reservation after successful payment
+      const paymentIntentId = clientSecret!.split('_secret_')[0];
       const reservation = await createReservation({
         eventId: params.id as string,
         userId: user.uid,
+        tableId: reservationDetails.tableId,
         tableNumber: reservationDetails.tableNumber,
         guestCount: reservationDetails.guestCount,
         bottles: reservationDetails.bottles?.map(bottle => ({
@@ -217,16 +210,18 @@ export default function PaymentPage() {
           name: bottle.name
         })) || [],
         totalAmount: calculateTotal(),
-        status: 'pending',
-        createdAt: new Date().toISOString()
-      });
+        paymentId: paymentIntentId,
+        status: 'confirmed',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }, paymentIntentId); // Use the same paymentIntentId here
 
       // Clear reservation details and redirect to confirmation
       clearReservationDetails();
       router.push(`/reserve/${params.id}/confirmation`);
     } catch (err) {
-      console.error('Error creating reservation:', err);
-      toast.error('Failed to create reservation');
+      console.error('Error handling payment success:', err);
+      toast.error('Failed to process payment');
     }
   };
 

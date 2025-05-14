@@ -22,15 +22,17 @@ export interface Event {
 
 export interface Reservation {
   id: string;
-  tableNumber?: number;
   userId: string;
+  eventId: string;
+  tableId: string;
+  tableNumber: number;
   guestCount: number;
   bottles?: Array<{ id: string; name: string }>;
-  eventId: string;
   totalAmount?: number;
-  status?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  paymentId: string;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Bottle {

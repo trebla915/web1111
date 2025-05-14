@@ -19,6 +19,7 @@ export default function EditEventsTab() {
   const [searchQuery, setSearchQuery] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [reservationsEnabled, setReservationsEnabled] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadEvents();
@@ -26,12 +27,18 @@ export default function EditEventsTab() {
 
   const loadEvents = async () => {
     setLoading(true);
+    setError(null);
     try {
       const fetchedEvents = await getAllEvents();
+      if (!Array.isArray(fetchedEvents)) {
+        console.error('Fetched events is not an array:', fetchedEvents);
+        throw new Error('Invalid events data received');
+      }
       setEvents(fetchedEvents);
       setFilteredEvents(fetchedEvents);
     } catch (error) {
       console.error('Error fetching events:', error);
+      setError('Failed to load events. Please try again.');
       toast.error('Failed to load events.');
     } finally {
       setLoading(false);
@@ -40,12 +47,21 @@ export default function EditEventsTab() {
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
+    if (!Array.isArray(events)) {
+      console.warn('Events is not an array during search');
+      return;
+    }
+    
     if (query.trim() === '') {
-      setFilteredEvents(events || []);
+      setFilteredEvents(events);
     } else {
-      const filtered = (events || []).filter((event) =>
-        event.title.toLowerCase().includes(query.toLowerCase())
-      );
+      const filtered = events.filter((event) => {
+        if (!event || typeof event.title !== 'string') {
+          console.warn('Invalid event or missing title:', event);
+          return false;
+        }
+        return event.title.toLowerCase().includes(query.toLowerCase());
+      });
       setFilteredEvents(filtered);
     }
   };

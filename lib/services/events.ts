@@ -5,10 +5,51 @@ import { API_ENDPOINTS } from '@/lib/api/endpoints';
 export const getAllEvents = async (): Promise<Event[]> => {
   try {
     const response = await apiClient.get('/events');
-    return response.data;
+    
+    // Handle different response formats
+    const events = Array.isArray(response.data) ? response.data : 
+                  (response.data && response.data.events ? response.data.events : []);
+    
+    // Validate and clean the events array
+    return events.filter((event: any): event is Event => {
+      if (!event || typeof event !== 'object') {
+        console.warn('Invalid event object:', event);
+        return false;
+      }
+      
+      // Ensure required fields exist and are of correct type
+      if (!event.id || typeof event.id !== 'string') {
+        console.warn('Event missing id or invalid id type:', event);
+        return false;
+      }
+      
+      if (!event.title || typeof event.title !== 'string') {
+        console.warn('Event missing title or invalid title type:', event);
+        return false;
+      }
+      
+      // Ensure date is in correct format
+      if (event.date) {
+        try {
+          // If date doesn't include time, append UTC midnight
+          const dateStr = event.date.includes('T') ? event.date : `${event.date}T00:00:00.000Z`;
+          const date = new Date(dateStr);
+          if (isNaN(date.getTime())) {
+            console.warn('Invalid date format:', event.date);
+            return false;
+          }
+        } catch (err) {
+          console.warn('Error parsing date:', event.date, err);
+          return false;
+        }
+      }
+      
+      return true;
+    });
   } catch (error) {
     console.error('Error getting all events:', error);
-    throw error;
+    // Return empty array instead of throwing to prevent UI errors
+    return [];
   }
 };
 
