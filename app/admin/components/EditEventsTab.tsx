@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { getAllEvents, updateEvent, deleteEvent } from '@/lib/services/events';
 import { toast } from 'react-hot-toast';
-import { FiSearch, FiEdit, FiTrash2, FiCalendar, FiLink, FiCheck, FiAlertTriangle } from 'react-icons/fi';
+import { FiSearch, FiEdit, FiTrash2, FiCalendar, FiLink, FiCheck, FiAlertTriangle, FiRefreshCw, FiEdit2 } from 'react-icons/fi';
 import { Event } from '@/types/event';
 
 export default function EditEventsTab() {
@@ -20,6 +20,7 @@ export default function EditEventsTab() {
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [reservationsEnabled, setReservationsEnabled] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
     loadEvents();
@@ -168,246 +169,177 @@ export default function EditEventsTab() {
   };
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6 text-cyan-300 digital-glow-soft">Edit Events</h2>
-      
-      {loading && !events.length ? (
-        <div className="flex justify-center py-12">
-          <div className="w-12 h-12 border-t-2 border-b-2 border-cyan-500 rounded-full animate-spin mb-4"></div>
-          <p className="text-cyan-400 ml-3">Loading events...</p>
-        </div>
-      ) : (
-        <div className="max-w-4xl mx-auto">
-          {/* Search Bar */}
-          <div className="relative mb-6">
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <FiSearch className="text-cyan-500/70" />
+    <div className="h-full">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Events List */}
+        <div className="lg:col-span-1 bg-zinc-900/50 rounded-lg border border-cyan-900/30">
+          <div className="p-4 border-b border-cyan-900/30">
+            <div className="relative">
+              <input
+                type="text"
+                className="w-full px-4 py-2 pl-10 bg-black/50 border border-cyan-900/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-white placeholder-gray-500"
+                placeholder="Search events..."
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+              />
+              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             </div>
-            <input
-              type="text"
-              className="w-full p-3 pl-10 bg-zinc-900 rounded-lg text-white border border-cyan-900/50 focus:border-cyan-500/70 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 transition-all"
-              placeholder="Search events..."
-              value={searchQuery}
-              onChange={(e) => handleSearch(e.target.value)}
-            />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="md:col-span-1">
-              <div className="relative">
-                <div className="absolute inset-0 noise opacity-5 rounded-lg"></div>
-                <div className="relative z-10 bg-zinc-900/80 border border-cyan-900/30 rounded-lg overflow-hidden">
-                  <div className="border-b border-cyan-900/30 p-3 bg-zinc-900 flex items-center">
-                    <h3 className="text-lg font-medium text-white">Events</h3>
-                    <button 
-                      onClick={loadEvents} 
-                      className="ml-auto text-cyan-400 hover:text-cyan-300 p-1"
-                      title="Refresh events"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                  </div>
-                  <div className="max-h-[500px] overflow-y-auto">
-                    {filteredEvents.length === 0 ? (
-                      <div className="p-6 text-gray-400 text-center">
-                        <FiAlertTriangle className="mx-auto mb-2 text-2xl" />
-                        <p>No events found</p>
-                      </div>
-                    ) : (
-                      filteredEvents.map((event) => (
-                        <div
-                          key={event.id}
-                          className={`p-4 border-b border-cyan-900/20 cursor-pointer transition-all ${
-                            selectedEventId === event.id 
-                              ? 'bg-cyan-900/20 border-l-2 border-l-cyan-500' 
-                              : 'hover:bg-zinc-800/70'
-                          }`}
-                          onClick={() => handleEventSelection(event.id)}
-                        >
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <h4 className="text-white font-medium">{event.title}</h4>
-                              <div className="flex items-center mt-1 text-sm text-gray-400">
-                                <FiCalendar className="mr-1" size={12} />
-                                <span>{formatEventDate(event.date)}</span>
-                              </div>
-                            </div>
-                            <div className="flex space-x-1">
-                              <button 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEventSelection(event.id);
-                                }}
-                                className="p-2 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-900/20 rounded-full transition-colors"
-                                title="Edit event"
-                              >
-                                <FiEdit size={16} />
-                              </button>
-                              <button 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedEventId(event.id);
-                                  handleDeleteEvent();
-                                }}
-                                className={`p-2 rounded-full transition-colors ${
-                                  confirmDelete === event.id
-                                    ? 'bg-red-900/30 text-red-300'
-                                    : 'text-red-400 hover:text-red-300 hover:bg-red-900/20'
-                                }`}
-                                title="Delete event"
-                              >
-                                <FiTrash2 size={16} />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
+          <div className="overflow-y-auto" style={{ height: 'calc(100% - 4rem)' }}>
+            {loading && !events.length ? (
+              <div className="flex items-center justify-center p-6">
+                <div className="w-5 h-5 border-t-2 border-b-2 border-cyan-500 rounded-full animate-spin mr-3"></div>
+                <span className="text-cyan-400">Loading events...</span>
               </div>
-            </div>
-
-            <div className="md:col-span-2">
-              {selectedEventId ? (
-                <div className="relative">
-                  <div className="absolute inset-0 noise opacity-5 rounded-lg"></div>
-                  <div className="relative z-10 bg-zinc-900/80 border border-cyan-900/30 rounded-lg p-6">
-                    <h3 className="text-xl font-semibold mb-4 text-cyan-300">Edit Event</h3>
-                    
-                    <div className="mb-4">
-                      <label htmlFor="eventTitle" className="block text-sm font-medium mb-2 text-white">
-                        Event Title <span className="text-cyan-400">*</span>
-                      </label>
-                      <input
-                        id="eventTitle"
-                        type="text"
-                        className="w-full p-3 bg-zinc-800 border border-cyan-900/50 rounded-lg text-white focus:border-cyan-500/70 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 transition-all"
-                        value={eventTitle}
-                        onChange={(e) => setEventTitle(e.target.value)}
-                        placeholder="Enter Event Title"
-                      />
-                    </div>
-
-                    <div className="mb-4">
-                      <label htmlFor="eventDate" className="block text-sm font-medium mb-2 text-white">
-                        Event Date <span className="text-cyan-400">*</span>
-                      </label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                          <FiCalendar className="text-cyan-400" />
+            ) : filteredEvents.length === 0 ? (
+              <div className="p-6 text-center text-gray-400">
+                <FiAlertTriangle className="mx-auto h-8 w-8 mb-2" />
+                <p>No events found</p>
+              </div>
+            ) : (
+              <div className="space-y-1 p-2">
+                {filteredEvents.map((event) => (
+                  <div
+                    key={event.id}
+                    onClick={() => handleEventSelection(event.id)}
+                    className={`p-4 rounded-lg cursor-pointer transition-all
+                      ${selectedEventId === event.id 
+                        ? 'bg-cyan-900/20 border-l-2 border-l-cyan-500' 
+                        : 'hover:bg-cyan-900/10'}`}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-white font-medium truncate">{event.title}</h4>
+                        <div className="flex items-center mt-1 text-sm text-gray-400">
+                          <FiCalendar className="mr-1 flex-shrink-0" size={12} />
+                          <span className="truncate">{formatEventDate(event.date)}</span>
                         </div>
-                        <input
-                          id="eventDate"
-                          type="date"
-                          className="w-full p-3 pl-10 bg-zinc-800 border border-cyan-900/50 rounded-lg text-white focus:border-cyan-500/70 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 transition-all"
-                          value={eventDate}
-                          onChange={(e) => setEventDate(e.target.value)}
-                        />
                       </div>
-                    </div>
-
-                    <div className="mb-6">
-                      <label htmlFor="ticketLink" className="block text-sm font-medium mb-2 text-white">
-                        Ticket Link <span className="text-gray-400">(Optional)</span>
-                      </label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                          <FiLink className="text-cyan-400" />
-                        </div>
-                        <input
-                          id="ticketLink"
-                          type="url"
-                          className="w-full p-3 pl-10 bg-zinc-800 border border-cyan-900/50 rounded-lg text-white focus:border-cyan-500/70 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 transition-all"
-                          value={ticketLink}
-                          onChange={(e) => setTicketLink(e.target.value)}
-                          placeholder="Enter Ticket Link"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between mb-6 bg-zinc-800 p-4 rounded-lg">
-                      <div>
-                        <label className="text-sm font-medium text-white">Enable Reservations</label>
-                        <p className="text-xs text-gray-400 mt-1">Allow users to make reservations for this event</p>
-                      </div>
-                      <div className="relative inline-block w-12 h-6">
-                        <input
-                          type="checkbox"
-                          checked={reservationsEnabled}
-                          onChange={(e) => {
-                            console.log('Toggle changed to:', e.target.checked);
-                            setReservationsEnabled(e.target.checked);
-                          }}
-                          className="sr-only peer"
-                        />
-                        <div 
-                          className={`w-12 h-6 rounded-full transition-colors duration-200 ${
-                            reservationsEnabled ? 'bg-cyan-600' : 'bg-gray-600'
-                          } cursor-pointer`}
-                        ></div>
-                        <div 
-                          className={`absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 ${
-                            reservationsEnabled ? 'translate-x-6' : 'translate-x-0'
-                          }`}
-                        ></div>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-4">
-                      <button
-                        onClick={handleUpdateEvent}
-                        disabled={loading}
-                        className="flex-1 p-3 bg-gradient-to-r from-cyan-800 to-cyan-600 hover:from-cyan-700 hover:to-cyan-500 border border-cyan-500/50 rounded-lg text-white font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group"
-                      >
-                        <div className="absolute inset-0 flex justify-center items-center bg-gradient-to-r from-cyan-600/0 via-cyan-600/30 to-cyan-600/0 opacity-0 group-hover:opacity-100 transform translate-y-full group-hover:translate-y-0 transition-all duration-500"></div>
-                        <span className="relative z-10 flex items-center justify-center">
-                          {loading ? (
-                            <>
-                              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                              </svg>
-                              Updating...
-                            </>
-                          ) : (
-                            <>
-                              <FiCheck className="mr-2" />
-                              Update Event
-                            </>
-                          )}
-                        </span>
-                      </button>
-                      <button
-                        onClick={handleDeleteEvent}
-                        disabled={loading}
-                        className={`flex-1 p-3 border rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
-                          confirmDelete === selectedEventId
-                            ? 'bg-red-900/30 text-white border-red-500'
-                            : 'bg-transparent border-red-600/50 text-red-400 hover:bg-red-900/20'
-                        }`}
-                      >
-                        <FiTrash2 />
-                        <span>
-                          {confirmDelete === selectedEventId ? 'Confirm Delete' : 'Delete Event'}
-                        </span>
-                      </button>
                     </div>
                   </div>
-                </div>
-              ) : (
-                <div className="bg-zinc-900/80 border border-cyan-900/30 rounded-lg p-8 text-center h-full flex flex-col items-center justify-center">
-                  <FiEdit size={48} className="text-cyan-900/50 mb-4" />
-                  <h3 className="text-xl font-semibold mb-2 text-white">No Event Selected</h3>
-                  <p className="text-gray-400">Select an event from the list to edit its details.</p>
-                </div>
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
-      )}
+
+        {/* Edit Form */}
+        <div className="lg:col-span-3 bg-zinc-900/50 rounded-lg border border-cyan-900/30">
+          <div className="p-6">
+            {selectedEventId ? (
+              <form className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Event Title */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-200">
+                      Event Title
+                    </label>
+                    <input
+                      type="text"
+                      value={eventTitle}
+                      onChange={(e) => setEventTitle(e.target.value)}
+                      className="w-full px-4 py-2 bg-black/50 border border-cyan-900/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-white"
+                    />
+                  </div>
+
+                  {/* Event Date */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-200">
+                      Event Date
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="date"
+                        value={eventDate}
+                        onChange={(e) => setEventDate(e.target.value)}
+                        className="w-full px-4 py-2 bg-black/50 border border-cyan-900/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-white"
+                      />
+                      <FiCalendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    </div>
+                  </div>
+
+                  {/* Ticket Link */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-200">
+                      Ticket Link
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="url"
+                        value={ticketLink}
+                        onChange={(e) => setTicketLink(e.target.value)}
+                        className="w-full px-4 py-2 bg-black/50 border border-cyan-900/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-white"
+                        placeholder="https://"
+                      />
+                      <FiLink className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    </div>
+                  </div>
+
+                  {/* Reservations Toggle */}
+                  <div className="space-y-2 flex items-center">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={reservationsEnabled}
+                        onChange={(e) => setReservationsEnabled(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-600"></div>
+                      <span className="ml-3 text-sm font-medium text-gray-200">Enable Reservations</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-4 pt-6">
+                  <button
+                    type="button"
+                    onClick={handleUpdateEvent}
+                    disabled={loading}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-600 to-cyan-700 text-white rounded-lg font-medium
+                      hover:from-cyan-500 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 
+                      disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {loading ? (
+                      <>
+                        <div className="w-5 h-5 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
+                        <span>Updating...</span>
+                      </>
+                    ) : (
+                      <>
+                        <FiCheck className="w-5 h-5" />
+                        <span>Update Event</span>
+                      </>
+                    )}
+                  </button>
+                  
+                  <button
+                    type="button"
+                    onClick={handleDeleteEvent}
+                    disabled={loading}
+                    className={`flex-1 px-6 py-3 rounded-lg font-medium flex items-center justify-center gap-2
+                      ${confirmDelete === selectedEventId
+                        ? 'bg-red-600 hover:bg-red-700 text-white'
+                        : 'bg-red-900/10 text-red-400 hover:bg-red-900/20'
+                      } transition-colors`}
+                  >
+                    <FiTrash2 className="w-5 h-5" />
+                    <span>
+                      {confirmDelete === selectedEventId ? 'Confirm Delete' : 'Delete Event'}
+                    </span>
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div className="text-center py-12 text-gray-400">
+                <FiEdit className="mx-auto mb-4 text-4xl" />
+                <p>Select an event from the list to edit its details</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 } 

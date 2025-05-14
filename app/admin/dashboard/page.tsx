@@ -143,9 +143,9 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col md:flex-row">
-      {/* Mobile Header with Menu Toggle */}
-      <div className="md:hidden flex items-center justify-between p-4 border-b border-cyan-900/30 bg-zinc-950 fixed top-0 left-0 right-0 z-50">
+    <div className="flex min-h-screen bg-black">
+      {/* Mobile Header */}
+      <div className="md:hidden flex items-center justify-between p-4 border-b border-cyan-900/30 bg-zinc-950 fixed top-0 left-0 right-0 z-50 h-16">
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className="p-2 rounded-full bg-zinc-900 border border-cyan-700/40"
@@ -164,8 +164,9 @@ export default function AdminDashboardPage() {
       <div className={`
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
         md:translate-x-0 fixed md:relative z-40 md:z-auto transition-transform duration-300 
-        w-72 min-h-screen border-r border-cyan-900/30 bg-zinc-950 backdrop-blur-lg overflow-y-auto
-        ${sidebarOpen ? 'block' : 'hidden'} md:block
+        w-72 min-h-screen border-r border-cyan-900/30 bg-zinc-950 backdrop-blur-lg
+        ${sidebarOpen ? 'block' : 'hidden'} md:block overflow-y-auto
+        pt-16 md:pt-0
       `}>
         {/* Sidebar Header - Logo */}
         <div className="hidden md:flex items-center justify-center py-7 px-4 border-b border-cyan-900/30">
@@ -237,34 +238,36 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'md:ml-0' : 'md:ml-0'} pt-16 md:pt-0`}>
-        {/* Overlay for mobile when sidebar is open */}
-        {sidebarOpen && (
-          <div 
-            className="fixed inset-0 bg-black/80 z-30 md:hidden"
-            onClick={() => setSidebarOpen(false)}
-          ></div>
-        )}
-        
-        {/* Content Header */}
-        <div className="hidden md:flex items-center justify-between p-4 border-b border-cyan-900/30 bg-zinc-950/90">
-          <h1 className="text-2xl font-bold text-white">{tabs.find(t => t.id === activeTab)?.label}</h1>
-          <Link
-            href="/dashboard"
-            className="px-4 py-2 border border-cyan-600/30 bg-cyan-900/10 hover:bg-cyan-800/20 text-cyan-400 rounded transition-colors"
-          >
-            Member Dashboard
-          </Link>
-        </div>
-        
-        {/* Content Area - Contains the active tab */}
-        <div className="p-4">
-          <div className="bg-zinc-950/30 rounded-lg border border-cyan-900/20 shadow-lg shadow-black/30 min-h-[calc(100vh-10rem)] relative">
-            <div className="absolute inset-0 noise opacity-5 rounded-lg"></div>
-            <div className="relative z-10">
-              <TabContent tab={activeTab} />
-            </div>
+      {/* Main Content Fixed Container */}
+      <div className="flex-1 relative">
+        {/* Fixed Content Container */}
+        <div className="fixed top-16 md:top-0 left-72 right-0 bottom-0 bg-zinc-950 overflow-hidden">
+          {/* Content Header */}
+          <div className="h-16 border-b border-cyan-900/30 bg-zinc-900/50 backdrop-blur-sm flex items-center px-6">
+            <h1 className="text-xl font-bold text-cyan-400">
+              {activeTab === "Dashboard" && "Admin Dashboard Overview"}
+              {activeTab === "CreateEvent" && "Create New Event"}
+              {activeTab === "EditEvents" && "Edit Events"}
+              {activeTab === "ManageUsers" && "Manage Users"}
+              {activeTab === "ManageReservations" && "Manage Reservations"}
+              {activeTab === "AddBottleToCatalog" && "Add to Catalog"}
+              {activeTab === "AddBottlesToEvent" && "Event Bottles"}
+              {activeTab === "PushNotifications" && "Notifications"}
+            </h1>
+          </div>
+
+          {/* Scrollable Content Area */}
+          <div className="absolute top-16 left-0 right-0 bottom-0 overflow-y-auto p-6">
+            {/* Overlay for mobile when sidebar is open */}
+            {sidebarOpen && (
+              <div 
+                className="fixed inset-0 bg-black/80 z-30 md:hidden"
+                onClick={() => setSidebarOpen(false)}
+              ></div>
+            )}
+            
+            {/* Tab Content */}
+            <TabContent tab={activeTab} />
           </div>
         </div>
       </div>
