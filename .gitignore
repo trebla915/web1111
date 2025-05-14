@@ -45,3 +45,7 @@ next-env.d.ts
 .env.local
 .env.development
 .env.production
+
+# Firebase
+*firebase-adminsdk*.json
+club-1111-firebase-adminsdk-43fx3-c9a39031bf.json

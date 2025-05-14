@@ -53,7 +53,8 @@ export default function ManageReservationsTab() {
           continue;
         }
 
-        const eventTitle = eventTitleMap[eventId] || eventId;
+        // Use event title from event list, or fallback to eventName from reservation, or eventId
+        const eventTitle = eventTitleMap[eventId] || reservations[0]?.eventName || eventId;
         // Fetch user names for all reservations
         const reservationsWithUserNames = await Promise.all(
           reservations.map(async (reservation) => {
@@ -130,31 +131,32 @@ export default function ManageReservationsTab() {
   };
 
   // Format date
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'N/A';
-    
-    try {
-      // Parse the date string and ensure it's treated as UTC
-      const date = new Date(dateString + 'Z');
-      if (isNaN(date.getTime())) {
-        console.warn('Invalid date string:', dateString);
-        return 'Invalid Date';
-      }
-      
-      // Format the date in UTC to prevent timezone issues
-      return new Intl.DateTimeFormat('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZone: 'UTC',
-        hour12: true
-      }).format(date);
-    } catch (error) {
-      console.error('Error formatting date:', error);
+  const formatDate = (dateInput?: string | { _seconds: number, _nanoseconds: number }) => {
+    if (!dateInput) return 'N/A';
+
+    let date: Date;
+    if (typeof dateInput === 'object' && dateInput._seconds) {
+      date = new Date(dateInput._seconds * 1000);
+    } else if (typeof dateInput === 'string') {
+      date = new Date(dateInput + 'Z');
+    } else {
       return 'Invalid Date';
     }
+
+    if (isNaN(date.getTime())) {
+      console.warn('Invalid date string:', dateInput);
+      return 'Invalid Date';
+    }
+
+    return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'UTC',
+      hour12: true
+    }).format(date);
   };
 
   // Get status badge classes based on status

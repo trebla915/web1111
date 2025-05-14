@@ -72,7 +72,7 @@ export const getReservationsByUser = async (userId: string): Promise<Reservation
 export const getGroupedByEvent = async (): Promise<{ [eventId: string]: Reservation[] }> => {
   try {
     const response = await apiClient.get('/reservations');
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.error('Error getting reservations grouped by event:', error);
     throw error;
