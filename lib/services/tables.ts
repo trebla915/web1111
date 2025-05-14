@@ -19,9 +19,9 @@ export const getTableBottleRequirements = async (eventId: string, tableId: strin
       return { minimumBottles: 1 };
     }
     
-    // Ensure minimumBottles is a valid number
-    const minimumBottles = typeof table.minimumBottles === 'number' && table.minimumBottles > 0 
-      ? table.minimumBottles 
+    // Use the bottleMinimum property from the table document
+    const minimumBottles = typeof table.bottleMinimum === 'number' && table.bottleMinimum > 0 
+      ? table.bottleMinimum 
       : 1;
 
     return { minimumBottles };
@@ -41,7 +41,7 @@ const MOCK_TABLES: Table[] = [
     reserved: false,
     location: 'center',
     eventId: undefined,
-    minimumBottles: 2  // This should come from the database in real API responses
+    bottleMinimum: 2  // Updated property name
   },
   {
     id: 'table2',
@@ -51,7 +51,7 @@ const MOCK_TABLES: Table[] = [
     reserved: false,
     location: 'center',
     eventId: undefined,
-    minimumBottles: 2  // This should come from the database in real API responses
+    bottleMinimum: 2  // Updated property name
   },
   {
     id: 'vip1',
@@ -61,7 +61,7 @@ const MOCK_TABLES: Table[] = [
     reserved: false,
     location: 'center',
     eventId: undefined,
-    minimumBottles: 1  // This should come from the database in real API responses
+    bottleMinimum: 1  // Updated property name
   }
 ];
 
