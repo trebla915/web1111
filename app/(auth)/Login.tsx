@@ -16,8 +16,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../src/config/firebase.native";
+import auth from '@react-native-firebase/auth';
 import EulaModal from "../../src/components/EulaModal"; // Import the EULA modal
 import PrivacyModal from "../../src/components/PrivacyModal"; // Import the Privacy Policy modal
 import { useAuth } from "../../src/contexts/AuthContext"; // Import the Auth context
@@ -33,8 +32,6 @@ const TextInput: React.FC<NativeTextInputProps | WebInputProps> = (props) => {
 };
 
 const Login: React.FC = () => {
-
-export default Login;
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string>("");
@@ -53,7 +50,7 @@ export default Login;
       return;
     }
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await auth().signInWithEmailAndPassword(email, password);
       router.replace("/");
     } catch (err: any) {
       console.error("Login Error:", err);

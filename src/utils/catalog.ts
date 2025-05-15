@@ -4,7 +4,7 @@
 import { apiClient, handleApiError } from './api'; // Import centralized axios and error handler
 import { BottleCatalog } from './types'; // Assuming BottleCatalog type is defined
 import { uploadImageToStorage } from './uploadImageToStorage';
-import { doc, updateDoc } from 'firebase/firestore';
+import firestore from '@react-native-firebase/firestore';
 import { db } from '../config/firebase.native';
 
 // Add a new bottle to the catalog
@@ -63,8 +63,8 @@ export const uploadBottleImage = async (bottleId: string, imageUri: string): Pro
     const imageUrl = await uploadImageToStorage(imageUri, filePath);
     console.log(`[uploadBottleImage] Image uploaded successfully: ${imageUrl}`);
 
-    const bottleRef = doc(db, 'bottleCatalog', bottleId);
-    await updateDoc(bottleRef, { imageUrl });
+    const bottleRef = firestore().collection('bottleCatalog').doc(bottleId);
+    await bottleRef.update({ imageUrl });
     console.log(`[uploadBottleImage] Firestore document updated with image URL: ${imageUrl}`);
 
     return imageUrl; // Return the uploaded image URL

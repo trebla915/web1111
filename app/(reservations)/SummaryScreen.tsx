@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useUser } from '../../src/contexts/UserContext';
+import { calculateFullCostBreakdown } from '../../src/utils/paymentUtils';
 
 export default function SummaryScreen() {
   const router = useRouter();
@@ -22,27 +23,13 @@ export default function SummaryScreen() {
     router.push('/(tabs)');
   };
 
-  const calculateTotal = () => {
-    const tablePrice = reservationDetails?.tablePrice || 0;
-    const bottlesCost =
-      reservationDetails?.bottles?.reduce((acc, bottle) => acc + (bottle.price || 0), 0) || 0;
-    const mixersCost =
-      reservationDetails?.mixers?.reduce((acc, mixer) => acc + (mixer.price || 0), 0) || 0;
-
-    const subtotal = tablePrice + bottlesCost + mixersCost;
-    const serviceFee = subtotal * 0.029 + 0.3; // 2.9% + $0.30 fixed fee
-    const grandTotal = subtotal + serviceFee;
-
-    return {
-      tablePrice,
-      bottlesCost,
-      mixersCost,
-      serviceFee,
-      grandTotal,
-    };
-  };
-
-  const costBreakdown = calculateTotal();
+  const bottleMinimum = reservationDetails?.bottleMinimum || 0;
+  const costBreakdown = calculateFullCostBreakdown({
+    tablePrice: reservationDetails?.tablePrice,
+    bottles: reservationDetails?.bottles,
+    mixers: reservationDetails?.mixers,
+    bottleMinimum,
+  });
 
   const renderContent = () => (
     <>
@@ -92,21 +79,20 @@ export default function SummaryScreen() {
       {/* Cost Breakdown */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Cost Breakdown</Text>
-        <Text style={styles.detailText}>
-          Table Price: ${costBreakdown.tablePrice.toFixed(2)}
-        </Text>
-        <Text style={styles.detailText}>
-          Bottles Total: ${costBreakdown.bottlesCost.toFixed(2)}
-        </Text>
-        <Text style={styles.detailText}>
-          Mixers Total: ${costBreakdown.mixersCost.toFixed(2)}
-        </Text>
-        <Text style={styles.detailText}>
-          Service Fee: ${costBreakdown.serviceFee.toFixed(2)}
-        </Text>
-        <Text style={styles.totalText}>
-          Grand Total: ${costBreakdown.grandTotal.toFixed(2)}
-        </Text>
+        <Text style={styles.detailText}>Table Price: ${costBreakdown.table.toFixed(2)}</Text>
+        <Text style={styles.detailText}>Bottles Total: ${costBreakdown.bottles.toFixed(2)}</Text>
+        <Text style={styles.detailText}>Mixers Total: ${costBreakdown.mixers.toFixed(2)}</Text>
+        <Text style={styles.detailText}>Sales Tax (8.25%): ${costBreakdown.salesTax.toFixed(2)}</Text>
+        <Text style={styles.detailText}>Gratuity (18% on bottles): ${costBreakdown.bottleGratuity.toFixed(2)}</Text>
+        <Text style={styles.detailText}>Service Fee: ${costBreakdown.serviceFee.toFixed(2)}</Text>
+        <Text style={styles.totalText}>Grand Total: ${costBreakdown.total.toFixed(2)}</Text>
+        {!costBreakdown.bottleMinimumMet && (
+          <Text style={{ color: 'red', marginTop: 10 }}>
+            You must select at least {costBreakdown.bottleMinimum} bottle(s) to reserve this table.
+          </Text>
+        )}
+        <Text style={{ color: '#aaa', marginTop: 10 }}>* An automatic 18% gratuity is applied to all bottle purchases at checkout.</Text>
+        <Text style={{ color: '#aaa', marginTop: 2 }}>* Sales tax of 8.25% is applied to all purchases except gratuity and processing fees.</Text>
       </View>
 
       {/* Return Button */}

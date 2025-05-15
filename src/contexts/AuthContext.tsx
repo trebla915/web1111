@@ -1,10 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Alert } from "react-native";
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, User } from "firebase/auth";
 import { setAuthToken } from "../utils/api"; // Import from api
 import { createUser } from "../utils/users"; // Import from users
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { auth } from "../config/firebase.native";
+import auth from '@react-native-firebase/auth';
 
 interface AuthContextType {
   firebaseUser: User | null;
@@ -56,7 +55,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const refreshAuthToken = async (): Promise<string | null> => {
     try {
       console.log("Refreshing auth token...");
-      const currentUser = auth.currentUser;
+      const currentUser = auth().currentUser;
       if (!currentUser) {
         console.log("No current user found");
         return null;
@@ -114,7 +113,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     initializeAuth();
 
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    auth().onAuthStateChanged(async (user) => {
       console.log("Auth state changed:", user ? "User logged in" : "User logged out");
       
       if (user) {
@@ -165,14 +164,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => {
       mounted = false;
-      unsubscribe();
     };
   }, []);
 
   const signIn = async (email: string, password: string) => {
     setAuthState((prev) => ({ ...prev, isLoading: true }));
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await auth().signInWithEmailAndPassword(email, password);
       const token = await userCredential.user.getIdToken();
       console.log("Token retrieved on signIn:", token);
       await updateToken(token);
@@ -199,7 +197,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (email: string, password: string, name: string, role: string) => {
     setAuthState((prev) => ({ ...prev, isLoading: true }));
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await auth().createUserWithEmailAndPassword(email, password);
       const token = await userCredential.user.getIdToken();
       console.log("Token retrieved on signUp:", token);
       await createUser({
@@ -228,7 +226,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setAuthState((prev) => ({ ...prev, isLoading: true }));
     try {
       console.log("Signing out user.");
-      await signOut(auth);
+      await auth().signOut();
       setAuthState({
         firebaseUser: null,
         userId: null,

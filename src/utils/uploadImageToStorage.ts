@@ -1,5 +1,4 @@
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '../config/firebase.native';
+import storage from '@react-native-firebase/storage';
 
 /**
  * Infers MIME type from a file URI.
@@ -56,7 +55,7 @@ export const uploadImageToStorage = async (uri: string, path: string): Promise<s
     }
 
     // Create Firebase storage reference
-    const storageRef = ref(storage, path);
+    const storageRef = storage().ref(path);
     console.log(`[uploadImageToStorage] Created storage reference at path: ${path}`);
 
     // Metadata for the upload
@@ -65,12 +64,12 @@ export const uploadImageToStorage = async (uri: string, path: string): Promise<s
 
     // Upload blob to Firebase Storage
     console.log(`[uploadImageToStorage] Uploading blob to Firebase Storage...`);
-    await uploadBytes(storageRef, blob, metadata);
+    await storageRef.putFile(blob, metadata);
     console.log(`[uploadImageToStorage] File uploaded successfully.`);
 
     // Get the download URL
     console.log(`[uploadImageToStorage] Generating download URL...`);
-    const downloadUrl = await getDownloadURL(storageRef);
+    const downloadUrl = await storageRef.getDownloadURL();
     console.log(`[uploadImageToStorage] Download URL generated: ${downloadUrl}`);
 
     return downloadUrl;

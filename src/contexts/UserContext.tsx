@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { doc, onSnapshot, collection } from 'firebase/firestore';
-import { auth, db } from '../config/firebase.native'; // Firestore and Auth configuration
-import { onAuthStateChanged } from 'firebase/auth';
 import { Reservation } from '../utils/types';
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 
 // Interface for user data stored in Firestore
 interface UserData {
@@ -55,11 +54,11 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let unsubscribeUser: (() => void) | null = null;
     let unsubscribeReservations: (() => void) | null = null;
 
-    const authUnsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    const authUnsubscribe = auth().onAuthStateChanged((firebaseUser) => {
       if (firebaseUser) {
         // Set up listener for user data
-        const userDocRef = doc(db, 'users', firebaseUser.uid);
-        unsubscribeUser = onSnapshot(userDocRef, (docSnapshot) => {
+        const userDocRef = firestore().collection('users').doc(firebaseUser.uid);
+        unsubscribeUser = userDocRef.onSnapshot((docSnapshot) => {
           if (docSnapshot.exists()) {
             const data = docSnapshot.data();
             setUserData((prevData) => ({
@@ -78,8 +77,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
         // Listen for reservations
-        const reservationsRef = collection(db, 'users', firebaseUser.uid, 'reservations');
-        unsubscribeReservations = onSnapshot(reservationsRef, (snapshot) => {
+        const reservationsRef = firestore().collection('users').doc(firebaseUser.uid).collection('reservations');
+        unsubscribeReservations = reservationsRef.onSnapshot((snapshot) => {
           const reservations = snapshot.docs.map((doc) => doc.data() as Reservation);
           setUserData((prevUserData) => {
             if (!prevUserData) return prevUserData;

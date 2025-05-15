@@ -153,3 +153,58 @@ export const calculateTotalCost = (reservationDetails: {
 
   return { total, breakdown };
 };
+
+// Constants for tax and gratuity
+const SALES_TAX_RATE = 0.0825;
+const BOTTLE_GRATUITY_RATE = 0.18;
+
+export interface CostBreakdown {
+  table: number;
+  bottles: number;
+  mixers: number;
+  serviceFee: number;
+  salesTax: number;
+  bottleGratuity: number;
+  subtotal: number;
+  total: number;
+  bottleMinimumMet: boolean;
+  bottleMinimum: number;
+}
+
+/**
+ * Calculates the full cost breakdown for a reservation, including sales tax, bottle gratuity, and bottle minimum enforcement.
+ * @param reservationDetails - Reservation details including table, bottles, mixers, and bottleMinimum.
+ * @returns Cost breakdown and bottle minimum status.
+ */
+export function calculateFullCostBreakdown(reservationDetails: {
+  tablePrice?: number;
+  bottles?: Array<{ price: number }>;
+  mixers?: Array<{ price: number }>;
+  bottleMinimum?: number;
+}): CostBreakdown {
+  const table = reservationDetails.tablePrice || 0;
+  const bottles = reservationDetails.bottles?.reduce((acc, b) => acc + (b.price || 0), 0) || 0;
+  const mixers = reservationDetails.mixers?.reduce((acc, m) => acc + (m.price || 0), 0) || 0;
+  const bottleMinimum = reservationDetails.bottleMinimum || 0;
+  const bottleCount = reservationDetails.bottles?.length || 0;
+  const bottleMinimumMet = bottleCount >= bottleMinimum;
+
+  const subtotal = table + bottles + mixers;
+  const salesTax = subtotal * SALES_TAX_RATE;
+  const bottleGratuity = bottles * BOTTLE_GRATUITY_RATE;
+  const serviceFee = (subtotal + salesTax + bottleGratuity) * 0.029 + 0.3; // Stripe fee on total
+  const total = subtotal + salesTax + bottleGratuity + serviceFee;
+
+  return {
+    table,
+    bottles,
+    mixers,
+    serviceFee,
+    salesTax,
+    bottleGratuity,
+    subtotal,
+    total,
+    bottleMinimumMet,
+    bottleMinimum,
+  };
+}

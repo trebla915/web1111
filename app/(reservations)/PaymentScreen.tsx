@@ -10,9 +10,9 @@ import {
 import { useRouter } from 'expo-router';
 import { useUser } from '../../src/contexts/UserContext';
 import { useStripePayment } from '../../src/hooks/useStripePayment';
-import { formatCostBreakdown } from '../../src/utils/paymentUtils';
+import { formatCostBreakdown, calculateFullCostBreakdown } from '../../src/utils/paymentUtils';
 import { HandlePaymentFlowParams } from '../../src/types/paymentTypes';
-import { doc, onSnapshot } from 'firebase/firestore';
+import firestore from '@react-native-firebase/firestore';
 import { db } from '../../src/config/firebase.native';
 import { createReservation } from '../../src/utils/reservations';
 import * as Linking from 'expo-linking';
@@ -35,6 +35,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
   },
   loadingText: { color: '#fff', marginTop: 10 },
+  detailText: { color: '#aaa', marginTop: 10 },
 });
 
 export default function PaymentScreen() {
@@ -60,24 +61,14 @@ export default function PaymentScreen() {
     userData?.id &&
     userData?.email;
 
-  const calculateTotal = (): number => {
-    if (!reservationDetails) {
-      return 0;
-    }
-
-    const tablePrice = reservationDetails?.tablePrice || 0;
-    const bottlesCost =
-      reservationDetails?.bottles?.reduce((acc, bottle) => acc + (bottle.price || 0), 0) || 0;
-    const mixersCost =
-      reservationDetails?.mixers?.reduce((acc, mixer) => acc + (mixer.price || 0), 0) || 0;
-
-    const subtotal = tablePrice + bottlesCost + mixersCost;
-    const serviceFee = subtotal * 0.029 + 0.3;
-
-    const total = subtotal + serviceFee;
-
-    return total;
-  };
+  // Get bottle minimum from reservationDetails or default to 0
+  const bottleMinimum = reservationDetails?.bottleMinimum || 0;
+  const costBreakdown = calculateFullCostBreakdown({
+    tablePrice: reservationDetails?.tablePrice,
+    bottles: reservationDetails?.bottles,
+    mixers: reservationDetails?.mixers,
+    bottleMinimum,
+  });
 
   const handlePayment = async () => {
     if (!isDataReady) {
@@ -88,8 +79,16 @@ export default function PaymentScreen() {
       );
       return;
     }
+    if (!costBreakdown.bottleMinimumMet) {
+      Alert.alert(
+        'Bottle Minimum Not Met',
+        `You must select at least ${costBreakdown.bottleMinimum} bottle(s) to reserve this table.`,
+        [{ text: 'OK' }]
+      );
+      return;
+    }
 
-    const totalAmount = Math.round(calculateTotal() * 100);
+    const totalAmount = Math.round(costBreakdown.total * 100);
 
     try {
       const paymentParams: HandlePaymentFlowParams = {
@@ -139,9 +138,9 @@ export default function PaymentScreen() {
   useEffect(() => {
     if (!paymentId) return;
 
-    const paymentRef = doc(db, 'payments', paymentId);
+    const paymentRef = firestore().collection('payments').doc(paymentId);
 
-    const unsubscribe = onSnapshot(paymentRef, (docSnapshot) => {
+    const unsubscribe = paymentRef.onSnapshot((docSnapshot) => {
       if (docSnapshot.exists()) {
         const paymentData = docSnapshot.data();
 
@@ -189,19 +188,29 @@ export default function PaymentScreen() {
     );
   }
 
-  const total = calculateTotal();
-
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>Grand Total: ${total.toFixed(2)}</Text>
-      <TouchableOpacity
-        style={[styles.paymentButton, { backgroundColor: isDataReady ? '#fff' : '#666' }]}
-        onPress={handlePayment}
-        disabled={!isDataReady}
-      >
-        <Text style={styles.buttonText}>
-          {isDataReady ? 'Proceed to Payment' : 'Loading Reservation...'}
+      <Text style={styles.sectionTitle}>Cost Breakdown</Text>
+      <Text style={styles.detailText}>Table: ${costBreakdown.table.toFixed(2)}</Text>
+      <Text style={styles.detailText}>Bottles: ${costBreakdown.bottles.toFixed(2)}</Text>
+      <Text style={styles.detailText}>Mixers: ${costBreakdown.mixers.toFixed(2)}</Text>
+      <Text style={styles.detailText}>Sales Tax (8.25%): ${costBreakdown.salesTax.toFixed(2)}</Text>
+      <Text style={styles.detailText}>Gratuity (18% on bottles): ${costBreakdown.bottleGratuity.toFixed(2)}</Text>
+      <Text style={styles.detailText}>Service Fee: ${costBreakdown.serviceFee.toFixed(2)}</Text>
+      <Text style={styles.sectionTitle}>Grand Total: ${costBreakdown.total.toFixed(2)}</Text>
+      {!costBreakdown.bottleMinimumMet && (
+        <Text style={{ color: 'red', marginTop: 10 }}>
+          You must select at least {costBreakdown.bottleMinimum} bottle(s) to reserve this table.
         </Text>
+      )}
+      <Text style={{ color: '#aaa', marginTop: 10 }}>* An automatic 18% gratuity is applied to all bottle purchases at checkout.</Text>
+      <Text style={{ color: '#aaa', marginTop: 2 }}>* Sales tax of 8.25% is applied to all purchases except gratuity and processing fees.</Text>
+      <TouchableOpacity
+        style={[styles.paymentButton, { backgroundColor: isDataReady && costBreakdown.bottleMinimumMet ? '#fff' : '#666' }]}
+        onPress={handlePayment}
+        disabled={!isDataReady || !costBreakdown.bottleMinimumMet}
+      >
+        <Text style={styles.buttonText}>Pay Now</Text>
       </TouchableOpacity>
     </View>
   );

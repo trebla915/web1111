@@ -1,7 +1,6 @@
 import firebase from '@react-native-firebase/app';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
-import storage from '@react-native-firebase/storage';
 import analytics from '@react-native-firebase/analytics';
 import crashlytics from '@react-native-firebase/crashlytics';
 import messaging from '@react-native-firebase/messaging';
@@ -34,4 +33,4 @@ if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
 
-export { firebase, auth, firestore, storage, analytics, crashlytics, messaging };
+export { firebase, auth, firestore, analytics, crashlytics, messaging };

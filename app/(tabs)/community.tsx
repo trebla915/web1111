@@ -11,18 +11,7 @@ import {
   RefreshControl,
   Text,
 } from "react-native";
-import {
-  getFirestore,
-  collection,
-  query,
-  orderBy,
-  getDocs,
-  addDoc,
-  updateDoc,
-  doc,
-  getDoc,
-  deleteDoc,
-} from "firebase/firestore";
+import firestore from '@react-native-firebase/firestore';
 import { useAuth } from "../../src/contexts/AuthContext";
 import { useUser } from "../../src/contexts/UserContext";
 import { useLoading } from "../../src/contexts/LoadingContext";
@@ -56,7 +45,7 @@ interface CommunityPost {
   status: "public" | "reported" | "reviewing" | "deleted";
 }
 
-const db = getFirestore();
+const db = firestore();
 
 const CommunityScreen: React.FC = () => {
   const { firebaseUser } = useAuth();
@@ -75,16 +64,14 @@ const CommunityScreen: React.FC = () => {
 
   const fetchCommunityData = async () => {
     try {
-      const communityRef = collection(db, "communityPosts");
-      const communityQuery = query(communityRef, orderBy("createdAt", "desc"));
-      const querySnapshot = await getDocs(communityQuery);
+      const communityRef = db.collection('communityPosts');
+      const communityQuery = communityRef.orderBy('createdAt', 'desc');
+      const querySnapshot = await communityQuery.get();
 
       const userDoc = firebaseUser?.uid
-        ? await getDoc(doc(db, "users", firebaseUser.uid))
+        ? await db.collection('users').doc(firebaseUser.uid).get()
         : null;
-      const blockedUsers = userDoc?.exists()
-        ? userDoc.data()?.blockedUsers || []
-        : [];
+      const blockedUsers = userDoc?.exists ? userDoc.data()?.blockedUsers || [] : [];
 
       const fetchedData: CommunityPost[] = querySnapshot.docs
         .map((doc) => {
@@ -132,10 +119,10 @@ const CommunityScreen: React.FC = () => {
     }
 
     try {
-      const postRef = doc(db, "communityPosts", postId);
-      const postSnapshot = await getDoc(postRef);
+      const postRef = db.collection('communityPosts').doc(postId);
+      const postSnapshot = await postRef.get();
 
-      if (!postSnapshot.exists()) {
+      if (!postSnapshot.exists) {
         Alert.alert("Error", "The post does not exist.");
         return;
       }
@@ -152,7 +139,7 @@ const CommunityScreen: React.FC = () => {
         createdAt: new Date(),
       };
 
-      await updateDoc(postRef, { comments: [...post.comments, newComment] });
+      await postRef.update({ comments: [...post.comments, newComment] });
 
       fetchCommunityData();
       setSelectedPostId(null);
@@ -195,8 +182,8 @@ const CommunityScreen: React.FC = () => {
         status: "public",
       };
 
-      const communityRef = collection(db, "communityPosts");
-      await addDoc(communityRef, newPost);
+      const communityRef = db.collection('communityPosts');
+      await communityRef.add(newPost);
 
       fetchCommunityData();
       Keyboard.dismiss();
@@ -213,18 +200,18 @@ const CommunityScreen: React.FC = () => {
     if (!reportingPostId) return;
 
     try {
-      const postRef = doc(db, "communityPosts", reportingPostId);
-      const postSnapshot = await getDoc(postRef);
+      const postRef = db.collection('communityPosts').doc(reportingPostId);
+      const postSnapshot = await postRef.get();
 
-      if (!postSnapshot.exists()) {
+      if (!postSnapshot.exists) {
         Alert.alert("Error", "The post does not exist.");
         return;
       }
 
       const post = postSnapshot.data() as CommunityPost;
-      const reportedPostsRef = collection(db, "reportedPosts");
+      const reportedPostsRef = db.collection('reportedPosts');
 
-      await addDoc(reportedPostsRef, {
+      await reportedPostsRef.add({
         ...post,
         status: "reported",
         reportDetails: { reason, details },
@@ -235,7 +222,7 @@ const CommunityScreen: React.FC = () => {
         reportedAt: new Date(),
       });
 
-      await deleteDoc(postRef);
+      await postRef.delete();
       setCommunityData((prev) => prev.filter((item) => item.id !== reportingPostId));
       Alert.alert("Success", "Report submitted.");
       setReportingPostId(null);
@@ -251,7 +238,7 @@ const CommunityScreen: React.FC = () => {
 
     try {
       setLoading(true);
-      const postRef = doc(db, "communityPosts", editingPostId);
+      const postRef = db.collection('communityPosts').doc(editingPostId);
 
       const updates: Partial<CommunityPost> = {};
       if (text) updates.text = text.trim();
@@ -262,7 +249,7 @@ const CommunityScreen: React.FC = () => {
         );
       }
 
-      await updateDoc(postRef, updates);
+      await postRef.update(updates);
       setEditingPostId(null);
       setEditModalVisible(false);
       fetchCommunityData();
@@ -281,10 +268,10 @@ const CommunityScreen: React.FC = () => {
     userId?: string
   ) => {
     try {
-      const postRef = doc(db, "communityPosts", postId);
-      const postSnapshot = await getDoc(postRef);
+      const postRef = db.collection('communityPosts').doc(postId);
+      const postSnapshot = await postRef.get();
 
-      if (!postSnapshot.exists()) {
+      if (!postSnapshot.exists) {
         Alert.alert("Error", "The post does not exist.");
         return;
       }
@@ -296,7 +283,7 @@ const CommunityScreen: React.FC = () => {
           Alert.alert("Error", "You can only delete your own posts.");
           return;
         }
-        await updateDoc(postRef, { status: "deleted" });
+        await postRef.update({ status: "deleted" });
         setCommunityData((prev) => prev.filter((p) => p.id !== postId));
         Alert.alert("Success", "Post deleted successfully.");
       } else if (action === "report") {
@@ -310,12 +297,12 @@ const CommunityScreen: React.FC = () => {
         setEditingPostId(postId);
         setEditModalVisible(true);
       } else if (action === "block" && userId) {
-        const userDocRef = doc(db, "users", firebaseUser?.uid || "");
-        const userDoc = await getDoc(userDocRef);
+        const userDocRef = db.collection('users').doc(firebaseUser?.uid || "");
+        const userDoc = await userDocRef.get();
 
-        if (userDoc.exists()) {
+        if (userDoc.exists) {
           const currentBlockedUsers = userDoc.data()?.blockedUsers || [];
-          await updateDoc(userDocRef, {
+          await userDocRef.update({
             blockedUsers: [...currentBlockedUsers, userId],
           });
 
@@ -331,10 +318,10 @@ const CommunityScreen: React.FC = () => {
 
   const handleLikePost = async (postId: string) => {
     try {
-      const postRef = doc(db, "communityPosts", postId);
-      const postSnapshot = await getDoc(postRef);
+      const postRef = db.collection('communityPosts').doc(postId);
+      const postSnapshot = await postRef.get();
 
-      if (!postSnapshot.exists()) {
+      if (!postSnapshot.exists) {
         Alert.alert("Error", "The post does not exist.");
         return;
       }
@@ -344,10 +331,10 @@ const CommunityScreen: React.FC = () => {
 
       if (likes.includes(firebaseUser?.uid || "")) {
         // If user already liked, remove their like
-        await updateDoc(postRef, { likes: likes.filter((id) => id !== firebaseUser?.uid) });
+        await postRef.update({ likes: likes.filter((id) => id !== firebaseUser?.uid) });
       } else {
         // Add user's like
-        await updateDoc(postRef, { likes: [...likes, firebaseUser?.uid || ""] });
+        await postRef.update({ likes: [...likes, firebaseUser?.uid || ""] });
       }
 
       fetchCommunityData();

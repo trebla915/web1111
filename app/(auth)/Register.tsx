@@ -16,9 +16,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { auth } from "../../src/config/firebase.native";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { createUser } from "../../src/utils/users";
+import auth from '@react-native-firebase/auth';
 import CheckBox from "@react-native-community/checkbox"; // community checkbox
 import EulaModal from "../../src/components/EulaModal"; // Import the EULA modal
 
@@ -40,7 +38,7 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [modalVisible, setModalVisible] = useState<boolean>(false); // EULA Modal visibility
-  const [agreedToTerms, setAgreedToTerms] = useState<boolean>(false); // Checkbox state
+  const [acceptedEula, setAcceptedEula] = useState<boolean>(false); // Checkbox state
   const router = useRouter();
 
   const { width } = Dimensions.get("window");
@@ -49,8 +47,8 @@ export default function Register() {
   const handleRegister = async () => {
     setError("");
 
-    if (!agreedToTerms) {
-      Alert.alert("Error", "You must agree to the Terms and Conditions to register.");
+    if (!acceptedEula) {
+      Alert.alert("Error", "You must accept the Terms and Conditions to register.");
       return;
     }
 
@@ -77,15 +75,7 @@ export default function Register() {
     }
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      await createUser({
-        id: user.uid,
-        email,
-        name: fullName,
-        role: "user",
-      });
+      await auth().createUserWithEmailAndPassword(email, password);
 
       Alert.alert("Success", "Account Created Successfully!", [
         { text: "OK", onPress: () => router.push("/(auth)/Login") },
@@ -166,10 +156,10 @@ export default function Register() {
           />
           <View style={styles.termsContainer}>
             <CheckBox
-              value={agreedToTerms}
-              onValueChange={setAgreedToTerms}
-              color={agreedToTerms ? "#fff" : "#fff"} // White tick
-              style={styles.checkbox}
+              value={acceptedEula}
+              onValueChange={setAcceptedEula}
+              tintColors={{ true: '#fff', false: '#fff' }}
+              style={{ width: 20, height: 20, borderRadius: 5, backgroundColor: '#1c1c1c', borderColor: '#fff', borderWidth: 1 }}
             />
             <TouchableOpacity onPress={() => setModalVisible(true)}>
               <Text style={styles.termsText}>
@@ -178,9 +168,9 @@ export default function Register() {
             </TouchableOpacity>
           </View>
           <TouchableOpacity
-            style={[styles.button, { backgroundColor: agreedToTerms ? "#fff" : "#ccc" }]}
+            style={[styles.button, { backgroundColor: acceptedEula ? "#fff" : "#ccc" }]}
             onPress={handleRegister}
-            disabled={!agreedToTerms}
+            disabled={!acceptedEula}
           >
             <Text style={styles.buttonText}>Register</Text>
           </TouchableOpacity>
@@ -265,14 +255,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 15,
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
-    backgroundColor: "#000", // Black background
-    borderColor: "#fff",
-    borderWidth: 1,
   },
   termsText: {
     color: "#fff",

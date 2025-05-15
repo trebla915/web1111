@@ -9,13 +9,7 @@ import {
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 import { createUser, updateUserById, getUserById,} from "../../src/utils/users";
-import {
-  getAuth,
-  createUserWithEmailAndPassword,
-  sendPasswordResetEmail,
-  signOut,
-  signInWithEmailAndPassword,
-} from "firebase/auth";
+import auth from '@react-native-firebase/auth';
 
 const ManageUsers = () => {
   const [name, setName] = useState("");
@@ -26,15 +20,13 @@ const ManageUsers = () => {
   const [searchEmail, setSearchEmail] = useState("");
   const [searchResults, setSearchResults] = useState<any | null>(null);
 
-  const auth = getAuth();
-
   const handleAddUser = async () => {
     if (!name || !email || !role) {
       Alert.alert("Error", "All fields are required.");
       return;
     }
   
-    const currentUser = auth.currentUser;
+    const currentUser = auth().currentUser;
     const currentUserEmail = currentUser?.email;
     const currentUserPassword = ""; // Prompt the current user for their password, or use a secure mechanism to retrieve it.
   
@@ -45,15 +37,15 @@ const ManageUsers = () => {
   
     try {
       // Step 1: Log out the current user before creating the new user
-      await signOut(auth);
+      await auth().signOut();
   
       // Step 2: Create the new user
       const tempPassword = Math.random().toString(36).slice(-8);
-      const userCredential = await createUserWithEmailAndPassword(auth, email, tempPassword);
+      const userCredential = await auth().signInWithEmailAndPassword(email, tempPassword);
       const firebaseUser = userCredential.user;
   
       // Send password reset email
-      await sendPasswordResetEmail(auth, email);
+      await auth().sendPasswordResetEmail(email);
       Alert.alert("Password Setup", "User will receive an email to set their password.");
   
       // Add the user details and role to the backend
@@ -70,7 +62,7 @@ const ManageUsers = () => {
       setRole(null);
   
       // Step 3: Reauthenticate the original user
-      await signInWithEmailAndPassword(auth, currentUserEmail, currentUserPassword);
+      await auth().signInWithEmailAndPassword(currentUserEmail, currentUserPassword);
     } catch (error: any) {
       console.error("Error adding user:", error);
       if (error.code === "auth/email-already-in-use") {
@@ -81,7 +73,7 @@ const ManageUsers = () => {
   
       // Attempt to reauthenticate the original user in case of failure
       try {
-        await signInWithEmailAndPassword(auth, currentUserEmail, currentUserPassword);
+        await auth().signInWithEmailAndPassword(currentUserEmail, currentUserPassword);
       } catch (reauthError: any) {
         console.error("Error reauthenticating the original user:", reauthError);
       }
