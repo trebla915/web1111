@@ -13,7 +13,8 @@ import {
   Image,
   Switch,
 } from 'react-native';
-import { Text } from '@react-native-material/core';
+import { Text } from "react-native-paper";
+
 import { useAuth } from '../../src/contexts/AuthContext';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';

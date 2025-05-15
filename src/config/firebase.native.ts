@@ -1,8 +1,10 @@
-import { initializeApp, getApp, getApps } from 'firebase/app';
-import { getAuth, initializeAuth, getReactNativePersistence } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import firebase from '@react-native-firebase/app';
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
+import storage from '@react-native-firebase/storage';
+import analytics from '@react-native-firebase/analytics';
+import crashlytics from '@react-native-firebase/crashlytics';
+import messaging from '@react-native-firebase/messaging';
 import { 
   FIREBASE_API_KEY,
   FIREBASE_AUTH_DOMAIN,
@@ -27,15 +29,9 @@ if (!firebaseConfig.apiKey) {
   throw new Error('Missing Firebase API Key.');
 }
 
-// Initialize Firebase only if it hasn't been initialized already
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+// Initialize Firebase if it hasn't been initialized
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
 
-// Initialize Auth with AsyncStorage persistence
-const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(AsyncStorage)
-});
-
-const db = getFirestore(app);
-const storage = getStorage(app);
-
-export { auth, db, storage };
+export { firebase, auth, firestore, storage, analytics, crashlytics, messaging };

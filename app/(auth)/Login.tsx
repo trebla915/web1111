@@ -33,6 +33,8 @@ const TextInput: React.FC<NativeTextInputProps | WebInputProps> = (props) => {
 };
 
 const Login: React.FC = () => {
+
+export default Login;
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string>("");

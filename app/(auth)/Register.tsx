@@ -19,7 +19,7 @@ import { useRouter } from "expo-router";
 import { auth } from "../../src/config/firebase.native";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { createUser } from "../../src/utils/users";
-import CheckBox from "expo-checkbox"; // Checkbox for the Terms and Conditions
+import CheckBox from "@react-native-community/checkbox"; // community checkbox
 import EulaModal from "../../src/components/EulaModal"; // Import the EULA modal
 
 // Custom TextInput Wrapper
