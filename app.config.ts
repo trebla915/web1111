@@ -3,6 +3,7 @@ import { version } from './package.json';
 
 export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
   ...config,
+  newArchEnabled: true,     // 🔥 Enable React Native New Architecture
   name: "11:11 EPTX",
   slug: "club1111",
   owner: "tr3bla915",
@@ -69,4 +70,4 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
       projectId: "e3775235-7f75-42c8-906e-8171c4a1e54b"
     }
   }
-}); 
+});

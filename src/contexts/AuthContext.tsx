@@ -41,10 +41,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (token) {
         console.log("Storing token in AsyncStorage:", token);
         await AsyncStorage.setItem("userToken", token);
-        setAuthToken(token); // Update Axios headers
+        setAuthToken(token);
       } else {
-        console.log("No token found, not removing token from AsyncStorage yet.");
-        setAuthToken(null); // Update Axios headers if token is null
+        console.log("No token found, removing token from AsyncStorage");
+        await AsyncStorage.removeItem("userToken");
+        setAuthToken(null);
       }
       setAuthState((prev) => ({ ...prev, token }));
     } catch (error) {
@@ -54,8 +55,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshAuthToken = async (): Promise<string | null> => {
     try {
+      console.log("Refreshing auth token...");
       const currentUser = auth.currentUser;
-      if (!currentUser) return null;
+      if (!currentUser) {
+        console.log("No current user found");
+        return null;
+      }
 
       const newToken = await currentUser.getIdToken(true);
       console.log("New token retrieved:", newToken);
@@ -63,29 +68,55 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return newToken;
     } catch (error) {
       console.error("Error refreshing token:", error);
-      Alert.alert("Error", "Unable to refresh session. Please sign in again.");
       return null;
     }
   };
 
   useEffect(() => {
-    const checkTokenInAsyncStorage = async () => {
+    console.log("AuthProvider mounted");
+    let mounted = true;
+
+    const initializeAuth = async () => {
       try {
+        console.log("Checking stored token...");
         const storedToken = await AsyncStorage.getItem("userToken");
-        if (storedToken) {
-          setAuthState((prev) => ({ ...prev, token: storedToken, isLoading: false }));
+        const storedUserId = await AsyncStorage.getItem("userId");
+        
+        if (storedToken && storedUserId) {
+          console.log("Found stored token and userId");
+          if (mounted) {
+            setAuthState(prev => ({
+              ...prev,
+              token: storedToken,
+              userId: storedUserId,
+              isLoading: false
+            }));
+          }
         } else {
-          setAuthState((prev) => ({ ...prev, isLoading: false }));
+          console.log("No stored credentials found");
+          if (mounted) {
+            setAuthState(prev => ({
+              ...prev,
+              isLoading: false
+            }));
+          }
         }
       } catch (error) {
-        console.error("Error checking token in AsyncStorage:", error);
-        setAuthState((prev) => ({ ...prev, isLoading: false }));
+        console.error("Error during initialization:", error);
+        if (mounted) {
+          setAuthState(prev => ({
+            ...prev,
+            isLoading: false
+          }));
+        }
       }
     };
 
-    checkTokenInAsyncStorage();
+    initializeAuth();
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log("Auth state changed:", user ? "User logged in" : "User logged out");
+      
       if (user) {
         try {
           const token = await user.getIdToken();
@@ -94,18 +125,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           await AsyncStorage.setItem("userId", user.uid);
           await updateToken(token);
 
-          setAuthState({
-            firebaseUser: user,
-            userId: user.uid,
-            token,
-            isLoading: false,
-            isGuest: false,
-          });
+          if (mounted) {
+            setAuthState({
+              firebaseUser: user,
+              userId: user.uid,
+              token,
+              isLoading: false,
+              isGuest: false,
+            });
+          }
         } catch (error) {
           console.error("Error during authentication:", error);
           await AsyncStorage.removeItem("userId");
           await updateToken(null);
 
+          if (mounted) {
+            setAuthState({
+              firebaseUser: null,
+              userId: null,
+              token: null,
+              isLoading: false,
+              isGuest: false,
+            });
+          }
+        }
+      } else {
+        console.log("No user, clearing auth state");
+        if (mounted) {
           setAuthState({
             firebaseUser: null,
             userId: null,
@@ -114,19 +160,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             isGuest: false,
           });
         }
-      } else {
-        console.log("User signed out. Not clearing token yet.");
-        setAuthState({
-          firebaseUser: null,
-          userId: null,
-          token: null,
-          isLoading: false,
-          isGuest: false,
-        });
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {

@@ -63,7 +63,7 @@ const AppContent: React.FC = () => {
     const prepareApp = async () => {
       try {
         // Load auth token
-        const newToken = await refreshAuthToken();
+        await refreshAuthToken();
         
         // Check for updates only in production
         if (Constants.expoConfig?.extra?.eas?.projectId) {
@@ -77,11 +77,9 @@ const AppContent: React.FC = () => {
             console.log("Update check skipped in development mode");
           }
         }
-        
-        // Set ready state
-        setIsReady(true);
       } catch (error) {
         console.error("Error preparing app:", error);
+      } finally {
         setIsReady(true);
       }
     };
@@ -90,7 +88,7 @@ const AppContent: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!isReady) return;
+    if (!isReady || isLoading) return;
 
     const inAuthGroup = segments[0] === '(auth)';
     const inTabsGroup = segments[0] === '(tabs)';
@@ -104,7 +102,7 @@ const AppContent: React.FC = () => {
 
     // Mark app as ready for splash screen
     setAppIsReady(true);
-  }, [token, segments, isReady]);
+  }, [token, segments, isReady, isLoading]);
 
   const onLayoutRootView = useCallback(async () => {
     if (appIsReady) {
