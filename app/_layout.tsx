@@ -45,11 +45,15 @@ const AppContent: React.FC = () => {
         await registerForPushNotificationsAsync();
 
         // Check for OTA updates in production
-        if (Constants.expoConfig?.extra?.eas?.projectId) {
-          const update = await Updates.checkForUpdateAsync();
-          if (update.isAvailable) {
-            await Updates.fetchUpdateAsync();
-            await Updates.reloadAsync();
+        if (Constants.expoConfig?.extra?.eas?.projectId && !__DEV__) {
+          try {
+            const update = await Updates.checkForUpdateAsync();
+            if (update.isAvailable) {
+              await Updates.fetchUpdateAsync();
+              await Updates.reloadAsync();
+            }
+          } catch (err) {
+            console.warn("Update check skipped:", err);
           }
         }
       } catch (err) {
@@ -63,6 +67,10 @@ const AppContent: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    console.log('[Debug] appIsReady:', appIsReady);
+    console.log('[Debug] isLoading:', isLoading);
+    console.log('[Debug] token:', token);
+    console.log('[Debug] segments:', segments);
     if (!appIsReady || isLoading) return;
     const inAuth = segments[0] === "(auth)";
     const inTabs = segments[0] === "(tabs)";

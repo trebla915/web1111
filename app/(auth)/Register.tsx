@@ -16,7 +16,8 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { useRouter } from "expo-router";
-import auth from '@react-native-firebase/auth';
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../src/config/firebase";
 import CheckBox from "@react-native-community/checkbox"; // community checkbox
 import EulaModal from "../../src/components/EulaModal"; // Import the EULA modal
 
@@ -75,7 +76,7 @@ export default function Register() {
     }
 
     try {
-      await auth().createUserWithEmailAndPassword(email, password);
+      await createUserWithEmailAndPassword(auth, email, password);
 
       Alert.alert("Success", "Account Created Successfully!", [
         { text: "OK", onPress: () => router.push("/(auth)/Login") },

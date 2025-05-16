@@ -12,8 +12,8 @@ import { useUser } from '../../src/contexts/UserContext';
 import { useStripePayment } from '../../src/hooks/useStripePayment';
 import { formatCostBreakdown, calculateFullCostBreakdown } from '../../src/utils/paymentUtils';
 import { HandlePaymentFlowParams } from '../../src/types/paymentTypes';
-import firestore from '@react-native-firebase/firestore';
-import { db } from '../../src/config/firebase.native';
+import { doc, onSnapshot, collection } from 'firebase/firestore';
+import { firestore } from '../../src/config/firebase';
 import { createReservation } from '../../src/utils/reservations';
 import * as Linking from 'expo-linking';
 import Constants from 'expo-constants';
@@ -138,9 +138,9 @@ export default function PaymentScreen() {
   useEffect(() => {
     if (!paymentId) return;
 
-    const paymentRef = firestore().collection('payments').doc(paymentId);
+    const paymentRef = doc(firestore, 'payments', paymentId);
 
-    const unsubscribe = paymentRef.onSnapshot((docSnapshot) => {
+    const unsubscribe = onSnapshot(paymentRef, (docSnapshot) => {
       if (docSnapshot.exists()) {
         const paymentData = docSnapshot.data();
 

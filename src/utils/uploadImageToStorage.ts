@@ -1,4 +1,5 @@
-import storage from '@react-native-firebase/storage';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { firebaseApp } from '../config/firebase';
 
 /**
  * Infers MIME type from a file URI.
@@ -30,7 +31,6 @@ export const uploadImageToStorage = async (uri: string, path: string): Promise<s
   try {
     console.log(`[uploadImageToStorage] Starting upload. URI: ${uri}, Path: ${path}`);
 
-    // Validate URI
     if (!uri.startsWith('file://') && !uri.startsWith('http')) {
       console.error(`[uploadImageToStorage] Invalid URI: ${uri}`);
       throw new Error(`Invalid URI: ${uri}`);
@@ -48,35 +48,21 @@ export const uploadImageToStorage = async (uri: string, path: string): Promise<s
     const blob = await response.blob();
     console.log(`[uploadImageToStorage] Blob fetched. Size: ${blob.size} bytes, Type: ${blob.type}`);
 
-    // Check for empty blob
     if (blob.size === 0) {
       console.error(`[uploadImageToStorage] Blob size is zero. URI: ${uri}`);
       throw new Error(`Blob size is zero. URI: ${uri}`);
     }
 
-    // Create Firebase storage reference
-    const storageRef = storage().ref(path);
-    console.log(`[uploadImageToStorage] Created storage reference at path: ${path}`);
-
-    // Metadata for the upload
+    // Modular Firebase Storage usage
+    const storage = getStorage(firebaseApp);
+    const storageRef = ref(storage, path);
     const metadata = { contentType: getMimeType(uri) };
-    console.log(`[uploadImageToStorage] Metadata for upload: ${JSON.stringify(metadata)}`);
-
-    // Upload blob to Firebase Storage
-    console.log(`[uploadImageToStorage] Uploading blob to Firebase Storage...`);
-    await storageRef.putFile(blob, metadata);
-    console.log(`[uploadImageToStorage] File uploaded successfully.`);
-
-    // Get the download URL
-    console.log(`[uploadImageToStorage] Generating download URL...`);
-    const downloadUrl = await storageRef.getDownloadURL();
-    console.log(`[uploadImageToStorage] Download URL generated: ${downloadUrl}`);
-
-    return downloadUrl;
-
-  } catch (err) {
-    const error = err as Error; // Explicitly cast 'err' to 'Error'
-    console.error(`[uploadImageToStorage] Error during file upload: ${error.message}`);
-    throw new Error(`File upload failed: ${error.message}`);
+    await uploadBytes(storageRef, blob, metadata);
+    const downloadURL = await getDownloadURL(storageRef);
+    console.log(`[uploadImageToStorage] File uploaded successfully. Download URL: ${downloadURL}`);
+    return downloadURL;
+  } catch (error) {
+    console.error(`[uploadImageToStorage] Error uploading image:`, error);
+    throw error;
   }
 };

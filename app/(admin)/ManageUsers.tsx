@@ -9,7 +9,8 @@ import {
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 import { createUser, updateUserById, getUserById,} from "../../src/utils/users";
-import auth from '@react-native-firebase/auth';
+import { getAuth } from 'firebase/auth';
+import { auth } from '../../src/config/firebase';
 
 const ManageUsers = () => {
   const [name, setName] = useState("");
@@ -26,7 +27,7 @@ const ManageUsers = () => {
       return;
     }
   
-    const currentUser = auth().currentUser;
+    const currentUser = auth.currentUser;
     const currentUserEmail = currentUser?.email;
     const currentUserPassword = ""; // Prompt the current user for their password, or use a secure mechanism to retrieve it.
   
@@ -37,15 +38,16 @@ const ManageUsers = () => {
   
     try {
       // Step 1: Log out the current user before creating the new user
-      await auth().signOut();
+      const { signOut, createUserWithEmailAndPassword, sendPasswordResetEmail } = await import('firebase/auth');
+      await signOut(auth);
   
       // Step 2: Create the new user
       const tempPassword = Math.random().toString(36).slice(-8);
-      const userCredential = await auth().signInWithEmailAndPassword(email, tempPassword);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, tempPassword);
       const firebaseUser = userCredential.user;
   
       // Send password reset email
-      await auth().sendPasswordResetEmail(email);
+      await sendPasswordResetEmail(auth, email);
       Alert.alert("Password Setup", "User will receive an email to set their password.");
   
       // Add the user details and role to the backend
@@ -62,7 +64,8 @@ const ManageUsers = () => {
       setRole(null);
   
       // Step 3: Reauthenticate the original user
-      await auth().signInWithEmailAndPassword(currentUserEmail, currentUserPassword);
+      const { signInWithEmailAndPassword } = await import('firebase/auth');
+      await signInWithEmailAndPassword(auth, currentUserEmail, currentUserPassword);
     } catch (error: any) {
       console.error("Error adding user:", error);
       if (error.code === "auth/email-already-in-use") {
@@ -73,7 +76,8 @@ const ManageUsers = () => {
   
       // Attempt to reauthenticate the original user in case of failure
       try {
-        await auth().signInWithEmailAndPassword(currentUserEmail, currentUserPassword);
+        const { signInWithEmailAndPassword } = await import('firebase/auth');
+        await signInWithEmailAndPassword(auth, currentUserEmail, currentUserPassword);
       } catch (reauthError: any) {
         console.error("Error reauthenticating the original user:", reauthError);
       }

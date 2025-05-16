@@ -16,7 +16,8 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { useRouter } from "expo-router";
-import auth from '@react-native-firebase/auth';
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../src/config/firebase";
 import EulaModal from "../../src/components/EulaModal"; // Import the EULA modal
 import PrivacyModal from "../../src/components/PrivacyModal"; // Import the Privacy Policy modal
 import { useAuth } from "../../src/contexts/AuthContext"; // Import the Auth context
@@ -50,7 +51,7 @@ const Login: React.FC = () => {
       return;
     }
     try {
-      await auth().signInWithEmailAndPassword(email, password);
+      await signInWithEmailAndPassword(auth, email, password);
       router.replace("/");
     } catch (err: any) {
       console.error("Login Error:", err);

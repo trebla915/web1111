@@ -63,6 +63,10 @@ const HomeScreen = () => {
     fetchEvents();
   }, []);
 
+  useEffect(() => {
+    console.log('[Debug] HomeScreen loaded. userData:', userData);
+  }, [userData]);
+
   return (
     <ScrollView 
       style={styles.scrollView}
