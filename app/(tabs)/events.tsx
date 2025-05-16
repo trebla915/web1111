@@ -56,7 +56,13 @@ const EventsScreen: React.FC = () => {
   }, [setLoading]);
 
   useEffect(() => {
-    // Fetch events on component mount
+    // 🔥 Native fetch test—remove after debugging!
+    fetch('https://api-23psv7suga-uc.a.run.app/events')
+      .then(r => r.json())
+      .then(j => console.log('🟩 [FETCH TEST] Native fetch result:', j))
+      .catch(e => console.error('🟥 [FETCH TEST] Native fetch failed:', e));
+
+    // Axios/events util fetch
     if (events.length === 0) {
       fetchEvents();
     }

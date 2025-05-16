@@ -11,18 +11,12 @@ import {
   Linking,
   RefreshControl,
   TouchableOpacity,
+  StyleSheet,
 } from "react-native";
 import { useUser } from "../../src/contexts/UserContext"; // Use UserContext to fetch the user's name
 import { fetchAllEvents } from "../../src/utils/events";
 import { Event } from "../../src/utils/types";
 import { formatDate, toMountainTime } from '../../src/utils/dateFormatter';
-import { styled } from 'nativewind';
-
-const StyledView = styled(View);
-const StyledText = styled(Text);
-const StyledImage = styled(Image);
-const StyledScrollView = styled(ScrollView);
-const StyledTouchableOpacity = styled(TouchableOpacity);
 
 const HomeScreen = () => {
   const { userData, isLoading: userLoading } = useUser(); // Fetch userData from UserContext
@@ -70,74 +64,164 @@ const HomeScreen = () => {
   }, []);
 
   return (
-    <StyledScrollView 
-      className="flex-1 bg-black"
+    <ScrollView 
+      style={styles.scrollView}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />
       }
     >
       {/* Welcome Section */}
-      <StyledView className="px-6 py-4">
-        <StyledText className="text-2xl font-bold text-white text-center mb-1">
+      <View style={styles.welcomeSection}>
+        <Text style={styles.welcomeText}>
           Welcome, {userLoading ? "Loading..." : userData?.name || "Guest"}!
-        </StyledText>
-        <StyledText className="text-sm text-gray-400 text-center italic">
+        </Text>
+        <Text style={styles.welcomeSubtext}>
           Every moment is a chance to align with your purpose.
-        </StyledText>
-      </StyledView>
+        </Text>
+      </View>
 
       {/* Upcoming Event Section */}
-      <StyledView className="px-6">
-        <StyledText className="text-xl font-bold text-white mb-3">
+      <View style={styles.eventSection}>
+        <Text style={styles.sectionTitle}>
           Upcoming Event
-        </StyledText>
+        </Text>
         
         {loading ? (
-          <StyledView className="items-center justify-center py-4">
+          <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#fff" />
-          </StyledView>
+          </View>
         ) : error ? (
-          <StyledText className="text-base text-gray-400 text-center">
+          <Text style={styles.errorText}>
             {error}
-          </StyledText>
+          </Text>
         ) : upcomingEvent ? (
-          <StyledView className="bg-gray-900 rounded-xl overflow-hidden">
-            <StyledImage
+          <View style={styles.eventCard}>
+            <Image
               source={{ uri: upcomingEvent.flyerUrl || 'https://via.placeholder.com/150' }}
-              className="w-full h-64"
+              style={styles.eventImage}
               resizeMode="cover"
             />
-            <StyledView className="p-4">
-              <StyledText className="text-xl font-bold text-white mb-2">
+            <View style={styles.eventDetails}>
+              <Text style={styles.eventTitle}>
                 {upcomingEvent.title}
-              </StyledText>
+              </Text>
               {upcomingEvent.date && (
-                <StyledText className="text-sm text-gray-300 mb-4">
+                <Text style={styles.eventDate}>
                   {formatDate(upcomingEvent.date)}
-                </StyledText>
+                </Text>
               )}
               {upcomingEvent.ticketLink && (
-                <StyledTouchableOpacity
-                  className="bg-blue-600 py-3 px-6 rounded-lg items-center"
+                <TouchableOpacity
+                  style={styles.ticketButton}
                   onPress={() => Linking.openURL(upcomingEvent.ticketLink!)}
                 >
-                  <StyledText className="text-white font-semibold text-base">
+                  <Text style={styles.buttonText}>
                     Get Tickets
-                  </StyledText>
-                </StyledTouchableOpacity>
+                  </Text>
+                </TouchableOpacity>
               )}
-            </StyledView>
-          </StyledView>
+            </View>
+          </View>
         ) : (
-          <StyledView className="bg-gray-900 rounded-xl p-4 items-center justify-center">
-            <StyledText className="text-base text-gray-400 text-center">
+          <View style={styles.noEventsContainer}>
+            <Text style={styles.noEventsText}>
               No upcoming events.
-            </StyledText>
-          </StyledView>
+            </Text>
+          </View>
         )}
-      </StyledView>
-    </StyledScrollView>
+      </View>
+    </ScrollView>
   );
 };
+
+const styles = StyleSheet.create({
+  scrollView: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  welcomeSection: {
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+  },
+  welcomeText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  welcomeSubtext: {
+    fontSize: 14,
+    color: '#a0a0a0',
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  eventSection: {
+    paddingHorizontal: 24,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 12,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#a0a0a0',
+    textAlign: 'center',
+  },
+  eventCard: {
+    backgroundColor: '#222',
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  eventImage: {
+    width: '100%',
+    height: 256,
+  },
+  eventDetails: {
+    padding: 16,
+  },
+  eventTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 8,
+  },
+  eventDate: {
+    fontSize: 14,
+    color: '#ccc',
+    marginBottom: 16,
+  },
+  ticketButton: {
+    backgroundColor: '#0066cc',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  noEventsContainer: {
+    backgroundColor: '#222',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  noEventsText: {
+    fontSize: 16,
+    color: '#a0a0a0',
+    textAlign: 'center',
+  },
+});
 
 export default HomeScreen;

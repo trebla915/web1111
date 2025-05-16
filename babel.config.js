@@ -9,13 +9,12 @@ module.exports = function (api) {
         {
           moduleName: '@env',
           path: '.env',
-          blacklist: null,
-          whitelist: null,
+          blocklist: null,    // <-- UPDATED
+          allowlist: null,    // <-- UPDATED
           safe: false,
-          allowUndefined: true
-        }
+          allowUndefined: true,
+        },
       ],
-      'nativewind/babel'
-    ]
+    ],
   };
 };

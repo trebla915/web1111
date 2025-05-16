@@ -3,17 +3,7 @@ const path = require('path');
 
 const config = getDefaultConfig(__dirname);
 
-config.resolver.unstable_enablePackageExports = false;
-
-config.resolver.sourceExts = [
-  ...config.resolver.sourceExts,
-  'web.ts',
-  'web.tsx',
-  'web.js',
-  'web.jsx',
-  'cjs',
-];
-
+// Alias configuration
 config.resolver.alias = {
   '@': path.resolve(__dirname, './'),
   '@/assets': path.resolve(__dirname, './src/assets'),
@@ -23,10 +13,14 @@ config.resolver.alias = {
   '@/utils': path.resolve(__dirname, './src/utils'),
 };
 
+// Disable package exports resolution
+config.resolver.unstable_enablePackageExports = false;
+
+// Watch additional folders
 config.watchFolders = [
   path.resolve(__dirname, 'node_modules/react-native-web'),
   path.resolve(__dirname, 'src'),
-  ...config.watchFolders,
+  ...(config.watchFolders || []),
 ];
 
 module.exports = config;

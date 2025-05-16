@@ -1,9 +1,14 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_BASE_URL } from '@env';
+
+// Debug: Log your API base URL right at the top
+console.log('🟦 [apiClient] EXPO_PUBLIC_API_BASE_URL:', process.env.EXPO_PUBLIC_API_BASE_URL);
+
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 if (!API_BASE_URL) {
-  console.error('API Base URL is missing. Ensure it is set in your environment.');
+  // Immediately tell you if your env is busted
+  console.error('🟥 [apiClient] API Base URL is missing. Did you prefix it with EXPO_PUBLIC_ in your .env?');
   throw new Error('Missing API Base URL.');
 }
 
@@ -29,7 +34,7 @@ apiClient.interceptors.request.use(
       }
       return config;
     } catch (error) {
-      console.error('Error attaching token to request:', error);
+      console.error('🟥 [apiClient] Error attaching token to request:', error);
       return Promise.reject(error);
     }
   },
@@ -41,19 +46,19 @@ apiClient.interceptors.request.use(
  * @param error - The error object from Axios
  * @param action - Description of the action being performed
  */
-const handleApiError = (error, action) => {
+const handleApiError = (error: any, action: string) => {
   if (error.response) {
-    console.error(`Error during ${action}:`, error.response.status, error.response.data);
+    console.error(`🟥 [apiClient] Error during ${action}:`, error.response.status, error.response.data);
     throw new Error(error.response.data?.message || `Failed to ${action}.`);
   }
-  console.error(`Unhandled error during ${action}:`, error.message || error);
+  console.error(`🟥 [apiClient] Unhandled error during ${action}:`, error.message || error);
   throw error;
 };
 
 /**
  * Function to set or remove Authorization token
  */
-const setAuthToken = (token) => {
+const setAuthToken = (token: string | null) => {
   if (token) {
     apiClient.defaults.headers['Authorization'] = `Bearer ${token}`;
   } else {
