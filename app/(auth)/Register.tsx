@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../src/config/firebase";
 import { Checkbox } from "react-native-paper";
 import EulaModal from "../../src/components/EulaModal"; // Import the EULA modal
+import { useAuth } from "../../src/contexts/AuthContext";
 
 // Custom TextInput Wrapper
 type WebInputProps = React.InputHTMLAttributes<HTMLInputElement>;
@@ -41,6 +42,13 @@ export default function Register() {
   const [modalVisible, setModalVisible] = useState<boolean>(false); // EULA Modal visibility
   const [acceptedEula, setAcceptedEula] = useState<boolean>(false); // Checkbox state
   const router = useRouter();
+  const { signUp, token, isGuest, isLoading } = useAuth();
+
+  useEffect(() => {
+    if (token && !isGuest) {
+      router.replace("/(tabs)");
+    }
+  }, [token, isGuest]);
 
   const { width } = Dimensions.get("window");
   const logoSize = width * 0.5;
@@ -76,31 +84,40 @@ export default function Register() {
     }
 
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-
-      Alert.alert("Success", "Account Created Successfully!", [
-        { text: "OK", onPress: () => router.push("/(auth)/Login") },
-      ]);
+      await signUp(email, password, fullName, "user"); // Use context signUp
+      // Do not navigate here; let the effect handle redirect
     } catch (err: any) {
       console.error("Registration Error:", err);
       let errorMessage = "An unexpected error occurred.";
-      switch (err.code) {
-        case "auth/email-already-in-use":
-          errorMessage = "This email is already in use.";
-          break;
-        case "auth/invalid-email":
-          errorMessage = "Invalid email address.";
-          break;
-        case "auth/weak-password":
-          errorMessage = "Password must contain at least 6 characters.";
-          break;
-        default:
-          errorMessage = err.message || errorMessage;
-          break;
+      if (err && err.code) {
+        switch (err.code) {
+          case "auth/email-already-in-use":
+            errorMessage = "This email is already in use.";
+            break;
+          case "auth/invalid-email":
+            errorMessage = "Invalid email address.";
+            break;
+          case "auth/weak-password":
+            errorMessage = "Password must contain at least 6 characters.";
+            break;
+          default:
+            errorMessage = err.message || errorMessage;
+            break;
+        }
+      } else {
+        errorMessage = err?.message || errorMessage;
       }
       setError(errorMessage);
     }
   };
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
+        <Text style={{ color: '#fff', fontSize: 18 }}>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView

@@ -37,7 +37,8 @@
       },
       "env": {
         "EAS_PROJECT_ID": "e3775235-7f75-42c8-906e-8171c4a1e54b"
-      }
+      },
+      "autoIncrement": true
     },
     "production": {
       "android": {
@@ -67,7 +68,8 @@
       "environment": "development",
       "env": {
         "EAS_PROJECT_ID": "e3775235-7f75-42c8-906e-8171c4a1e54b"
-      }
+      },
+      "autoIncrement": true
     },
     "testflight": {
       "distribution": "internal",
@@ -79,7 +81,8 @@
       },
       "env": {
         "EAS_PROJECT_ID": "e3775235-7f75-42c8-906e-8171c4a1e54b"
-      }
+      },
+      "autoIncrement": true
     }
   },
   "submit": {

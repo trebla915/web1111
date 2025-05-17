@@ -7,9 +7,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../src/contexts/AuthContext';
 
 const TabLayout = () => {
-  const { token, isLoading } = useAuth();
+  const { token, isLoading, isGuest } = useAuth();
   if (isLoading) return null;
-  if (!token) {
+  if (!token && !isGuest) {
     return <Redirect href="/(auth)/Login" />;
   }
   return (

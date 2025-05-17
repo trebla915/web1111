@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -39,7 +39,13 @@ const Login: React.FC = () => {
   const [eulaModalVisible, setEulaModalVisible] = useState<boolean>(false);
   const [privacyModalVisible, setPrivacyModalVisible] = useState<boolean>(false);
   const router = useRouter();
-  const { setGuestMode } = useAuth();
+  const { signIn, setGuestMode, token, isGuest, isLoading } = useAuth();
+
+  useEffect(() => {
+    if (token && !isGuest) {
+      router.replace('/(tabs)');
+    }
+  }, [token, isGuest]);
 
   const { width } = Dimensions.get("window");
   const logoSize = width; // Full width logo
@@ -51,8 +57,8 @@ const Login: React.FC = () => {
       return;
     }
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.replace('/(tabs)');
+      await signIn(email, password); // Use context signIn
+      // Do not navigate here; let the effect handle redirect
     } catch (err: any) {
       console.error("Login Error:", err);
       let errorMessage = "An unexpected error occurred. Please try again.";
@@ -81,6 +87,14 @@ const Login: React.FC = () => {
   };
 
   console.log("Login screen rendered");
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
+        <Text style={{ color: '#fff', fontSize: 18 }}>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
