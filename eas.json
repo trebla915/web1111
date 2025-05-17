@@ -85,9 +85,9 @@
   "submit": {
     "production": {
       "ios": {
-        "appleId": "@apple_id",
-        "ascAppId": "@asc_app_id",
-        "appleTeamId": "@apple_team_id",
+        "appleId": "tr3bla915@icloud.com",
+        "ascAppId": "6476781899",
+        "appleTeamId": "V3UC9PW4UC",
         "sku": "com.your.club1111",
         "language": "en-US"
       },
