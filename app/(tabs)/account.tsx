@@ -30,7 +30,8 @@ const AccountScreen: React.FC = () => {
     expoConfig: Constants.expoConfig
   });
   
-  const appVersion = Constants.appVersion || Constants.nativeAppVersion || Constants.manifest?.version || '1.0.0';
+  // Use the version from expoConfig for accuracy in EAS builds
+  const appVersion = Constants.expoConfig?.version || '1.0.0';
 
   // Handle user logout
   const handleLogout = async () => {
