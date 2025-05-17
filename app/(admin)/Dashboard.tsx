@@ -55,7 +55,6 @@ const AdminDashboard = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Admin Dashboard</Text>
       <FlatList
         data={actions}
         renderItem={renderItem}
