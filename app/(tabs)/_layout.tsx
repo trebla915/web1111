@@ -10,7 +10,7 @@ const TabLayout = () => {
   const { token, isLoading } = useAuth();
   if (isLoading) return null;
   if (!token) {
-    return <Redirect href="/(auth)/login" />;
+    return <Redirect href="/(auth)/Login" />;
   }
   return (
     <View style={{ flex: 1, backgroundColor: '#000' }}>

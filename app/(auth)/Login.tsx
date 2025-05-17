@@ -125,7 +125,7 @@ const Login: React.FC = () => {
             <Text style={styles.guestButtonText}>Continue as Guest</Text>
           </TouchableOpacity>
           <View style={styles.registerContainer}>
-            <TouchableOpacity onPress={() => router.push("/(auth)/register")}>
+            <TouchableOpacity onPress={() => router.push("/(auth)/Register")}>
               <Text style={styles.registerText}>
                 Don't have an account?{" "}
                 <Text style={styles.registerLink}>Register</Text>

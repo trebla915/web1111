@@ -27,7 +27,7 @@ const ReservationsScreen: React.FC = () => {
     if (firebaseUser) {
       loadReservations();
     } else {
-      router.replace('/(auth)/login');
+      router.replace('/(auth)/Login');
     }
   }, [firebaseUser]);
 
