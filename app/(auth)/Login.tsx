@@ -80,6 +80,8 @@ const Login: React.FC = () => {
     router.push("/(tabs)/events");
   };
 
+  console.log("Login screen rendered");
+
   return (
     <KeyboardAvoidingView
       style={styles.container}

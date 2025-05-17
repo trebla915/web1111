@@ -1,6 +1,6 @@
 // app/_layout.tsx
 import "react-native-get-random-values";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { View, StyleSheet } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import * as SplashScreen from "expo-splash-screen";
@@ -10,7 +10,7 @@ import { StripeProvider } from "@stripe/stripe-react-native";
 import Toast from "react-native-toast-message";
 import Constants from "expo-constants";
 import * as Updates from "expo-updates";
-import { AuthProvider } from "../src/contexts/AuthContext";
+import { AuthProvider, useAuth } from "../src/contexts/AuthContext";
 import { UserProvider } from "../src/contexts/UserContext";
 import { LoadingProvider } from "../src/contexts/LoadingContext";
 import { NotificationProvider } from "../src/contexts/NotificationContext";
@@ -29,11 +29,22 @@ TaskManager.defineTask(
   }
 );
 
+function SplashGuard() {
+  const { isLoading } = useAuth();
+  useEffect(() => {
+    if (!isLoading) {
+      SplashScreen.hideAsync();
+    }
+  }, [isLoading]);
+  return null;
+}
+
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <PaperProvider>
         <AuthProvider>
+          <SplashGuard />
           <NotificationProvider>
             <StripeProvider publishableKey={Constants.expoConfig?.extra?.STRIPE_PUBLISHABLE_KEY}>
               <UserProvider>

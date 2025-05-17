@@ -1,6 +1,8 @@
 import { ExpoConfig } from 'expo/config';
 import { version } from './package.json';
 
+console.log("EXPO_PUBLIC_EAS_PROJECT_ID:", process.env.EXPO_PUBLIC_EAS_PROJECT_ID);
+
 export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
   ...config,
   newArchEnabled: true,     // 🔥 Enable React Native New Architecture
@@ -67,15 +69,15 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
   },
   extra: {
     eas: {
-      projectId: process.env.EAS_PROJECT_ID || "e3775235-7f75-42c8-906e-8171c4a1e54b"
+      projectId: process.env.EXPO_PUBLIC_EAS_PROJECT_ID || "e3775235-7f75-42c8-906e-8171c4a1e54b"
     },
     // Firebase Configuration
-    FIREBASE_API_KEY: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || "placeholder_api_key",
-    FIREBASE_AUTH_DOMAIN: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || "placeholder.firebaseapp.com",
-    FIREBASE_PROJECT_ID: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || "placeholder-project-id",
-    FIREBASE_STORAGE_BUCKET: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET || "placeholder-project-id.appspot.com",
-    FIREBASE_MESSAGING_SENDER_ID: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "123456789012",
-    FIREBASE_APP_ID: process.env.EXPO_PUBLIC_FIREBASE_APP_ID || "1:123456789012:web:abc123def456",
-    STRIPE_PUBLISHABLE_KEY: process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || "pk_test_placeholder_key"
+    FIREBASE_API_KEY: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+    FIREBASE_AUTH_DOMAIN: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    FIREBASE_PROJECT_ID: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+    FIREBASE_STORAGE_BUCKET: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    FIREBASE_MESSAGING_SENDER_ID: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    FIREBASE_APP_ID: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
+    STRIPE_PUBLISHABLE_KEY: process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY
   }
 });

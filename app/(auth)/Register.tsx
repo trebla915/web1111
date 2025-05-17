@@ -18,7 +18,7 @@ import {
 import { useRouter } from "expo-router";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../src/config/firebase";
-import CheckBox from "@react-native-community/checkbox"; // community checkbox
+import { Checkbox } from "react-native-paper";
 import EulaModal from "../../src/components/EulaModal"; // Import the EULA modal
 
 // Custom TextInput Wrapper
@@ -156,10 +156,11 @@ export default function Register() {
             autoCorrect={false}
           />
           <View style={styles.termsContainer}>
-            <CheckBox
-              value={acceptedEula}
-              onValueChange={setAcceptedEula}
-              tintColors={{ true: '#fff', false: '#fff' }}
+            <Checkbox
+              status={acceptedEula ? 'checked' : 'unchecked'}
+              onPress={() => setAcceptedEula(!acceptedEula)}
+              color="#fff"
+              uncheckedColor="#fff"
               style={{ width: 20, height: 20, borderRadius: 5, backgroundColor: '#1c1c1c', borderColor: '#fff', borderWidth: 1 }}
             />
             <TouchableOpacity onPress={() => setModalVisible(true)}>
