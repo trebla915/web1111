@@ -3,6 +3,8 @@ import { version } from './package.json';
 
 console.log("EXPO_PUBLIC_EAS_PROJECT_ID:", process.env.EXPO_PUBLIC_EAS_PROJECT_ID);
 
+// Bump for new TestFlight build
+
 export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
   ...config,
   newArchEnabled: true,     // 🔥 Enable React Native New Architecture
