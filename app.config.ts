@@ -34,7 +34,8 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
         }
       ],
       CFBundleDisplayName: "11:11 EPTX",
-      CFBundleName: "11:11 EPTX"
+      CFBundleName: "11:11 EPTX",
+      NSCameraUsageDescription: "This app uses the camera to allow users to scan QR codes, take photos, or upload images for their profile or reservations."
     }
   },
   android: {
