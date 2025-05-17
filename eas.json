@@ -57,7 +57,8 @@
       "autoIncrement": true,
       "env": {
         "EAS_PROJECT_ID": "e3775235-7f75-42c8-906e-8171c4a1e54b"
-      }
+      },
+      "autoSubmit": true
     },
     "development-simulator": {
       "developmentClient": true,
