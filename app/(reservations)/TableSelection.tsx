@@ -73,6 +73,7 @@ const TableSelection: React.FC = () => {
       guestCount: 1,
       bottles: [],
       tablePrice: selectedTable.price,
+      bottleMinimum: selectedTable.bottleMinimum,
     });
   
     router.push({

@@ -18,6 +18,9 @@
         "buildType": "apk",
         "gradleCommand": ":app:assembleDebug",
         "resourceClass": "medium"
+      },
+      "env": {
+        "EAS_PROJECT_ID": "e3775235-7f75-42c8-906e-8171c4a1e54b"
       }
     },
     "preview": {
@@ -31,6 +34,9 @@
         "buildType": "apk",
         "gradleCommand": ":app:assembleRelease",
         "resourceClass": "medium"
+      },
+      "env": {
+        "EAS_PROJECT_ID": "e3775235-7f75-42c8-906e-8171c4a1e54b"
       }
     },
     "production": {
@@ -47,7 +53,10 @@
         "image": "latest"
       },
       "channel": "production",
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EAS_PROJECT_ID": "e3775235-7f75-42c8-906e-8171c4a1e54b"
+      }
     },
     "development-simulator": {
       "developmentClient": true,
@@ -55,7 +64,22 @@
       "ios": {
         "simulator": true
       },
-      "environment": "development"
+      "environment": "development",
+      "env": {
+        "EAS_PROJECT_ID": "e3775235-7f75-42c8-906e-8171c4a1e54b"
+      }
+    },
+    "testflight": {
+      "distribution": "internal",
+      "channel": "testflight",
+      "ios": {
+        "simulator": false,
+        "resourceClass": "m-medium",
+        "buildConfiguration": "Release"
+      },
+      "env": {
+        "EAS_PROJECT_ID": "e3775235-7f75-42c8-906e-8171c4a1e54b"
+      }
     }
   },
   "submit": {

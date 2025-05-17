@@ -1,9 +1,17 @@
+// app/(tabs)/_layout.tsx
+
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
-import { Tabs } from 'expo-router';
+import { Tabs, Stack, Redirect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../../src/contexts/AuthContext';
 
-const TabLayout: React.FC = () => {
+const TabLayout = () => {
+  const { token, isLoading } = useAuth();
+  if (isLoading) return null;
+  if (!token) {
+    return <Redirect href="/(auth)/login" />;
+  }
   return (
     <View style={{ flex: 1, backgroundColor: '#000' }}>
       <Tabs
@@ -12,14 +20,14 @@ const TabLayout: React.FC = () => {
             backgroundColor: '#000',
             borderTopColor: 'gray',
           },
-          tabBarActiveTintColor: '#fff', // Set the active tint color to white
+          tabBarActiveTintColor: '#fff',
           tabBarInactiveTintColor: 'gray',
           headerStyle: {
             backgroundColor: '#000',
             borderBottomWidth: 1,
             borderBottomColor: 'gray',
           },
-          headerTintColor: '#fff', // Corrected the unterminated string
+          headerTintColor: '#fff',
           headerRight: () => (
             <TouchableOpacity style={styles.headerIconContainer}>
               <Ionicons name="notifications" size={24} color="#fff" />

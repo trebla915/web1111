@@ -12,17 +12,19 @@ import {
   Dimensions,
   Image,
   Switch,
+  Platform,
 } from 'react-native';
 import { Text } from "react-native-paper";
 
 import { useAuth } from '../../src/contexts/AuthContext';
 import * as ImagePicker from 'expo-image-picker';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { uploadImageToStorage } from '../../src/utils/uploadImageToStorage';
 import CustomButton from '../../src/components/CustomButton';
 import { createEvent } from '../../src/utils/events';
 import { useRouter } from "expo-router";
 import Constants from "expo-constants";
+
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -34,9 +36,9 @@ const CreateEvent: React.FC = () => {
   const [flyerUri, setFlyerUri] = useState<string | null>(null);
   const [ticketLink, setTicketLink] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [loading, setLoading] = useState(false);
   const [reservationsEnabled, setReservationsEnabled] = useState(true);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   useEffect(() => {
     console.log('CreateEvent mounted');
@@ -153,7 +155,6 @@ const CreateEvent: React.FC = () => {
             {selectedDate ? selectedDate.toDateString() : 'Select a date'}
           </Text>
         </TouchableOpacity>
-
         {showDatePicker && (
           <DateTimePicker
             value={selectedDate || new Date()}

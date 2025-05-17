@@ -11,6 +11,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useUser } from '../../src/contexts/UserContext';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Bottle, Mixer } from '../../src/utils/types';
+import { calculateFullCostBreakdown } from '../../src/utils/paymentUtils';
 
 // Utility to combine bottles and mixers
 const getCombinedItems = (bottles: Bottle[] = [], mixers: Mixer[] = []) => [
@@ -37,22 +38,12 @@ export default function ReservationModal() {
     year: 'numeric',
   });
 
-  const calculateTotalCost = () => {
-    const tablePrice = reservationDetails?.tablePrice || 0;
-    const bottlesCost =
-      reservationDetails?.bottles?.reduce((total, bottle) => total + bottle.price, 0) || 0;
-    const mixersCost =
-      reservationDetails?.mixers?.reduce((total, mixer) => total + mixer.price, 0) || 0;
-    const serviceFee = (tablePrice + bottlesCost + mixersCost) * 0.029 + 0.3;
-
-    return {
-      tablePrice,
-      bottlesCost,
-      mixersCost,
-      serviceFee,
-      total: tablePrice + bottlesCost + mixersCost + serviceFee,
-    };
-  };
+  const costBreakdown = calculateFullCostBreakdown({
+    tablePrice: reservationDetails?.tablePrice,
+    bottles: reservationDetails?.bottles,
+    mixers: reservationDetails?.mixers,
+    bottleMinimum: reservationDetails?.bottleMinimum ?? 1,
+  });
 
   const handleOpenBottleModal = () => {
     if (!eventId) return showAlert('Error', 'Event ID is missing.');
@@ -105,7 +96,6 @@ export default function ReservationModal() {
   };
 
   const combinedItems = getCombinedItems(reservationDetails?.bottles, reservationDetails?.mixers);
-  const costBreakdown = calculateTotalCost();
 
   return (
     <View style={styles.container}>
@@ -117,11 +107,19 @@ export default function ReservationModal() {
 
       <View style={styles.costBreakdown}>
         <Text style={styles.costTitle}>Cost Breakdown</Text>
-        <Text style={styles.costItem}>Table Price: ${costBreakdown.tablePrice.toFixed(2)}</Text>
-        <Text style={styles.costItem}>Bottles: ${costBreakdown.bottlesCost.toFixed(2)}</Text>
-        <Text style={styles.costItem}>Mixers: ${costBreakdown.mixersCost.toFixed(2)}</Text>
+        <Text style={styles.costItem}>Table Price: ${costBreakdown.table.toFixed(2)}</Text>
+        <Text style={styles.costItem}>Bottles: ${costBreakdown.bottles.toFixed(2)}</Text>
+        <Text style={styles.costItem}>Mixers: ${costBreakdown.mixers.toFixed(2)}</Text>
+        <Text style={styles.costItem}>Sales Tax (8.25%): ${costBreakdown.salesTax.toFixed(2)}</Text>
+        <Text style={styles.costItem}>Gratuity (18% on bottles): ${costBreakdown.bottleGratuity.toFixed(2)}</Text>
         <Text style={styles.costItem}>Service Fee: ${costBreakdown.serviceFee.toFixed(2)}</Text>
-        <Text style={styles.totalCost}>Total: ${costBreakdown.total.toFixed(2)}</Text>
+        <Text style={styles.costItem}>Subtotal: ${costBreakdown.subtotal.toFixed(2)}</Text>
+        <Text style={styles.totalCost}>Grand Total: ${costBreakdown.total.toFixed(2)}</Text>
+        {!costBreakdown.bottleMinimumMet && (
+          <Text style={{ color: 'orange', marginTop: 10 }}>
+            You must select at least {costBreakdown.bottleMinimum} bottle(s) to reserve this table.
+          </Text>
+        )}
       </View>
 
       <View style={styles.guestCountContainer}>
@@ -176,8 +174,16 @@ export default function ReservationModal() {
         </View>
       )}
 
-      <TouchableOpacity onPress={handleContinueToPayment} style={styles.paymentButton}>
-        <Text style={styles.paymentButtonText}>Continue to Payment</Text>
+      <TouchableOpacity
+        onPress={handleContinueToPayment}
+        style={[styles.paymentButton, { backgroundColor: costBreakdown.bottleMinimumMet ? '#fff' : '#666' }]}
+        disabled={!costBreakdown.bottleMinimumMet}
+      >
+        <Text style={styles.paymentButtonText}>
+          {costBreakdown.bottleMinimumMet
+            ? 'Continue to Payment'
+            : `Add Required Bottles (${costBreakdown.bottleMinimum - (reservationDetails?.bottles?.length || 0)} More)`}
+        </Text>
       </TouchableOpacity>
     </View>
   );

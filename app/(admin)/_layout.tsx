@@ -32,7 +32,7 @@ export default function AdminLayout() {
           },
           headerRight: () => (
             <TouchableOpacity
-              onPress={() => router.replace('/')}
+              onPress={() => router.replace('/(tabs)')}
               style={styles.iconButton}
             >
               <MaterialIcons name="home" size={24} color="#fff" />

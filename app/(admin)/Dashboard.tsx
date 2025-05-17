@@ -1,69 +1,113 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Dimensions } from 'react-native';
+import { useRouter } from 'expo-router';
+import { MaterialIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
 
-// Import the components for each screen
-import CreateEvent from './CreateEvent';
-import ManageUsers from './ManageUsers';
-import ManageReservations from './ManageReservations';
-import AddBottleToCatalog from './AddBottleToCatalog';
-import AddBottlesToEvent from './AddBottlesToEvent';
-import EditEvents from './EditEvents'; 
-import PushNotifications from './PushNotifications'; // Ensure correct import
+const actions = [
+  {
+    label: 'Create Event',
+    icon: <MaterialIcons name="event" size={32} color="#fff" />,
+    route: 'CreateEvent',
+  },
+  {
+    label: 'Edit Events',
+    icon: <MaterialIcons name="edit" size={32} color="#fff" />,
+    route: 'EditEvents',
+  },
+  {
+    label: 'Manage Reservations',
+    icon: <Ionicons name="calendar" size={32} color="#fff" />,
+    route: 'ManageReservations',
+  },
+  {
+    label: 'Manage Users',
+    icon: <Ionicons name="people" size={32} color="#fff" />,
+    route: 'ManageUsers',
+  },
+  {
+    label: 'Add Bottles',
+    icon: <FontAwesome5 name="wine-bottle" size={32} color="#fff" />,
+    route: 'AddBottlesToEvent',
+  },
+  {
+    label: 'Push Notifications',
+    icon: <Ionicons name="notifications" size={32} color="#fff" />,
+    route: 'PushNotifications',
+  },
+];
 
-// Create the Top Tab Navigator
-const Tab = createMaterialTopTabNavigator();
+const numColumns = 2;
+const cardWidth = (Dimensions.get('window').width - 60) / numColumns;
 
-export default function Dashboard() {
-  console.log('Dashboard rendered');
-  console.log('CreateEvent component:', CreateEvent);
+const AdminDashboard = () => {
+  const router = useRouter();
+
+  const renderItem = ({ item }: any) => (
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => router.push(`/(admin)/${item.route}`)}
+      activeOpacity={0.8}
+    >
+      <View style={styles.iconContainer}>{item.icon}</View>
+      <Text style={styles.cardLabel}>{item.label}</Text>
+    </TouchableOpacity>
+  );
 
   return (
-    <Tab.Navigator
-      screenOptions={{
-        tabBarScrollEnabled: true, // Enables horizontal scrolling for tabs
-        tabBarStyle: {
-          backgroundColor: '#1c1c1c', // Dark background for the tab bar
-        },
-        tabBarIndicatorStyle: {
-          backgroundColor: '#fff', // White underline for the active tab
-        },
-        tabBarLabelStyle: {
-          color: '#fff', // White text for labels
-          fontSize: 14,
-          fontWeight: 'bold',
-        },
-      }}
-    >
-      <Tab.Screen 
-        name="CreateEvent" 
-        component={CreateEvent}
-        options={{
-          title: 'Create Event',
-          tabBarLabel: 'Create Event'
-        }}
+    <View style={styles.container}>
+      <Text style={styles.title}>Admin Dashboard</Text>
+      <FlatList
+        data={actions}
+        renderItem={renderItem}
+        keyExtractor={item => item.label}
+        numColumns={numColumns}
+        contentContainerStyle={styles.grid}
+        showsVerticalScrollIndicator={false}
       />
-      <Tab.Screen 
-        name="EditEvents" 
-        component={EditEvents}
-        options={{
-          title: 'Edit Events',
-          tabBarLabel: 'Edit Events'
-        }}
-      />
-      <Tab.Screen name="ManageUsers" component={ManageUsers} />
-      <Tab.Screen name="ManageReservations" component={ManageReservations} />
-      <Tab.Screen name="AddBottleToCatalog" component={AddBottleToCatalog} />
-      <Tab.Screen name="AddBottlesToEvent" component={AddBottlesToEvent} />
-      <Tab.Screen name="PushNotifications" component={PushNotifications} />
-    </Tab.Navigator>
+    </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  tabContent: {
+  container: {
     flex: 1,
-    justifyContent: 'center',
+    backgroundColor: '#000',
+    padding: 20,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  grid: {
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  card: {
+    backgroundColor: '#1c1c1c',
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: 10,
+    width: cardWidth,
+    height: 140,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  iconContainer: {
+    marginBottom: 12,
+  },
+  cardLabel: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });
+
+export default AdminDashboard;

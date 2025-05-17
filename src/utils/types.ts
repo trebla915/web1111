@@ -17,6 +17,7 @@ export type BackendTable = {
   capacity: number; // Matches the backend-defined capacity
   eventId: string;
   price: number; // Include price field from the backend
+  bottleMinimum: number;
 };
 
 export type FrontendTable = BackendTable & {

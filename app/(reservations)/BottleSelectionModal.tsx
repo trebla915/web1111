@@ -4,6 +4,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { fetchAllBottlesForEvent } from '../../src/utils/bottleService'; // Correct import
 import { Bottle, BackendBottle } from '../../src/utils/types';
 import { useUser } from '../../src/contexts/UserContext';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const PLACEHOLDER_IMAGE_URL = 'https://via.placeholder.com/150';
 
@@ -13,10 +14,24 @@ const BottleSelectionModal: React.FC = () => {
   const { eventId } = useLocalSearchParams();
 
   const [bottles, setBottles] = useState<Bottle[]>([]); // All bottles for the event
-  const [selectedBottles, setSelectedBottles] = useState<Bottle[]>(
-    reservationDetails?.bottles || [] // Pre-select bottles from reservation details
+  const [selectedBottles, setSelectedBottles] = useState<{ [id: string]: { bottle: Bottle; quantity: number } }>(
+    () => {
+      const initial: { [id: string]: { bottle: Bottle; quantity: number } } = {};
+      (reservationDetails?.bottles || []).forEach((bottle) => {
+        if (initial[bottle.id]) {
+          initial[bottle.id].quantity += 1;
+        } else {
+          initial[bottle.id] = { bottle, quantity: 1 };
+        }
+      });
+      return initial;
+    }
   );
   const [loading, setLoading] = useState<boolean>(true);
+
+  const bottleMinimum = reservationDetails?.bottleMinimum ?? 1;
+  const totalSelected = Object.values(selectedBottles).reduce((sum, { quantity }) => sum + quantity, 0);
+  const minimumMet = totalSelected >= bottleMinimum;
 
   useEffect(() => {
     if (!eventId) {
@@ -46,33 +61,55 @@ const BottleSelectionModal: React.FC = () => {
     }
   };
 
-  // Toggle bottle selection
-  const toggleBottleSelection = (bottle: Bottle) => {
-    setSelectedBottles((prev) =>
-      prev.find((selected) => selected.id === bottle.id)
-        ? prev.filter((selected) => selected.id !== bottle.id) // Remove if already selected
-        : [...prev, bottle] // Add if not selected
-    );
+  // Increment bottle quantity
+  const incrementBottle = (bottle: Bottle) => {
+    setSelectedBottles((prev) => {
+      const next = { ...prev };
+      if (next[bottle.id]) {
+        next[bottle.id].quantity += 1;
+      } else {
+        next[bottle.id] = { bottle, quantity: 1 };
+      }
+      return next;
+    });
+  };
+
+  // Decrement bottle quantity
+  const decrementBottle = (bottle: Bottle) => {
+    setSelectedBottles((prev) => {
+      const next = { ...prev };
+      if (next[bottle.id]) {
+        if (next[bottle.id].quantity > 1) {
+          next[bottle.id].quantity -= 1;
+        } else {
+          delete next[bottle.id];
+        }
+      }
+      return next;
+    });
   };
 
   // Confirm the selected bottles and update reservation details
   const handleConfirmSelection = () => {
+    // Expand to flat array of bottles
+    const bottlesArray: Bottle[] = [];
+    Object.values(selectedBottles).forEach(({ bottle, quantity }) => {
+      for (let i = 0; i < quantity; i++) {
+        bottlesArray.push(bottle);
+      }
+    });
     updateReservationDetails({
       ...reservationDetails,
-      bottles: selectedBottles, // Pass selected bottles to reservation details
+      bottles: bottlesArray,
     });
-    router.back(); // Navigate back
+    router.back();
   };
 
   // Render each bottle item
   const renderItem = (item: Bottle) => {
-    const isSelected = selectedBottles.some((bottle) => bottle.id === item.id); // Check if selected
-
+    const selected = selectedBottles[item.id]?.quantity || 0;
     return (
-      <TouchableOpacity
-        style={[styles.item, isSelected && styles.selectedItem]}
-        onPress={() => toggleBottleSelection(item)} // Toggle selection on press
-      >
+      <View style={styles.item}>
         <Image
           source={{ uri: item.imageUrl }}
           style={styles.itemImage}
@@ -82,14 +119,30 @@ const BottleSelectionModal: React.FC = () => {
           <Text style={styles.itemName}>{item.name}</Text>
           <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
         </View>
-        {isSelected && <Text style={styles.selectedText}>Selected</Text>}
-      </TouchableOpacity>
+        <View style={styles.quantityControls}>
+          <TouchableOpacity onPress={() => decrementBottle(item)} style={styles.quantityButton}>
+            <Text style={styles.quantityButtonText}>-</Text>
+          </TouchableOpacity>
+          <Text style={styles.quantityText}>{selected}</Text>
+          <TouchableOpacity onPress={() => incrementBottle(item)} style={styles.quantityButton}>
+            <Text style={styles.quantityButtonText}>+</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     );
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Select Bottles</Text>
+      <View style={styles.headerRow}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.headerIconButton}>
+          {Icon ? <Icon name="close" size={28} color="#fff" /> : <Text style={{color:'#fff',fontSize:24}}>×</Text>}
+        </TouchableOpacity>
+        <Text style={styles.title}>Select Bottles</Text>
+        <TouchableOpacity onPress={() => router.replace('/')} style={styles.headerIconButton}>
+          {Icon ? <Icon name="home" size={28} color="#fff" /> : <Text style={{color:'#fff',fontSize:24}}>🏠</Text>}
+        </TouchableOpacity>
+      </View>
       {loading ? (
         <Text style={styles.loadingText}>Loading bottles...</Text>
       ) : (
@@ -100,7 +153,12 @@ const BottleSelectionModal: React.FC = () => {
           ListEmptyComponent={<Text style={styles.emptyText}>No bottles available</Text>}
         />
       )}
-      <TouchableOpacity style={styles.confirmButton} onPress={handleConfirmSelection}>
+      {!minimumMet && (
+        <Text style={styles.warningText}>
+          You must select at least {bottleMinimum} bottle{bottleMinimum > 1 ? 's' : ''} to continue.
+        </Text>
+      )}
+      <TouchableOpacity style={[styles.confirmButton, { backgroundColor: minimumMet ? '#fff' : '#666' }]} onPress={handleConfirmSelection} disabled={!minimumMet}>
         <Text style={styles.confirmButtonText}>Confirm</Text>
       </TouchableOpacity>
     </View>
@@ -112,6 +170,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000',
     padding: 20,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  headerIconButton: {
+    padding: 4,
   },
   title: {
     fontSize: 24,
@@ -171,6 +238,36 @@ const styles = StyleSheet.create({
   emptyText: {
     color: '#fff',
     textAlign: 'center',
+  },
+  quantityControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 10,
+  },
+  quantityButton: {
+    backgroundColor: '#333',
+    borderRadius: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    marginHorizontal: 2,
+  },
+  quantityButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  quantityText: {
+    color: '#fff',
+    fontSize: 16,
+    marginHorizontal: 6,
+    minWidth: 18,
+    textAlign: 'center',
+  },
+  warningText: {
+    color: 'orange',
+    textAlign: 'center',
+    marginTop: 10,
+    marginBottom: 10,
   },
 });
 

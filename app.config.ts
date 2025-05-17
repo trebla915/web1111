@@ -67,7 +67,7 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
   },
   extra: {
     eas: {
-      projectId: "e3775235-7f75-42c8-906e-8171c4a1e54b"
+      projectId: process.env.EAS_PROJECT_ID || "e3775235-7f75-42c8-906e-8171c4a1e54b"
     },
     // Firebase Configuration
     FIREBASE_API_KEY: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || "placeholder_api_key",

@@ -1,24 +1,17 @@
-import { Stack } from 'expo-router';
-// In /frontend/app/(admin)/_layout.tsx
-import { AuthProvider, useAuth } from '../../src/contexts/AuthContext';
-
-// In /frontend/app/(tabs)/TabLayout.tsx
-import { useUser } from '../../src/contexts/UserContext';
-
-import { Redirect } from 'expo-router';
+// app/(auth)/_layout.tsx
+import { Stack, Redirect } from 'expo-router';
+import { useAuth } from '../../src/contexts/AuthContext';
 
 export default function AuthLayout() {
-  const { firebaseUser } = useAuth();  // Access user authentication state
-
-  // Redirect to tabs if already authenticated
-  if (firebaseUser) {
+  const { token, isLoading } = useAuth();
+  if (isLoading) return null;
+  if (token) {
     return <Redirect href="/(tabs)" />;
   }
-
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Login" />
-      <Stack.Screen name="Register" />
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#000' } }}>
+      <Stack.Screen name="login" /> {/* lowercase to match your navigation */}
+      <Stack.Screen name="register" /> {/* lowercase to match your file name */}
     </Stack>
   );
 }

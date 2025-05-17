@@ -1,7 +1,6 @@
 // app/_layout.tsx
 import "react-native-get-random-values";
 import React, { useEffect, useState } from "react";
-import { Slot, useRouter, useSegments } from "expo-router";
 import { View, StyleSheet } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import * as SplashScreen from "expo-splash-screen";
@@ -11,12 +10,11 @@ import { StripeProvider } from "@stripe/stripe-react-native";
 import Toast from "react-native-toast-message";
 import Constants from "expo-constants";
 import * as Updates from "expo-updates";
-
-import { AuthProvider, useAuth } from "../src/contexts/AuthContext";
+import { AuthProvider } from "../src/contexts/AuthContext";
 import { UserProvider } from "../src/contexts/UserContext";
 import { LoadingProvider } from "../src/contexts/LoadingContext";
 import { NotificationProvider } from "../src/contexts/NotificationContext";
-import { registerForPushNotificationsAsync } from "../src/utils/notifications";
+import { Slot } from 'expo-router';
 
 // Keep splash visible until we manually hide it
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -31,68 +29,6 @@ TaskManager.defineTask(
   }
 );
 
-const AppContent: React.FC = () => {
-  const { isLoading, token, refreshAuthToken } = useAuth();
-  const router = useRouter();
-  const segments = useSegments();
-  const [appIsReady, setAppIsReady] = useState(false);
-
-  useEffect(() => {
-    async function prepare() {
-      try {
-        // Refresh auth and register for push notifications
-        await refreshAuthToken();
-        await registerForPushNotificationsAsync();
-
-        // Check for OTA updates in production
-        if (Constants.expoConfig?.extra?.eas?.projectId && !__DEV__) {
-          try {
-            const update = await Updates.checkForUpdateAsync();
-            if (update.isAvailable) {
-              await Updates.fetchUpdateAsync();
-              await Updates.reloadAsync();
-            }
-          } catch (err) {
-            console.warn("Update check skipped:", err);
-          }
-        }
-      } catch (err) {
-        console.warn("App prep error:", err);
-      } finally {
-        setAppIsReady(true);
-        await SplashScreen.hideAsync();
-      }
-    }
-    prepare();
-  }, []);
-
-  useEffect(() => {
-    console.log('[Debug] appIsReady:', appIsReady);
-    console.log('[Debug] isLoading:', isLoading);
-    console.log('[Debug] token:', token);
-    console.log('[Debug] segments:', segments);
-    if (!appIsReady || isLoading) return;
-    const inAuth = segments[0] === "(auth)";
-    const inTabs = segments[0] === "(tabs)";
-
-    if (!token && !inAuth) {
-      router.replace("/(auth)/login");
-    } else if (token && !inTabs) {
-      router.replace("/(tabs)");
-    }
-  }, [appIsReady, isLoading, token, segments]);
-
-  if (!appIsReady || isLoading) {
-    return <View style={styles.loadingContainer} />;
-  }
-
-  return (
-    <View style={styles.container}>
-      <Slot />
-    </View>
-  );
-};
-
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -102,7 +38,7 @@ export default function RootLayout() {
             <StripeProvider publishableKey={Constants.expoConfig?.extra?.STRIPE_PUBLISHABLE_KEY}>
               <UserProvider>
                 <LoadingProvider>
-                  <AppContent />
+                  <Slot />
                   <Toast />
                 </LoadingProvider>
               </UserProvider>

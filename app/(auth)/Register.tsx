@@ -79,7 +79,7 @@ export default function Register() {
       await createUserWithEmailAndPassword(auth, email, password);
 
       Alert.alert("Success", "Account Created Successfully!", [
-        { text: "OK", onPress: () => router.push("/(auth)/Login") },
+        { text: "OK", onPress: () => router.push("/(auth)/login") },
       ]);
     } catch (err: any) {
       console.error("Registration Error:", err);
@@ -175,7 +175,7 @@ export default function Register() {
           >
             <Text style={styles.buttonText}>Register</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push("/(auth)/Login")}>
+          <TouchableOpacity onPress={() => router.push("/(auth)/login")}>
             <Text style={styles.linkText}>Already have an account? Login</Text>
           </TouchableOpacity>
 

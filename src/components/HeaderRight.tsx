@@ -10,7 +10,7 @@ const HeaderRight: React.FC = () => {
   const router = useRouter();
 
   return (
-    <TouchableOpacity onPress={() => router.replace('/')}>
+    <TouchableOpacity onPress={() => router.replace('/(tabs)')}>
       <View style={styles.container}>
         <Icon name="home" size={24} color="#ffffff" />
       </View>

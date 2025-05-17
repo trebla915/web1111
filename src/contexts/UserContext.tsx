@@ -28,6 +28,7 @@ interface ReservationDetails extends Partial<Reservation> {
   guestCount?: number;
   bottles?: { id: string; name: string; price: number }[];
   mixers?: { id: string; name: string; price: number }[];
+  bottleMinimum?: number;
 }
 
 // Interface for the UserContext

@@ -52,7 +52,7 @@ const Login: React.FC = () => {
     }
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.replace("/");
+      router.replace('/(tabs)');
     } catch (err: any) {
       console.error("Login Error:", err);
       let errorMessage = "An unexpected error occurred. Please try again.";
@@ -123,7 +123,7 @@ const Login: React.FC = () => {
             <Text style={styles.guestButtonText}>Continue as Guest</Text>
           </TouchableOpacity>
           <View style={styles.registerContainer}>
-            <TouchableOpacity onPress={() => router.push("/(auth)/Register")}>
+            <TouchableOpacity onPress={() => router.push("/(auth)/register")}>
               <Text style={styles.registerText}>
                 Don't have an account?{" "}
                 <Text style={styles.registerLink}>Register</Text>

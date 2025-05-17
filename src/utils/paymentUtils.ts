@@ -184,16 +184,20 @@ export function calculateFullCostBreakdown(reservationDetails: {
 }): CostBreakdown {
   const table = reservationDetails.tablePrice || 0;
   const bottles = reservationDetails.bottles?.reduce((acc, b) => acc + (b.price || 0), 0) || 0;
-  const mixers = reservationDetails.mixers?.reduce((acc, m) => acc + (m.price || 0), 0) || 0;
+  const mixers = 0; // Mixers always $0
   const bottleMinimum = reservationDetails.bottleMinimum || 0;
   const bottleCount = reservationDetails.bottles?.length || 0;
   const bottleMinimumMet = bottleCount >= bottleMinimum;
 
-  const subtotal = table + bottles + mixers;
-  const salesTax = subtotal * SALES_TAX_RATE;
+  // Sales tax only on table + bottles
+  const salesTax = (table + bottles) * SALES_TAX_RATE;
+  // Gratuity only on bottles
   const bottleGratuity = bottles * BOTTLE_GRATUITY_RATE;
-  const serviceFee = (subtotal + salesTax + bottleGratuity) * 0.029 + 0.3; // Stripe fee on total
-  const total = subtotal + salesTax + bottleGratuity + serviceFee;
+  // Service fee on (table + bottles + sales tax + gratuity)
+  const subtotal = table + bottles + salesTax + bottleGratuity;
+  const serviceFee = subtotal * 0.029 + 0.3;
+  // Total is subtotal + service fee
+  const total = subtotal + serviceFee;
 
   return {
     table,

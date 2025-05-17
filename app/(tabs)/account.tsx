@@ -37,7 +37,7 @@ const AccountScreen: React.FC = () => {
     try {
       await signOut();
       Alert.alert('Logged Out', 'You have been successfully logged out.');
-      router.replace('/(auth)/Login');
+      router.replace('/(auth)/login');
     } catch (error: any) {
       console.error('Error during logout:', error.message || error);
       Alert.alert('Error', 'Failed to log out. Please try again.');
@@ -61,7 +61,7 @@ const AccountScreen: React.FC = () => {
         <Text style={styles.infoText}>No user is currently logged in.</Text>
         <TouchableOpacity
           style={[styles.card, styles.outlinedCard]}
-          onPress={() => router.replace('/(auth)/Login')}
+          onPress={() => router.replace('/(auth)/login')}
         >
           <Text style={styles.cardText}>Go to Login</Text>
         </TouchableOpacity>
