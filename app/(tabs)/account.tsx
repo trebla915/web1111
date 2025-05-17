@@ -86,6 +86,8 @@ const AccountScreen: React.FC = () => {
         <Text style={styles.userEmail}>{userData.email}</Text>
         {userData.phone && <Text style={styles.userPhone}>📞 {userData.phone}</Text>}
         <Text style={styles.appVersion}>App Version: {appVersion}</Text>
+        {/* OTA update test text */}
+        <Text style={styles.otaTest}>OTA update worked!</Text>
       </View>
 
       {/* Navigation and Logout Options */}
@@ -199,6 +201,13 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 10,
     fontStyle: 'italic',
+  },
+  otaTest: {
+    fontSize: 14,
+    color: '#4caf50',
+    marginTop: 6,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
 
