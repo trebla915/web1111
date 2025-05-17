@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
   },
   otaTest: {
     fontSize: 14,
-    color: '#4caf50',
+    color: '#e53935',
     marginTop: 6,
     fontWeight: 'bold',
     textAlign: 'center',
