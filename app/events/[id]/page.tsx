@@ -13,8 +13,9 @@ type Props = {
 };
 
 export default async function EventPage({ params, searchParams }: Props) {
+  const resolvedParams = await params;
   try {
-    const eventData = await getEvent(params.id);
+    const eventData = await getEvent(resolvedParams.id);
     if (!eventData) {
       notFound();
     }
@@ -30,7 +31,8 @@ export async function generateMetadata(
   { params }: { params: { id: string } },
   parent: ResolvingMetadata
 ): Promise<Metadata> {
-  const event = await getEvent(params.id);
+  const resolvedParams = await params;
+  const event = await getEvent(resolvedParams.id);
   
   if (!event) {
     return {
@@ -41,11 +43,11 @@ export async function generateMetadata(
 
   return {
     title: event.title,
-    description: event.description,
+    ...('description' in event && typeof event.description === 'string' && event.description ? { description: event.description } : {}),
     openGraph: {
       title: event.title,
-      description: event.description,
-      images: event.image ? [event.image] : [],
+      ...('description' in event && typeof event.description === 'string' && event.description ? { description: event.description } : {}),
+      images: event.flyerUrl ? [event.flyerUrl] : [],
     },
   };
 } 

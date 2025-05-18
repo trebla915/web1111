@@ -246,7 +246,7 @@ export default function EventDetails({ event }: EventDetailsProps) {
                 {/* Date and Title */}
                 <div className="mb-4">
                   <div className="text-responsive-sm text-white/60 mb-0">
-                    {formatDate(event.date)}
+                    {formatDate(event.date || '')}
                   </div>
                   <h1 className="text-responsive-2xl font-bold text-white digital-glow-soft">
                     {event.title}
@@ -339,28 +339,28 @@ export default function EventDetails({ event }: EventDetailsProps) {
                       href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://www.1111eptx.com/events/${event.id}`)}`} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="p-2 bg-blue-600 hover:bg-blue-700 rounded-full transition-colors touch-target"
+                      className="w-10 h-10 flex items-center justify-center bg-blue-600 hover:bg-blue-700 rounded-full transition-colors"
                       aria-label="Share on Facebook"
                     >
-                      <FaFacebook size={18} />
+                      <FaFacebook className="text-white text-xl" />
                     </a>
                     <a 
                       href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out ${event.title} at 11:11 EPTX!`)}&url=${encodeURIComponent(`https://www.1111eptx.com/events/${event.id}`)}`} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="p-2 bg-sky-500 hover:bg-sky-600 rounded-full transition-colors touch-target"
+                      className="w-10 h-10 flex items-center justify-center bg-sky-500 hover:bg-sky-600 rounded-full transition-colors"
                       aria-label="Share on Twitter"
                     >
-                      <FaTwitter size={18} />
+                      <FaTwitter className="text-white text-xl" />
                     </a>
                     <a 
                       href={`https://wa.me/?text=${encodeURIComponent(`Check out ${event.title} at 11:11 EPTX! https://www.1111eptx.com/events/${event.id}`)}`} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="p-2 bg-green-600 hover:bg-green-700 rounded-full transition-colors touch-target sm:hidden"
+                      className="w-10 h-10 flex items-center justify-center bg-green-600 hover:bg-green-700 rounded-full transition-colors sm:hidden"
                       aria-label="Share on WhatsApp"
                     >
-                      <FaWhatsapp size={18} />
+                      <FaWhatsapp className="text-white text-xl" />
                     </a>
                     <button 
                       onClick={() => {
@@ -376,10 +376,10 @@ export default function EventDetails({ event }: EventDetailsProps) {
                           toast.success('Link copied to clipboard!');
                         }
                       }}
-                      className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors touch-target"
+                      className="w-10 h-10 flex items-center justify-center bg-white/20 hover:bg-white/30 rounded-full transition-colors"
                       aria-label="Share"
                     >
-                      <FiShare2 size={18} />
+                      <FiShare2 className="text-white text-xl" />
                     </button>
                   </div>
                 </div>
@@ -390,16 +390,12 @@ export default function EventDetails({ event }: EventDetailsProps) {
       </div>
       
       {/* Mobile-only sticky action bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-md border-t border-white/20 flex items-center justify-between py-4 px-4 z-50 safe-area-bottom">
-        <div className="flex items-start flex-col">
-          <h3 className="text-white font-bold text-responsive-sm truncate max-w-[150px]">
-            {event.title}
-          </h3>
-          <span className="text-white/60 text-responsive-xs">
-            {event.date ? formatToMMDDYYYY(event.date) : 'Date TBA'}
-          </span>
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-md border-t border-white/20 flex items-center justify-between py-3 px-4 z-50 safe-area-bottom">
+        <div className="flex flex-col justify-center">
+          <h3 className="text-white font-bold text-base truncate max-w-[120px]">{event.title}</h3>
+          <span className="text-white/60 text-xs">{event.date ? formatToMMDDYYYY(event.date) : 'Date TBA'}</span>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center flex-1 justify-end">
           <button
             onClick={() => {
               if (navigator.share) {
@@ -410,20 +406,18 @@ export default function EventDetails({ event }: EventDetailsProps) {
                 }).catch(err => console.log('Error sharing', err));
               }
             }}
-            className="p-2 bg-white/10 hover:bg-white/20 rounded-full touch-target"
+            className="w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full"
             aria-label="Share"
           >
-            <FiShare2 size={18} />
+            <FiShare2 className="text-white text-xl" />
           </button>
           <button
             onClick={() => handleTicketPress(event.ticketLink)}
-            className={`${event.ticketLink 
-              ? 'bg-white hover:bg-white/90' 
-              : 'bg-gray-800 cursor-not-allowed'} text-black px-2 py-1.5 rounded-full flex items-center touch-target`}
+            className={`flex-1 min-w-[100px] px-4 py-2 bg-white hover:bg-white/90 text-black font-bold rounded-full flex items-center justify-center transition-all duration-200 ${event.ticketLink ? '' : 'bg-gray-800 cursor-not-allowed'}`}
             disabled={!event.ticketLink}
           >
-            <FiTag className="mr-1" size={14} />
-            <span className="font-bold text-xs whitespace-nowrap">BUY TICKETS</span>
+            <FiTag className="mr-2" size={18} />
+            <span className="font-bold text-sm whitespace-nowrap">BUY TICKETS</span>
           </button>
         </div>
       </div>

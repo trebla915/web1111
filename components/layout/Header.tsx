@@ -142,8 +142,8 @@ export default function Header() {
           onClick={(e) => isHomePage ? scrollToSection(e, sectionId) : null}
           className={`px-0.5 py-0 transition-all duration-200 relative rounded-full text-2xl font-medium ${
             isActive 
-              ? 'text-white bg-white/10' 
-              : 'text-gray-300 hover:text-white hover:bg-white/5'
+              ? 'text-white' 
+              : 'text-gray-300 hover:text-white'
           } font-['Digital-7'] tracking-wider`}
         >
           {children}
@@ -158,8 +158,8 @@ export default function Header() {
         onClick={() => setMenuOpen(false)}
         className={`px-0.5 py-0 transition-all duration-200 relative rounded-full text-2xl font-medium ${
           isActive 
-            ? 'text-white bg-white/10' 
-            : 'text-gray-300 hover:text-white hover:bg-white/5'
+            ? 'text-white' 
+            : 'text-gray-300 hover:text-white'
         } font-['Digital-7'] tracking-wider`}
       >
         {children}
@@ -193,7 +193,7 @@ export default function Header() {
 
   return (
     <>
-      <header className="fixed w-full top-0 left-0 bg-black text-white z-[100] h-16 md:h-16 border-b-4 border-gray-800">
+      <header className="fixed w-full top-0 left-0 bg-black text-white z-[100] h-16 md:h-16 border-b-4 border-white">
         <div className="max-w-screen-xl mx-auto px-4 md:px-6 h-full flex items-center justify-between">
           {/* Background effects */}
           <div className="absolute inset-0 noise opacity-5"></div>

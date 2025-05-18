@@ -8,10 +8,19 @@ const nextConfig = {
     ignoreDuringBuilds: true
   },
   images: {
-    domains: [
-      'firebasestorage.googleapis.com',
-      'via.placeholder.com',
-      'example.com'
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'firebasestorage.googleapis.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'via.placeholder.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'example.com',
+      },
     ],
   },
   experimental: {

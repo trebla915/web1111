@@ -28,8 +28,8 @@ export default function CookieConsent() {
   if (!showConsent) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-black/95 text-white p-4 z-50 border-t border-white/10">
-      <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-black/95 text-white p-4 z-[9999] border border-white/10 rounded-xl shadow-2xl max-w-lg w-[95vw] animate-fade-in">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="text-sm">
           <p>
             We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. 
@@ -42,13 +42,13 @@ export default function CookieConsent() {
         <div className="flex gap-2">
           <button
             onClick={handleAcceptEssential}
-            className="px-4 py-2 text-sm border border-white/30 hover:bg-white/10 transition-colors"
+            className="px-4 py-2 text-sm border border-white/30 hover:bg-white/10 transition-colors rounded"
           >
             Essential Only
           </button>
           <button
             onClick={handleAcceptAll}
-            className="px-4 py-2 text-sm bg-white text-black hover:bg-white/90 transition-colors"
+            className="px-4 py-2 text-sm bg-white text-black hover:bg-white/90 transition-colors rounded font-bold"
           >
             Accept All
           </button>
