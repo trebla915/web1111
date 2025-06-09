@@ -90,7 +90,9 @@ const AccountScreen: React.FC = () => {
         {userData.phone && <Text style={styles.userPhone}>📞 {userData.phone}</Text>}
         <Text style={styles.appVersion}>App Version: {appVersion}</Text>
         {/* OTA update test text */}
-        <Text style={styles.otaTest}>🚀 FINAL TEST: OTA working correctly! Jan 16, 2025</Text>
+        <Text style={styles.testMessage}>
+          🚀 OTA UPDATE TEST #2: Jan 16, 2025 - 3:45 PM - Updates Working! 🎉
+        </Text>
       </View>
 
       {/* Navigation and Logout Options */}
@@ -206,6 +208,13 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   otaTest: {
+    fontSize: 14,
+    color: '#4caf50',
+    marginTop: 6,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  testMessage: {
     fontSize: 14,
     color: '#4caf50',
     marginTop: 6,
