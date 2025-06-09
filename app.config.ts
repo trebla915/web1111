@@ -65,16 +65,7 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
   plugins: [
     "expo-router",
     "expo-updates",
-    "expo-notifications",
-    "@react-native-firebase/app",
-    [
-      "expo-build-properties",
-      {
-        "ios": {
-          "useFrameworks": "static"
-        }
-      }
-    ]
+    "expo-notifications"
   ],
   updates: {
     url: "https://u.expo.dev/e3775235-7f75-42c8-906e-8171c4a1e54b"
