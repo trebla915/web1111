@@ -1,16 +1,20 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 
 // Debug: Log your API base URL right at the top
 console.log('🟦 [apiClient] EXPO_PUBLIC_API_BASE_URL:', process.env.EXPO_PUBLIC_API_BASE_URL);
+console.log('🟦 [apiClient] Constants.expoConfig.extra.API_BASE_URL:', Constants.expoConfig?.extra?.API_BASE_URL);
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || Constants.expoConfig?.extra?.API_BASE_URL;
 
 if (!API_BASE_URL) {
   // Immediately tell you if your env is busted
   console.error('🟥 [apiClient] API Base URL is missing. Did you prefix it with EXPO_PUBLIC_ in your .env?');
   throw new Error('Missing API Base URL.');
 }
+
+console.log('🟩 [apiClient] Using API Base URL:', API_BASE_URL);
 
 /**
  * Centralized Axios instance for API calls

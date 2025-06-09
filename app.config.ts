@@ -62,7 +62,8 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
   scheme: "exp+club1111",
   plugins: [
     "expo-router",
-    "expo-updates"
+    "expo-updates",
+    "expo-notifications"
   ],
   updates: {
     url: "https://u.expo.dev/e3775235-7f75-42c8-906e-8171c4a1e54b"
@@ -72,6 +73,8 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
     eas: {
       projectId: process.env.EXPO_PUBLIC_EAS_PROJECT_ID || "e3775235-7f75-42c8-906e-8171c4a1e54b"
     },
+    // API Configuration
+    API_BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL,
     // Firebase Configuration
     FIREBASE_API_KEY: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
     FIREBASE_AUTH_DOMAIN: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,

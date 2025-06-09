@@ -60,6 +60,9 @@ const AccountScreen: React.FC = () => {
     return (
       <View style={styles.container}>
         <Text style={styles.infoText}>No user is currently logged in.</Text>
+        {/* OTA update test text - TEMPORARY FOR TESTING */}
+        <Text style={styles.otaTest}>🚀 FINAL TEST: OTA working correctly! Jan 16, 2025</Text>
+        <Text style={styles.infoText}>↑ If you see this message, OTA updates are working! ↑</Text>
         <TouchableOpacity
           style={[styles.card, styles.outlinedCard]}
           onPress={() => router.replace('/(auth)/Login')}
