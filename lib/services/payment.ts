@@ -17,11 +17,41 @@ export interface CostBreakdown {
 export interface PaymentIntentRequest {
   amount: number;
   metadata: {
+    // Customer Information
     name: string;
     email: string;
+    phone: string;
+    
+    // Event Information
     eventName: string;
+    eventId: string;
+    eventDate: string;
+    
+    // Table Information
     tableNumber: string;
+    tableId: string;
+    tablePrice: string;
+    
+    // Reservation Details
     guests: string;
+    reservationTime: string;
+    
+    // Bottle & Mixer Information
+    bottleCount: string;
+    bottlesOrdered: string;
+    bottlesCost: string;
+    mixerCount: string;
+    mixersOrdered: string;
+    mixersCost: string;
+    
+    // Financial Information
+    subtotal: string;
+    totalAmount: string;
+    
+    // System Information
+    userId: string;
+    platform: string;
+    source: string;
   };
   reservationDetails: {
     userId: string;

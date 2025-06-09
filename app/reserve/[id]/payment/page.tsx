@@ -124,13 +124,46 @@ export default function PaymentPage() {
         setLoading(true);
         const total = calculateTotal();
 
-        // Prepare metadata for the payment
+        // Prepare comprehensive metadata for the payment
         const metadata = {
+          // Customer Information
           name: reservationDetails.userName || user.displayName || 'Guest',
           email: reservationDetails.userEmail || user.email || '',
+          phone: reservationDetails.userPhone || '',
+          
+          // Event Information
           eventName: reservationDetails.eventName,
+          eventId: params.id as string,
+          eventDate: reservationDetails.eventDate || '',
+          
+          // Table Information
           tableNumber: reservationDetails.tableNumber.toString(),
+          tableId: reservationDetails.tableId,
+          tablePrice: reservationDetails.tablePrice?.toString() || '0',
+          
+          // Reservation Details
           guests: reservationDetails.guestCount.toString(),
+          reservationTime: reservationDetails.reservationTime || new Date().toISOString(),
+          
+          // Bottle & Mixer Information
+          bottleCount: (reservationDetails.bottles?.length || 0).toString(),
+          bottlesOrdered: reservationDetails.bottles?.map(bottle => `${bottle.name} ($${bottle.price})`).join(', ') || 'None',
+          bottlesCost: (reservationDetails.bottles || []).reduce((total, bottle) => total + (bottle.price || 0), 0).toString(),
+          
+          mixerCount: (reservationDetails.mixers?.length || 0).toString(),
+          mixersOrdered: reservationDetails.mixers?.map(mixer => `${mixer.name} ($${mixer.price})`).join(', ') || 'None',
+          mixersCost: (reservationDetails.mixers || []).reduce((total, mixer) => total + (mixer.price || 0), 0).toString(),
+          
+          // Financial Information
+          subtotal: (reservationDetails.tablePrice + 
+                    (reservationDetails.bottles || []).reduce((total, bottle) => total + (bottle.price || 0), 0) +
+                    (reservationDetails.mixers || []).reduce((total, mixer) => total + (mixer.price || 0), 0)).toString(),
+          totalAmount: total.toString(),
+          
+          // System Information
+          userId: user.uid,
+          platform: 'web',
+          source: '1111web'
         };
 
         // Create payment intent
