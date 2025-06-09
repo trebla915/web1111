@@ -15,6 +15,8 @@ if (!API_BASE_URL) {
 }
 
 console.log('🟩 [apiClient] Using API Base URL:', API_BASE_URL);
+console.log('🟩 [apiClient] App Environment:', __DEV__ ? 'Development' : 'Production');
+console.log('🟩 [apiClient] Build Type:', Constants.expoConfig?.extra?.eas?.projectId ? 'EAS Build' : 'Local Build');
 
 /**
  * Centralized Axios instance for API calls

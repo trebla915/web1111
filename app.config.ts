@@ -13,10 +13,10 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
   owner: "tr3bla915",
   version,
   orientation: "portrait",
-  icon: "./src/assets/logo.png",
+  icon: "./src/assets/images/icon.png",
   userInterfaceStyle: "light",
   splash: {
-    image: "./src/assets/logo.png",
+    image: "./src/assets/images/icon.png",
     resizeMode: "contain",
     backgroundColor: "#ffffff"
   },
@@ -26,6 +26,7 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.your.club1111",
+    googleServicesFile: "./GoogleService-Info.plist",
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
       CFBundleURLTypes: [
@@ -40,10 +41,11 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
   },
   android: {
     adaptiveIcon: {
-      foregroundImage: "./src/assets/logo.png",
+      foregroundImage: "./src/assets/images/icon.png",
       backgroundColor: "#ffffff"
     },
     package: "com.your.club1111",
+    googleServicesFile: "./android/app/google-services.json",
     intentFilters: [
       {
         action: "VIEW",
@@ -57,7 +59,7 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
     ]
   },
   web: {
-    favicon: "./src/assets/logo.png"
+    favicon: "./src/assets/images/icon.png"
   },
   scheme: "exp+club1111",
   plugins: [
