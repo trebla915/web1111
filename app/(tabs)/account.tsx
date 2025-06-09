@@ -87,7 +87,7 @@ const AccountScreen: React.FC = () => {
         {userData.phone && <Text style={styles.userPhone}>📞 {userData.phone}</Text>}
         <Text style={styles.appVersion}>App Version: {appVersion}</Text>
         {/* OTA update test text */}
-        <Text style={styles.otaTest}>OTA update worked!</Text>
+        <Text style={styles.otaTest}>🚀 FINAL TEST: OTA working correctly! Jan 16, 2025</Text>
       </View>
 
       {/* Navigation and Logout Options */}

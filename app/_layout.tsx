@@ -39,11 +39,54 @@ function SplashGuard() {
   return null;
 }
 
+// Expo Updates checking component
+function UpdateChecker() {
+  useEffect(() => {
+    async function checkForUpdate() {
+      try {
+        // Only check for updates in production builds
+        if (!__DEV__ && Updates.isEnabled) {
+          console.log("🔄 Checking for updates...");
+          console.log("Current update ID:", Updates.updateId);
+          console.log("Channel:", Updates.channel);
+          console.log("Runtime version:", Updates.runtimeVersion);
+          
+          const update = await Updates.checkForUpdateAsync();
+          console.log("Update check result:", {
+            isAvailable: update.isAvailable,
+            manifest: update.manifest?.id,
+          });
+          
+          if (update.isAvailable) {
+            console.log("📱 Update available, fetching...");
+            await Updates.fetchUpdateAsync();
+            console.log("✅ Update fetched, reloading...");
+            await Updates.reloadAsync();
+          } else {
+            console.log("✅ App is up to date");
+          }
+        } else {
+          console.log("📱 Skipping update check (development mode or updates disabled)");
+        }
+      } catch (error) {
+        console.error("❌ Update check failed:", error);
+      }
+    }
+    
+    // Check for updates with a small delay to ensure app is initialized
+    const timeoutId = setTimeout(checkForUpdate, 1000);
+    return () => clearTimeout(timeoutId);
+  }, []);
+
+  return null;
+}
+
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <PaperProvider>
         <AuthProvider>
+          <UpdateChecker />
           <SplashGuard />
           <NotificationProvider>
             <StripeProvider publishableKey={Constants.expoConfig?.extra?.STRIPE_PUBLISHABLE_KEY}>
