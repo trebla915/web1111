@@ -118,26 +118,32 @@ export const getUpcomingEvents = async (): Promise<Event[]> => {
   try {
     const response = await apiClient.get('/events');
     const now = new Date();
-    // Get current date in YYYY-MM-DD format
-    const currentDateStr = now.toISOString().split('T')[0];
+    // Get current date in local time YYYY-MM-DD format
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const currentDateStr = `${year}-${month}-${day}`;
     
     // Check the response structure and access the events array properly
     const events = Array.isArray(response.data) ? response.data : 
                   (response.data && response.data.events ? response.data.events : []);
     
-    console.log('Current date for comparison:', currentDateStr);
+    console.log('Current date for comparison (local time):', currentDateStr);
     console.log('All events:', events.map((e: Event) => ({ title: e.title, date: e.date })));
     
     const filteredEvents = events.filter((event: Event) => {
       try {
-        // Handle incomplete date formats
-        let rawEventDateStr = event.date;
-        if (!rawEventDateStr.includes('T')) {
-          // If no time is specified, assume midnight UTC
-          rawEventDateStr = `${rawEventDateStr}T00:00:00.000Z`;
+        if (!event.date) {
+          console.warn(`Event "${event.title}" has no date`);
+          return false;
         }
         
-        const eventDate = new Date(rawEventDateStr);
+        // Parse the event date directly (YYYY-MM-DD format)
+        const [datePart] = event.date.split('T');
+        const [eventYear, eventMonth, eventDay] = datePart.split('-').map(Number);
+        
+        // Create date object using the parsed components in local time
+        const eventDate = new Date(eventYear, eventMonth - 1, eventDay);
         
         // Check if the date is valid
         if (isNaN(eventDate.getTime())) {
@@ -145,12 +151,16 @@ export const getUpcomingEvents = async (): Promise<Event[]> => {
           return false;
         }
         
-        // Get event date in YYYY-MM-DD format
-        const normalizedEventDateStr = eventDate.toISOString().split('T')[0];
+        // Get current date object in local time for comparison
+        const currentDate = new Date(year, now.getMonth(), now.getDate());
         
-        // Compare dates as strings
-        const isIncluded = normalizedEventDateStr >= currentDateStr;
-        console.log(`Event "${event.title}" (${event.date} -> ${normalizedEventDateStr}): ${isIncluded ? 'INCLUDED' : 'EXCLUDED'}`);
+        // Set both dates to start of day to avoid time comparison issues
+        eventDate.setHours(0, 0, 0, 0);
+        currentDate.setHours(0, 0, 0, 0);
+        
+        // Include events that are today or in the future
+        const isIncluded = eventDate >= currentDate;
+        console.log(`Event "${event.title}" (${event.date}): ${isIncluded ? 'INCLUDED' : 'EXCLUDED'}`);
         return isIncluded;
       } catch (err) {
         console.warn(`Error processing event "${event.title}":`, err);
