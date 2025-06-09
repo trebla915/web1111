@@ -21,10 +21,11 @@ const stripePromise = (async () => {
   return loadStripe(publishableKey);
 })();
 
-function PaymentForm({ clientSecret, onSuccess, user }: { 
+function PaymentForm({ clientSecret, onSuccess, user, reservationDetails }: { 
   clientSecret: string; 
   onSuccess: () => void;
   user: User | null;
+  reservationDetails: any;
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -69,8 +70,8 @@ function PaymentForm({ clientSecret, onSuccess, user }: {
             layout: 'tabs',
             defaultValues: {
               billingDetails: {
-                name: user?.displayName || undefined,
-                email: user?.email || undefined
+                name: reservationDetails?.userName || user?.displayName || undefined,
+                email: reservationDetails?.userEmail || user?.email || undefined
               }
             },
             business: {
@@ -125,8 +126,8 @@ export default function PaymentPage() {
 
         // Prepare metadata for the payment
         const metadata = {
-          name: user.displayName || 'Guest',
-          email: user.email || '',
+          name: reservationDetails.userName || user.displayName || 'Guest',
+          email: reservationDetails.userEmail || user.email || '',
           eventName: reservationDetails.eventName,
           tableNumber: reservationDetails.tableNumber.toString(),
           guests: reservationDetails.guestCount.toString(),
@@ -213,7 +214,11 @@ export default function PaymentPage() {
         paymentId: paymentIntentId,
         status: 'confirmed',
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
+        // Include contact information
+        userName: reservationDetails.userName || user.displayName || '',
+        userEmail: reservationDetails.userEmail || user.email || '',
+        userPhone: reservationDetails.userPhone || ''
       }, paymentIntentId); // Use the same paymentIntentId here
 
       // Clear reservation details and redirect to confirmation
@@ -383,6 +388,7 @@ export default function PaymentPage() {
                 clientSecret={clientSecret} 
                 onSuccess={handlePaymentSuccess}
                 user={user}
+                reservationDetails={reservationDetails}
               />
             </Elements>
           ) : null}

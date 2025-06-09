@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useReservation } from '@/components/providers/ReservationProvider';
 import { formatCostBreakdown } from '@/lib/services/payment';
-import { FiCheckCircle, FiCalendar, FiUsers, FiClock, FiMapPin } from 'react-icons/fi';
+import { FiCheckCircle, FiCalendar, FiUsers, FiClock, FiMapPin, FiUser, FiMail, FiPhone } from 'react-icons/fi';
 import Link from 'next/link';
 
 export default function ConfirmationPage() {
@@ -106,6 +106,51 @@ export default function ConfirmationPage() {
               </div>
             </div>
           </div>
+
+          {/* Contact Information */}
+          {(reservationDetails.userName || reservationDetails.userEmail || reservationDetails.userPhone) && (
+            <div className="p-6 border-b border-cyan-900/30">
+              <h2 className="text-xl font-bold text-white mb-4">Contact Information</h2>
+              
+              <div className="space-y-4">
+                {reservationDetails.userName && (
+                  <div className="flex items-start">
+                    <div className="p-2 bg-zinc-800 rounded-md mr-4">
+                      <FiUser className="text-cyan-400" size={20} />
+                    </div>
+                    <div>
+                      <p className="text-zinc-400 text-sm">Name</p>
+                      <p className="text-white font-medium">{reservationDetails.userName}</p>
+                    </div>
+                  </div>
+                )}
+                
+                {reservationDetails.userEmail && (
+                  <div className="flex items-start">
+                    <div className="p-2 bg-zinc-800 rounded-md mr-4">
+                      <FiMail className="text-cyan-400" size={20} />
+                    </div>
+                    <div>
+                      <p className="text-zinc-400 text-sm">Email</p>
+                      <p className="text-white font-medium">{reservationDetails.userEmail}</p>
+                    </div>
+                  </div>
+                )}
+                
+                {reservationDetails.userPhone && (
+                  <div className="flex items-start">
+                    <div className="p-2 bg-zinc-800 rounded-md mr-4">
+                      <FiPhone className="text-cyan-400" size={20} />
+                    </div>
+                    <div>
+                      <p className="text-zinc-400 text-sm">Phone</p>
+                      <p className="text-white font-medium">{reservationDetails.userPhone}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
           
           {/* Bottles Selection */}
           {reservationDetails.bottles && reservationDetails.bottles.length > 0 && (

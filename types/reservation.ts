@@ -33,6 +33,10 @@ export interface Reservation {
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   createdAt: string;
   updatedAt: string;
+  // Contact information
+  userName?: string;
+  userEmail?: string;
+  userPhone?: string;
 }
 
 export interface Bottle {
@@ -65,6 +69,7 @@ export interface ReservationDetails {
   userId: string;
   userName?: string;
   userEmail?: string;
+  userPhone?: string;
   reservationTime: string;
   createdAt: string;
   eventDate: string;

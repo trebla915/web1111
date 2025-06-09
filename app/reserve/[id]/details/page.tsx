@@ -207,7 +207,7 @@ export default function ReservationDetailsPage() {
     }
   };
   
-  const handleContinueToPayment = () => {
+  const handleContinueToContact = () => {
     if (!reservationDetails) {
       toast.error('Reservation details not found');
       return;
@@ -220,7 +220,7 @@ export default function ReservationDetailsPage() {
       return;
     }
     
-    router.push(`/reserve/${eventId}/payment`);
+    router.push(`/reserve/${eventId}/contact`);
   };
 
   // Format date to a more readable format
@@ -461,7 +461,7 @@ export default function ReservationDetailsPage() {
           {/* Actions */}
           <div className="p-6">
             <button
-              onClick={handleContinueToPayment}
+              onClick={handleContinueToContact}
               disabled={!bottleRequirements.isMet}
               className={`w-full py-3 font-bold rounded transition-colors ${
                 !bottleRequirements.isMet 
@@ -470,7 +470,7 @@ export default function ReservationDetailsPage() {
               }`}
             >
               {bottleRequirements.isMet 
-                ? 'Continue to Payment' 
+                ? 'Continue to Contact Info' 
                 : `Add Required Bottles (${bottleRequirements.required - bottleRequirements.current} More)`}
             </button>
           </div>
