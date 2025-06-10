@@ -13,7 +13,8 @@ config.resolver.alias = {
   '@/utils': path.resolve(__dirname, './src/utils'),
 };
 
-// Disable package exports resolution
+// Firebase JS SDK configuration (required for v9+)
+config.resolver.sourceExts.push('cjs');
 config.resolver.unstable_enablePackageExports = false;
 
 // Watch additional folders

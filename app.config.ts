@@ -45,7 +45,7 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
       backgroundColor: "#ffffff"
     },
     package: "com.your.club1111",
-    googleServicesFile: "./android/app/google-services.json",
+    googleServicesFile: "./google-services.json",
     intentFilters: [
       {
         action: "VIEW",
