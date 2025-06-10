@@ -7,7 +7,7 @@ console.log("EXPO_PUBLIC_EAS_PROJECT_ID:", process.env.EXPO_PUBLIC_EAS_PROJECT_I
 
 export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
   ...config,
-  newArchEnabled: true,     // 🔥 Enable React Native New Architecture
+  // newArchEnabled: true,     // 🔥 Temporarily disabled - can cause build issues
   name: "11:11 EPTX",
   slug: "club1111",
   owner: "tr3bla915",

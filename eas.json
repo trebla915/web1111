@@ -28,7 +28,8 @@
       "channel": "preview",
       "ios": {
         "simulator": true,
-        "resourceClass": "m-medium"
+        "resourceClass": "m-medium",
+        "buildConfiguration": "Release"
       },
       "android": {
         "buildType": "apk",
