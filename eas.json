@@ -42,6 +42,25 @@
       },
       "autoIncrement": true
     },
+    "preview-device": {
+      "distribution": "internal",
+      "channel": "preview",
+      "environment": "preview",
+      "ios": {
+        "simulator": false,
+        "resourceClass": "m-medium",
+        "buildConfiguration": "Release"
+      },
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease",
+        "resourceClass": "medium"
+      },
+      "env": {
+        "EAS_PROJECT_ID": "e3775235-7f75-42c8-906e-8171c4a1e54b"
+      },
+      "autoIncrement": true
+    },
     "production": {
       "android": {
         "buildType": "app-bundle",
