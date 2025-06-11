@@ -76,3 +76,4 @@ build/
 *.ipa
 *.xcarchive
 *.dSYM
+.last-build-fingerprint

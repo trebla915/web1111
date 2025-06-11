@@ -61,7 +61,7 @@ const AccountScreen: React.FC = () => {
       <View style={styles.container}>
         <Text style={styles.infoText}>No user is currently logged in.</Text>
         {/* OTA update test text - TEMPORARY FOR TESTING */}
-                      <Text style={styles.otaTest}>🔥 RED OTA TEST SUCCESS!</Text>
+                      <Text style={styles.otaTest}>✅ FINGERPRINT OTA UPDATE WORKING! 🚀</Text>
         <Text style={styles.infoText}>↑ If you see this message, OTA updates are working! ↑</Text>
         <TouchableOpacity
           style={[styles.card, styles.outlinedCard]}
@@ -91,7 +91,7 @@ const AccountScreen: React.FC = () => {
         <Text style={styles.appVersion}>App Version: {appVersion}</Text>
         {/* OTA update test text */}
         <Text style={styles.testMessage}>
-          🔥 RED OTA TEST SUCCESS!
+          ✅ FINGERPRINT OTA UPDATE WORKING! 🚀
         </Text>
       </View>
 
@@ -208,15 +208,15 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   otaTest: {
-    fontSize: 14,
-    color: '#ff0000',
+    fontSize: 16,
+    color: '#00ff00',
     marginTop: 6,
     fontWeight: 'bold',
     textAlign: 'center',
   },
   testMessage: {
-    fontSize: 14,
-    color: '#ff0000',
+    fontSize: 16,
+    color: '#00ff00',
     marginTop: 6,
     fontWeight: 'bold',
     textAlign: 'center',
