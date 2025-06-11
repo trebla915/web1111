@@ -39,7 +39,7 @@ function SplashGuard() {
   return null;
 }
 
-// Expo Updates checking component with user prompts (Expo SDK 53)
+// Expo Updates checking component - Modern Expo SDK 53 approach
 function UpdateChecker() {
   const {
     currentlyRunning,
@@ -47,7 +47,8 @@ function UpdateChecker() {
     isUpdatePending,
     isDownloading,
     availableUpdate,
-    downloadError
+    downloadError,
+    isChecking
   } = Updates.useUpdates();
 
   useEffect(() => {
@@ -86,7 +87,7 @@ function UpdateChecker() {
         );
       });
     }
-  }, [isUpdateAvailable, isDownloading, availableUpdate]);
+  }, [isUpdateAvailable, isDownloading, availableUpdate, currentlyRunning]);
 
   useEffect(() => {
     if (downloadError) {
@@ -96,6 +97,21 @@ function UpdateChecker() {
       });
     }
   }, [downloadError]);
+
+  // Log current state for debugging
+  useEffect(() => {
+    if (!__DEV__ && Updates.isEnabled) {
+      console.log("📊 Updates State:", {
+        channel: Updates.channel,
+        runtimeVersion: currentlyRunning?.runtimeVersion,
+        updateId: currentlyRunning?.updateId,
+        isChecking,
+        isUpdateAvailable,
+        isDownloading,
+        isUpdatePending
+      });
+    }
+  }, [currentlyRunning, isChecking, isUpdateAvailable, isDownloading, isUpdatePending]);
 
   return null;
 }
