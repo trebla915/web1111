@@ -39,70 +39,63 @@ function SplashGuard() {
   return null;
 }
 
-// Expo Updates checking component with user prompts
+// Expo Updates checking component with user prompts (Expo SDK 53)
 function UpdateChecker() {
+  const {
+    currentlyRunning,
+    isUpdateAvailable,
+    isUpdatePending,
+    isDownloading,
+    availableUpdate,
+    downloadError
+  } = Updates.useUpdates();
+
   useEffect(() => {
-    async function checkForUpdate() {
-      try {
-        // Only check for updates in production builds
-        if (!__DEV__ && Updates.isEnabled) {
-          console.log("🔄 Checking for updates...");
-          console.log("Current update ID:", Updates.updateId);
-          console.log("Channel:", Updates.channel);
-          console.log("Runtime version:", Updates.runtimeVersion);
-          
-          const update = await Updates.checkForUpdateAsync();
-          console.log("Update check result:", {
-            isAvailable: update.isAvailable,
-            manifest: update.manifest?.id,
-          });
-          
-          if (update.isAvailable) {
-            console.log("📱 Update available!");
-            
-            // Import Alert here to avoid conflicts
-            const { Alert } = await import('react-native');
-            
-            Alert.alert(
-              "Update Available",
-              "A new version of the app is available. Would you like to download and install it now?",
-              [
-                {
-                  text: "Later",
-                  style: "cancel",
-                  onPress: () => console.log("User postponed update")
-                },
-                {
-                  text: "Install",
-                  onPress: async () => {
-                    try {
-                      console.log("📱 User chose to install update, fetching...");
-                      await Updates.fetchUpdateAsync();
-                      console.log("✅ Update fetched, reloading...");
-                      await Updates.reloadAsync();
-                    } catch (error) {
-                      console.error("❌ Update install failed:", error);
-                      Alert.alert("Update Failed", "Could not install the update. Please try again later.");
-                    }
-                  }
-                }
-              ]
-            );
-          } else {
-            console.log("✅ App is up to date");
-          }
-        } else {
-          console.log("📱 Skipping update check (development mode or updates disabled)");
-        }
-      } catch (error) {
-        console.error("❌ Update check failed:", error);
-      }
+    if (isUpdatePending) {
+      // Update has successfully downloaded; apply it now
+      console.log("✅ Update downloaded and ready, reloading app...");
+      Updates.reloadAsync();
     }
-    
-    // Check for updates with a small delay to ensure app is initialized
-    const timeoutId = setTimeout(checkForUpdate, 2000);
-    return () => clearTimeout(timeoutId);
-  }, []);
+  }, [isUpdatePending]);
+
+  useEffect(() => {
+    if (isUpdateAvailable && !isDownloading) {
+      console.log("📱 Update available, showing prompt to user...");
+      console.log("Current runtime version:", currentlyRunning.runtimeVersion);
+      console.log("Available update:", availableUpdate?.updateId);
+      
+      // Import Alert dynamically to avoid conflicts
+      import('react-native').then(({ Alert }) => {
+        Alert.alert(
+          "Update Available", 
+          "A new version of the app is available. Would you like to download and install it now?",
+          [
+            {
+              text: "Later",
+              style: "cancel",
+              onPress: () => console.log("User postponed update")
+            },
+            {
+              text: "Install",
+              onPress: () => {
+                console.log("📥 User chose to install, fetching update...");
+                Updates.fetchUpdateAsync();
+              }
+            }
+          ]
+        );
+      });
+    }
+  }, [isUpdateAvailable, isDownloading, availableUpdate]);
+
+  useEffect(() => {
+    if (downloadError) {
+      console.error("❌ Error downloading update:", downloadError);
+      import('react-native').then(({ Alert }) => {
+        Alert.alert("Update Failed", "Could not download the update. Please try again later.");
+      });
+    }
+  }, [downloadError]);
 
   return null;
 }

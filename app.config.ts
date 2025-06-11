@@ -72,7 +72,9 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
     checkAutomatically: "ON_LOAD",
     fallbackToCacheTimeout: 30000
   },
-  runtimeVersion: "1.0.8",
+  runtimeVersion: {
+    policy: "fingerprint"
+  },
   extra: {
     eas: {
       projectId: process.env.EXPO_PUBLIC_EAS_PROJECT_ID || "e3775235-7f75-42c8-906e-8171c4a1e54b"
