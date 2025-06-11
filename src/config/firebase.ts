@@ -12,23 +12,34 @@ import { Platform } from 'react-native';
 
 // Helper: Get env or expo-constants variable
 const getEnvVar = (key: string) => {
-  const value = process.env[`FIREBASE_${key}`];
-  if (value) {
-    console.log(`🔍 Firebase Config - Found FIREBASE_${key}:`, value?.substring(0, 10) + '...');
-    return value;
+  // Priority order for different environments:
+  // 1. EXPO_PUBLIC_FIREBASE_* (works in all builds)
+  const expoPublicValue = process.env[`EXPO_PUBLIC_FIREBASE_${key}`];
+  if (expoPublicValue) {
+    console.log(`🔍 Firebase Config - Found EXPO_PUBLIC_FIREBASE_${key}:`, expoPublicValue?.substring(0, 10) + '...');
+    return expoPublicValue;
   }
-  const expoValue = process.env[`EXPO_PUBLIC_FIREBASE_${key}`];
-  if (expoValue) {
-    console.log(`🔍 Firebase Config - Found EXPO_PUBLIC_FIREBASE_${key}:`, expoValue?.substring(0, 10) + '...');
-    return expoValue;
+  
+  // 2. FIREBASE_* (local development only)
+  const localValue = process.env[`FIREBASE_${key}`];
+  if (localValue) {
+    console.log(`🔍 Firebase Config - Found FIREBASE_${key}:`, localValue?.substring(0, 10) + '...');
+    return localValue;
   }
+  
+  // 3. Constants (fallback)
   const constantValue = Constants.expoConfig?.extra?.[`FIREBASE_${key}`];
   if (constantValue) {
     console.log(`🔍 Firebase Config - Found Constants FIREBASE_${key}:`, constantValue?.substring(0, 10) + '...');
     return constantValue;
   }
-  console.warn(`⚠️ Firebase Config - Missing ${key}`);
-  return constantValue;
+  
+  console.error(`❌ Firebase Config - Missing ${key}. Checked:`, [
+    `EXPO_PUBLIC_FIREBASE_${key}`,
+    `FIREBASE_${key}`,
+    `Constants.expoConfig.extra.FIREBASE_${key}`
+  ]);
+  return undefined;
 };
 
 console.log('🔧 Firebase Configuration Loading...');
