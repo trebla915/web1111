@@ -39,7 +39,7 @@ function SplashGuard() {
   return null;
 }
 
-// Expo Updates checking component
+// Expo Updates checking component with user prompts
 function UpdateChecker() {
   useEffect(() => {
     async function checkForUpdate() {
@@ -58,10 +58,36 @@ function UpdateChecker() {
           });
           
           if (update.isAvailable) {
-            console.log("📱 Update available, fetching...");
-            await Updates.fetchUpdateAsync();
-            console.log("✅ Update fetched, reloading...");
-            await Updates.reloadAsync();
+            console.log("📱 Update available!");
+            
+            // Import Alert here to avoid conflicts
+            const { Alert } = await import('react-native');
+            
+            Alert.alert(
+              "Update Available",
+              "A new version of the app is available. Would you like to download and install it now?",
+              [
+                {
+                  text: "Later",
+                  style: "cancel",
+                  onPress: () => console.log("User postponed update")
+                },
+                {
+                  text: "Install",
+                  onPress: async () => {
+                    try {
+                      console.log("📱 User chose to install update, fetching...");
+                      await Updates.fetchUpdateAsync();
+                      console.log("✅ Update fetched, reloading...");
+                      await Updates.reloadAsync();
+                    } catch (error) {
+                      console.error("❌ Update install failed:", error);
+                      Alert.alert("Update Failed", "Could not install the update. Please try again later.");
+                    }
+                  }
+                }
+              ]
+            );
           } else {
             console.log("✅ App is up to date");
           }
@@ -74,7 +100,7 @@ function UpdateChecker() {
     }
     
     // Check for updates with a small delay to ensure app is initialized
-    const timeoutId = setTimeout(checkForUpdate, 1000);
+    const timeoutId = setTimeout(checkForUpdate, 2000);
     return () => clearTimeout(timeoutId);
   }, []);
 

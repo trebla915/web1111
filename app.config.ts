@@ -68,7 +68,9 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
     "expo-notifications"
   ],
   updates: {
-    url: "https://u.expo.dev/e3775235-7f75-42c8-906e-8171c4a1e54b"
+    url: "https://u.expo.dev/e3775235-7f75-42c8-906e-8171c4a1e54b",
+    checkAutomatically: "ON_LOAD",
+    fallbackToCacheTimeout: 30000
   },
   runtimeVersion: "1.0.8",
   extra: {
