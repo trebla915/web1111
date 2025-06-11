@@ -46,6 +46,14 @@ console.log('🔧 Firebase Configuration Loading...');
 console.log('📱 Platform:', Platform.OS);
 console.log('🌐 Constants available:', !!Constants.expoConfig?.extra);
 
+// Debug: Log all EXPO_PUBLIC environment variables
+console.log('🔍 STANDALONE BUILD DEBUG:');
+const expoPublicVars = Object.keys(process.env).filter(key => key.startsWith('EXPO_PUBLIC_FIREBASE'));
+console.log('Available EXPO_PUBLIC_FIREBASE vars:', expoPublicVars);
+expoPublicVars.forEach(key => {
+  console.log(`${key}:`, process.env[key] ? 'PRESENT' : 'MISSING');
+});
+
 // Firebase config (do NOT hardcode secrets, always use env or app.config.js)
 const firebaseConfig = {
   apiKey: getEnvVar('API_KEY'),
