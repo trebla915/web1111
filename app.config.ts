@@ -73,7 +73,7 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
     fallbackToCacheTimeout: 30000
   },
   runtimeVersion: {
-    policy: "fingerprint"
+    policy: "nativeVersion"
   },
   extra: {
     eas: {
