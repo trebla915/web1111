@@ -69,8 +69,8 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
   ],
   updates: {
     url: "https://u.expo.dev/e3775235-7f75-42c8-906e-8171c4a1e54b",
-    checkAutomatically: "ON_LOAD",
-    fallbackToCacheTimeout: 30000
+    checkAutomatically: "ON_ERROR_RECOVERY",
+    fallbackToCacheTimeout: 0
   },
   runtimeVersion: {
     policy: "fingerprint"
