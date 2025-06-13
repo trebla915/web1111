@@ -28,10 +28,10 @@ const PrivacyModal: React.FC<PrivacyModalProps> = ({ visible, onClose }) => {
             <Text style={styles.modalTitle}>Privacy Policy</Text>
             <Text style={styles.modalText}>
               Last updated December 08, 2024{"\n\n"}
-              This Privacy Notice for 1111 Eptx LLC ("we," "us," or "our"),
+              This Privacy Notice for 1111 Eptx LLC (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;),
               describes how and why we might access, collect, store, use, and/or
-              share ("process") your personal information when you use our
-              services ("Services"), including when you:
+              share (&quot;process&quot;) your personal information when you use our
+              services (&quot;Services&quot;), including when you:
               {"\n\n"}
               • Visit our website at{" "}
               <Text

@@ -28,7 +28,7 @@ const EulaModal: React.FC<EulaModalProps> = ({ visible, onClose }) => {
             <Text style={styles.modalText}>
               <Text style={styles.sectionTitle}>Effective Date:</Text> [Date]{"\n\n"}
               <Text style={styles.sectionTitle}>PLEASE READ THIS AGREEMENT CAREFULLY BEFORE USING THE 11:11 EPTX APP.</Text>{"\n\n"}
-              This End User License Agreement ("Agreement") is a legal agreement between you ("User") and **11:11 EPTX** ("Company"), with its principal business location in Texas and contact email at **app@1111eptx.com**, governing your use of the 11:11 EPTX mobile application ("App"). By downloading, installing, or using the App, you agree to abide by the terms and conditions of this Agreement. If you do not agree, you must not use the App.{"\n\n"}
+              This End User License Agreement (&quot;Agreement&quot;) is a legal agreement between you (&quot;User&quot;) and **11:11 EPTX** (&quot;Company&quot;), with its principal business location in Texas and contact email at **app@1111eptx.com**, governing your use of the 11:11 EPTX mobile application (&quot;App&quot;). By downloading, installing, or using the App, you agree to abide by the terms and conditions of this Agreement. If you do not agree, you must not use the App.{"\n\n"}
               <Text style={styles.sectionTitle}>1. Overview of Services</Text>{"\n"}
               The **11:11 EPTX App** provides features that include but are not limited to:{"\n"}
               - Event creation, management, and reservations.{"\n"}
@@ -40,7 +40,7 @@ const EulaModal: React.FC<EulaModalProps> = ({ visible, onClose }) => {
               <Text style={styles.sectionTitle}>2. License Grant</Text>{"\n"}
               **11:11 EPTX** grants you a non-exclusive, non-transferable, revocable license to use the App for personal, non-commercial purposes in accordance with this Agreement.{"\n\n"}
               <Text style={styles.sectionTitle}>3. User-Generated Content</Text>{"\n"}
-              You may submit or upload content, such as text, images, or other media ("User Content"). By submitting User Content, you agree to:{"\n"}
+              You may submit or upload content, such as text, images, or other media (&quot;User Content&quot;). By submitting User Content, you agree to:{"\n"}
               - Ensure all User Content complies with this Agreement, applicable laws, and community guidelines.{"\n"}
               - Avoid posting objectionable content, including but not limited to:{"\n"}
                 - Hateful, abusive, or defamatory content.{"\n"}

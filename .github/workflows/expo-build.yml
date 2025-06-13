@@ -54,7 +54,7 @@ jobs:
         run: npx tsc --noEmit
 
       - name: 🧹 Run ESLint
-        run: npx eslint . --ext .ts,.tsx,.js,.jsx --max-warnings 0
+        run: npx expo lint
 
       - name: 🔧 Setup environment
         run: |

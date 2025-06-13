@@ -141,7 +141,7 @@ const Login: React.FC = () => {
           <View style={styles.registerContainer}>
             <TouchableOpacity onPress={() => router.push("/(auth)/Register")}>
               <Text style={styles.registerText}>
-                Don't have an account?{" "}
+                  Don&apos;t have an account?{" "}
                 <Text style={styles.registerLink}>Register</Text>
               </Text>
             </TouchableOpacity>
