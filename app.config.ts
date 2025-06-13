@@ -7,10 +7,10 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
   owner: "tr3bla915",
   version: "1.0.8",
   orientation: "portrait",
-  icon: "./src/assets/images/icon.png",
+  icon: "./assets/icon.png",
   userInterfaceStyle: "light",
   splash: {
-    image: "./src/assets/images/icon.png",
+    image: "./assets/icon.png",
     resizeMode: "contain",
     backgroundColor: "#000000"
   },
@@ -35,14 +35,14 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
   },
   android: {
     adaptiveIcon: {
-      foregroundImage: "./src/assets/images/icon.png",
+      foregroundImage: "./assets/icon.png",
       backgroundColor: "#ffffff"
     },
     package: "com.your.club1111",
     googleServicesFile: "./google-services.json"
   },
   web: {
-    favicon: "./src/assets/images/icon.png"
+    favicon: "./assets/icon.png"
   },
   scheme: "exp+club1111",
   plugins: [
