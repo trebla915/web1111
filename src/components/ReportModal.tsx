@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert,
 } from "react-native";
 
 interface ReportPostModalProps {
@@ -31,7 +32,7 @@ const ReportPostModal: React.FC<ReportPostModalProps> = ({
 
   const handleSubmit = () => {
     if (!selectedReason) {
-      alert("Please select a reason for the report.");
+      Alert.alert("Error", "Please select a reason for the report.");
       return;
     }
     onSubmit(selectedReason, details || ""); // Ensure `details` defaults to an empty string

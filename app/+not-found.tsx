@@ -9,7 +9,7 @@ import { ThemedView } from '../src/components/ThemedView';
 export default function NotFoundScreen() {
   // --- Add deeper logging
   console.log("[+not-found]", {
-    location: typeof window !== "undefined" ? window.location?.href : "native",
+    location: typeof window !== "undefined" && window.location ? window.location.href : "native",
     time: new Date().toISOString(),
   });
 

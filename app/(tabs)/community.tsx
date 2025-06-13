@@ -202,8 +202,8 @@ const CommunityScreen: React.FC = () => {
     if (!reportingPostId) return;
 
     try {
-      const postRef = collection(firestore, 'communityPosts').doc(reportingPostId);
-      const postSnapshot = await getDocs(postRef);
+      const postRef = doc(firestore, 'communityPosts', reportingPostId);
+      const postSnapshot = await getDoc(postRef);
 
       if (!postSnapshot.exists()) {
         Alert.alert("Error", "The post does not exist.");
@@ -240,7 +240,7 @@ const CommunityScreen: React.FC = () => {
 
     try {
       setLoading(true);
-      const postRef = collection(firestore, 'communityPosts').doc(editingPostId);
+      const postRef = doc(firestore, 'communityPosts', editingPostId);
 
       const updates: Partial<CommunityPost> = {};
       if (text) updates.text = text.trim();

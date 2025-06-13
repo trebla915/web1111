@@ -20,8 +20,15 @@ export const BottleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Fetch and set the catalog globally
   const fetchAndSetCatalog = async (): Promise<void> => {
     try {
-      const fetchedCatalog = await fetchAllBottlesForEvent('dummyEventId'); // Example event ID
-      setCatalog(fetchedCatalog);
+      const fetchedBottles = await fetchAllBottlesForEvent('dummyEventId'); // Example event ID
+      // Convert BackendBottle[] to BottleCatalog[]
+      const catalogData: BottleCatalog[] = fetchedBottles.map(bottle => ({
+        id: bottle.id,
+        name: bottle.name,
+        imageUrl: bottle.imageUrl || PLACEHOLDER_IMAGE_URL,
+        price: bottle.price || 0,
+      }));
+      setCatalog(catalogData);
     } catch (error) {
       console.error('Error fetching catalog:', error);
     }

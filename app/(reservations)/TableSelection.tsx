@@ -16,7 +16,7 @@ import { FrontendTable } from '../../src/utils/types';
 import { Pressable } from 'react-native';
 
 // Import the local banner image
-import bannerImage from '../../src/assets/images/banner.jpg';
+const bannerImage = require('../../src/assets/images/banner.jpg');
 
 const TableSelection: React.FC = () => {
   const router = useRouter();

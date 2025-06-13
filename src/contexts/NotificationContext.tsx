@@ -86,10 +86,10 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
 
     return () => {
       if (notificationListener.current) {
-        notificationListener.current.remove();
+        Notifications.removeNotificationSubscription(notificationListener.current);
       }
       if (responseListener.current) {
-        responseListener.current.remove();
+        Notifications.removeNotificationSubscription(responseListener.current);
       }
     };
   }, []);

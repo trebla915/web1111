@@ -178,7 +178,6 @@ export default function Register() {
               onPress={() => setAcceptedEula(!acceptedEula)}
               color="#fff"
               uncheckedColor="#fff"
-              style={{ width: 20, height: 20, borderRadius: 5, backgroundColor: '#1c1c1c', borderColor: '#fff', borderWidth: 1 }}
             />
             <TouchableOpacity onPress={() => setModalVisible(true)}>
               <Text style={styles.termsText}>

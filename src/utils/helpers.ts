@@ -1,3 +1,5 @@
+import { Alert } from 'react-native';
+
 export const formatDate = (date: string): string => {
     return new Date(date).toLocaleDateString('en-US', {
       month: '2-digit',
