@@ -77,6 +77,23 @@ jobs:
           EAS_PROJECT_ID: e3775235-7f75-42c8-906e-8171c4a1e54b
           CI: true
 
+      # Discord notification when OTA update is triggered
+      - name: 📡 Discord OTA Update Triggered
+        uses: rjstone/discord-webhook-notify@v1
+        if: ${{ github.event.inputs.publish_update == 'true' }}
+        with:
+          severity: info
+          username: "Club1111 OTA Bot"
+          color: '#0099ff'
+          description: |
+            📡 **OTA Update Triggered**
+            
+            **Channel:** ${{ github.event.inputs.build_profile == 'preview-device' && 'preview' || github.event.inputs.build_profile }}
+            **Message:** ${{ github.event.inputs.update_message }}
+            **Actor:** ${{ github.actor }}
+          details: "Publishing update..."
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+
       - name: 📡 Publish OTA Update
         if: ${{ github.event.inputs.publish_update == 'true' }}
         run: |
@@ -85,6 +102,42 @@ jobs:
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           EAS_PROJECT_ID: e3775235-7f75-42c8-906e-8171c4a1e54b
+
+      # Discord notification for OTA update success
+      - name: ✅ Discord OTA Update Success
+        uses: rjstone/discord-webhook-notify@v1
+        if: ${{ github.event.inputs.publish_update == 'true' && success() }}
+        with:
+          severity: info
+          username: "Club1111 OTA Bot"
+          color: '#00ff00'
+          description: |
+            ✅ **OTA Update Published Successfully!**
+            
+            **Channel:** ${{ github.event.inputs.build_profile == 'preview-device' && 'preview' || github.event.inputs.build_profile }}
+            **Message:** ${{ github.event.inputs.update_message }}
+            **Actor:** ${{ github.actor }}
+          details: "Update is now live and available to users!"
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+
+      # Discord notification for OTA update failure
+      - name: ❌ Discord OTA Update Failed
+        uses: rjstone/discord-webhook-notify@v1
+        if: ${{ github.event.inputs.publish_update == 'true' && failure() }}
+        with:
+          severity: error
+          username: "Club1111 OTA Bot"
+          color: '#ff0000'
+          description: |
+            ❌ **OTA Update Failed!**
+            
+            **Channel:** ${{ github.event.inputs.build_profile == 'preview-device' && 'preview' || github.event.inputs.build_profile }}
+            **Message:** ${{ github.event.inputs.update_message }}
+            **Actor:** ${{ github.actor }}
+          details: |
+            The OTA update could not be published. Check the build logs for details.
+            🔗 [View Build Logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
 
       - name: 📱 Upload build artifact
         uses: actions/upload-artifact@v4
@@ -116,82 +169,6 @@ jobs:
           name: build-info-${{ github.run_number }}
           path: build-info.txt
           retention-days: 30
-
-      # Discord Notifications
-      - name: 🎉 Discord Success Notification
-        uses: rjstone/discord-webhook-notify@v1
-        if: success()
-        with:
-          severity: info
-          username: "Club1111 Build Bot"
-          color: '#00ff00'
-          avatarUrl: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
-          description: |
-            **✅ Build Completed Successfully!**
-            
-            **Profile:** ${{ github.event.inputs.build_profile }}
-            **Branch:** ${{ github.ref_name }}
-            **Commit:** `${{ github.sha }}`
-            **Actor:** ${{ github.actor }}
-            **Run:** #${{ github.run_number }}
-          details: |
-            📱 **iOS app is ready for download!**
-            🔗 [View Artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
-            
-            ${{ github.event.inputs.publish_update == 'true' && '📡 **OTA Update Published!**' || '' }}
-            ${{ github.event.inputs.publish_update == 'true' && format('Channel: {0}', github.event.inputs.build_profile == 'preview-device' && 'preview' || github.event.inputs.build_profile) || '' }}
-          footer: "Build completed at"
-          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
-
-      - name: ❌ Discord Failure Notification
-        uses: rjstone/discord-webhook-notify@v1
-        if: failure()
-        with:
-          severity: error
-          username: "Club1111 Build Bot"
-          color: '#ff0000'
-          avatarUrl: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
-          description: |
-            **❌ Build Failed!**
-            
-            **Profile:** ${{ github.event.inputs.build_profile }}
-            **Branch:** ${{ github.ref_name }}
-            **Commit:** `${{ github.sha }}`
-            **Actor:** ${{ github.actor }}
-            **Run:** #${{ github.run_number }}
-          details: |
-            💡 **Common issues:**
-            • TypeScript errors
-            • Missing dependencies
-            • EAS configuration problems
-            • Apple credential issues
-            
-            🔗 [View Build Logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
-          footer: "Build failed at"
-          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
-
-      - name: ⚠️ Discord Cancelled Notification
-        uses: rjstone/discord-webhook-notify@v1
-        if: cancelled()
-        with:
-          severity: warn
-          username: "Club1111 Build Bot"
-          color: '#ffaa00'
-          avatarUrl: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
-          description: |
-            **⚠️ Build Cancelled**
-            
-            **Profile:** ${{ github.event.inputs.build_profile }}
-            **Branch:** ${{ github.ref_name }}
-            **Commit:** `${{ github.sha }}`
-            **Actor:** ${{ github.actor }}
-            **Run:** #${{ github.run_number }}
-          details: |
-            The build was manually cancelled or timed out.
-            
-            🔗 [View Build Logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
-          footer: "Build cancelled at"
-          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
 
       - name: 🎉 Build Success Notification
         if: success()
