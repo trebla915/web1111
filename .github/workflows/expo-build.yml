@@ -60,10 +60,11 @@ jobs:
       - name: 🍎 Build iOS app
         run: |
           echo "Starting EAS build..."
-          eas build --platform ios --profile ${{ github.event.inputs.build_profile }} --local --output ./build.ipa --message "${{ github.event.inputs.build_message }}"
+          eas build --platform ios --profile ${{ github.event.inputs.build_profile }} --local --output ./build.ipa --message "${{ github.event.inputs.build_message }}" --non-interactive
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           EAS_PROJECT_ID: e3775235-7f75-42c8-906e-8171c4a1e54b
+          CI: true
 
       - name: 📱 Upload build artifact
         uses: actions/upload-artifact@v4
@@ -106,4 +107,5 @@ jobs:
         run: |
           echo "❌ Build failed!"
           echo "📋 Check the build logs above for details."
-          echo "💡 Common issues: TypeScript errors, missing dependencies, or EAS configuration problems." 
+          echo "💡 Common issues: TypeScript errors, missing dependencies, or EAS configuration problems."
+          echo "🔑 For Apple credential issues, make sure you've run 'eas build' locally first to set up credentials." 
