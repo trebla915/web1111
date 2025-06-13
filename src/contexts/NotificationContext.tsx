@@ -49,8 +49,8 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
 
   const { firebaseUser } = useAuth(); // Access user state from AuthContext
 
-  const notificationListener = useRef<EventSubscription>();
-  const responseListener = useRef<EventSubscription>();
+  const notificationListener = useRef<EventSubscription | undefined>(undefined);
+  const responseListener = useRef<EventSubscription | undefined>(undefined);
 
   useEffect(() => {
     const registerToken = async () => {
