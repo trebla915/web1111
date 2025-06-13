@@ -13,7 +13,7 @@
         "simulator": true,
         "resourceClass": "m-medium",
         "buildConfiguration": "Debug",
-        "image": "latest"
+        "image": "macos-sequoia-15.1-xcode-16.1"
       },
       "android": {
         "buildType": "apk",
@@ -32,7 +32,7 @@
         "simulator": true,
         "resourceClass": "m-medium",
         "buildConfiguration": "Release",
-        "image": "latest"
+        "image": "macos-sequoia-15.1-xcode-16.1"
       },
       "android": {
         "buildType": "apk",
@@ -52,7 +52,7 @@
         "simulator": false,
         "resourceClass": "m-medium",
         "buildConfiguration": "Release",
-        "image": "latest"
+        "image": "macos-sequoia-15.1-xcode-16.1"
       },
       "android": {
         "buildType": "apk",
@@ -75,7 +75,7 @@
         "channel": "production",
         "simulator": false,
         "resourceClass": "m-medium",
-        "image": "latest"
+        "image": "macos-sequoia-15.1-xcode-16.1"
       },
       "channel": "production",
       "autoIncrement": true,
@@ -88,7 +88,7 @@
       "distribution": "internal",
       "ios": {
         "simulator": true,
-        "image": "latest"
+        "image": "macos-sequoia-15.1-xcode-16.1"
       },
       "environment": "development",
       "env": {
@@ -104,7 +104,7 @@
         "simulator": false,
         "resourceClass": "m-medium",
         "buildConfiguration": "Release",
-        "image": "latest"
+        "image": "macos-sequoia-15.1-xcode-16.1"
       },
       "env": {
         "EAS_PROJECT_ID": "e3775235-7f75-42c8-906e-8171c4a1e54b"
