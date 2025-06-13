@@ -27,6 +27,14 @@ on:
         required: false
         default: 'GitHub Actions OTA update'
 
+env:
+  EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+  EXPO_APPLE_ID: ${{ secrets.EXPO_APPLE_ID }}
+  EXPO_APPLE_PASSWORD: ${{ secrets.EXPO_APPLE_PASSWORD }}
+  EXPO_TEAM_ID: ${{ secrets.EXPO_TEAM_ID }}
+  EAS_PROJECT_ID: e3775235-7f75-42c8-906e-8171c4a1e54b
+  NODE_OPTIONS: --openssl-legacy-provider
+
 jobs:
   build-ios:
     runs-on: macos-15
@@ -38,17 +46,26 @@ jobs:
       - name: 🏗 Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 18.x
+          node-version: 20
           cache: npm
 
-      - name: 🏗 Setup EAS
-        uses: expo/expo-github-action@v8
-        with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
-
       - name: 📦 Install dependencies
-        run: npm ci
+        run: |
+          npm ci
+          npm install -g eas-cli@latest
+
+      - name: 🔄 Verify EAS CLI installation
+        run: |
+          echo "EAS CLI version:"
+          eas --version
+
+      - name: 📦 Setup EAS build cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.eas-build-local
+          key: ${{ runner.os }}-eas-build-local-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-eas-build-local-
 
       - name: 🔍 Run TypeScript check
         run: npx tsc --noEmit
@@ -89,13 +106,9 @@ jobs:
       - name: 🍎 Build iOS app
         run: |
           echo "Starting EAS build..."
+          export NODE_OPTIONS="--openssl-legacy-provider --max_old_space_size=4096"
           eas build --platform ios --profile ${{ github.event.inputs.build_profile }} --local --output ./build.ipa --message "${{ github.event.inputs.build_message }}" --non-interactive
         env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-          EXPO_APPLE_ID: ${{ secrets.EXPO_APPLE_ID }}
-          EXPO_APPLE_PASSWORD: ${{ secrets.EXPO_APPLE_PASSWORD }}
-          EXPO_TEAM_ID: ${{ secrets.EXPO_TEAM_ID }}
-          EAS_PROJECT_ID: e3775235-7f75-42c8-906e-8171c4a1e54b
           CI: true
 
       - name: 📡 Publish OTA Update
@@ -103,9 +116,6 @@ jobs:
         run: |
           echo "Publishing OTA update..."
           eas update --channel ${{ github.event.inputs.build_profile == 'preview-device' && 'preview' || github.event.inputs.build_profile }} --message "${{ github.event.inputs.update_message }}" --non-interactive
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-          EAS_PROJECT_ID: e3775235-7f75-42c8-906e-8171c4a1e54b
 
       # Discord notifications disabled for now
       # - name: ✅ Discord Success Update
