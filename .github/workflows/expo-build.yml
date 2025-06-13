@@ -17,6 +17,15 @@ on:
         description: 'Build message'
         required: false
         default: 'GitHub Actions build'
+      publish_update:
+        description: 'Publish OTA update after build'
+        required: false
+        default: false
+        type: boolean
+      update_message:
+        description: 'OTA update message'
+        required: false
+        default: 'GitHub Actions OTA update'
 
 jobs:
   build-ios:
@@ -52,6 +61,7 @@ jobs:
           echo "Setting up build environment..."
           echo "Build profile: ${{ github.event.inputs.build_profile }}"
           echo "Build message: ${{ github.event.inputs.build_message }}"
+          echo "Publish OTA update: ${{ github.event.inputs.publish_update }}"
           echo "Branch: ${{ github.ref_name }}"
           echo "Commit: ${{ github.sha }}"
 
@@ -67,6 +77,15 @@ jobs:
           EAS_PROJECT_ID: e3775235-7f75-42c8-906e-8171c4a1e54b
           CI: true
 
+      - name: 📡 Publish OTA Update
+        if: ${{ github.event.inputs.publish_update == 'true' }}
+        run: |
+          echo "Publishing OTA update..."
+          eas update --channel ${{ github.event.inputs.build_profile == 'preview-device' && 'preview' || github.event.inputs.build_profile }} --message "${{ github.event.inputs.update_message }}" --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EAS_PROJECT_ID: e3775235-7f75-42c8-906e-8171c4a1e54b
+
       - name: 📱 Upload build artifact
         uses: actions/upload-artifact@v4
         if: success()
@@ -81,7 +100,9 @@ jobs:
           echo "=== BUILD INFORMATION ===" > build-info.txt
           echo "Status: ${{ job.status }}" >> build-info.txt
           echo "Profile: ${{ github.event.inputs.build_profile }}" >> build-info.txt
-          echo "Message: ${{ github.event.inputs.build_message }}" >> build-info.txt
+          echo "Build Message: ${{ github.event.inputs.build_message }}" >> build-info.txt
+          echo "OTA Update Published: ${{ github.event.inputs.publish_update }}" >> build-info.txt
+          echo "Update Message: ${{ github.event.inputs.update_message }}" >> build-info.txt
           echo "Run Number: ${{ github.run_number }}" >> build-info.txt
           echo "Commit: ${{ github.sha }}" >> build-info.txt
           echo "Branch: ${{ github.ref_name }}" >> build-info.txt
@@ -102,6 +123,9 @@ jobs:
           echo "🎉 Build completed successfully!"
           echo "📱 Your iOS app is ready for download from the artifacts section."
           echo "🔗 Build profile: ${{ github.event.inputs.build_profile }}"
+          if [ "${{ github.event.inputs.publish_update }}" == "true" ]; then
+            echo "📡 OTA update has been published!"
+          fi
 
       - name: ❌ Build Failure Notification
         if: failure()
