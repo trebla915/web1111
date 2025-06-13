@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 const HeaderRight: React.FC = () => {
@@ -12,7 +12,7 @@ const HeaderRight: React.FC = () => {
   return (
     <TouchableOpacity onPress={() => router.replace('/(tabs)')}>
       <View style={styles.container}>
-        <Icon name="home" size={24} color="#ffffff" />
+        <MaterialIcons name="home" size={24} color="#ffffff" />
       </View>
     </TouchableOpacity>
   );

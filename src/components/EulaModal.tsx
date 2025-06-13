@@ -54,7 +54,7 @@ const EulaModal: React.FC<EulaModalProps> = ({ visible, onClose }) => {
               - Upload malicious code, viruses, or disruptive technologies.{"\n"}
               - Harass, stalk, or harm other users.{"\n"}
               - Reverse-engineer, disassemble, or tamper with the App.{"\n"}
-              - Engage in any activity that disrupts the App's functionality or undermines user security.{"\n\n"}
+              - Engage in any activity that disrupts the App&apos;s functionality or undermines user security.{"\n\n"}
               <Text style={styles.sectionTitle}>5. Safety and Moderation</Text>{"\n"}
               To ensure a safe environment:{"\n"}
               - **Terms Acceptance:** Users must accept this Agreement, which includes a no-tolerance policy for objectionable behavior.{"\n"}

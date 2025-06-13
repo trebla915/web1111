@@ -15,7 +15,7 @@ import { fetchAllEvents } from '../../src/utils/events';
 import { Event } from '../../src/utils/types';
 import { Linking } from 'react-native';
 import { useLoading } from '../../src/contexts/LoadingContext'; // Use global loading context
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 import { Pressable } from 'react-native';
 import { useAuth } from '../../src/contexts/AuthContext'; // Import Auth context
 import { formatDate } from '../../src/utils/dateFormatter';
@@ -184,7 +184,7 @@ const EventsScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.headerContainer}>
         <View style={styles.searchContainer}>
-          <Icon name="search" size={20} color="#ccc" style={styles.searchIcon} />
+                        <Ionicons name="search" size={20} color="#ccc" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search events..."

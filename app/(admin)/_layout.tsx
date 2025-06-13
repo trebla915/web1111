@@ -4,7 +4,7 @@ import { AuthProvider, useAuth } from '../../src/contexts/AuthContext';
 import { BottleProvider } from '../../src/contexts/BottleContext';
 import { View, ActivityIndicator, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons } from '@expo/vector-icons';
 
 export default function AdminLayout() {
   const { firebaseUser, isLoading } = useAuth(); // Access user authentication state

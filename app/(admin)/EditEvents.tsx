@@ -13,7 +13,7 @@ import {
 import { fetchAllEvents, updateEvent, deleteEvent } from '../../src/utils/events';
 import { Event } from '../../src/utils/types';
 import CustomButton from '../../src/components/CustomButton';
-import Icon from 'react-native-vector-icons/Ionicons'; // Import the icon library
+import { Ionicons } from '@expo/vector-icons'; // Import the icon library
 
 const EditEvents: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
@@ -146,7 +146,7 @@ const EditEvents: React.FC = () => {
         <>
           {/* Search Bar */}
           <View style={styles.searchContainer}>
-            <Icon name="search" size={20} color="#ccc" style={styles.searchIcon} />
+                            <Ionicons name="search" size={20} color="#ccc" style={styles.searchIcon} />
             <TextInput
               style={styles.searchInput}
               placeholder="Search events..."

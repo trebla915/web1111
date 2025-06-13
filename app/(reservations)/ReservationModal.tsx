@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useUser } from '../../src/contexts/UserContext';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { Bottle, Mixer } from '../../src/utils/types';
 import { calculateFullCostBreakdown } from '../../src/utils/paymentUtils';
 
@@ -129,14 +129,14 @@ export default function ReservationModal() {
             onPress={() => setGuestCount((prev) => Math.max(prev - 1, 1))}
             style={styles.roundButton}
           >
-            <Icon name="remove" size={24} color="#fff" />
+                                  <MaterialIcons name="remove" size={24} color="#fff" />
           </TouchableOpacity>
           <Text style={styles.guestCount}>{guestCount}</Text>
           <TouchableOpacity
             onPress={() => setGuestCount((prev) => Math.min(prev + 1, tableCapacity))}
             style={styles.roundButton}
           >
-            <Icon name="add" size={24} color="#fff" />
+                                  <MaterialIcons name="add" size={24} color="#fff" />
           </TouchableOpacity>
         </View>
       </View>
@@ -162,10 +162,10 @@ export default function ReservationModal() {
                 </View>
                 <View style={styles.itemActions}>
                   <TouchableOpacity onPress={handleOpenBottleModal}>
-                    <Icon name="edit" size={24} color="#fff" />
+                    <MaterialIcons name="edit" size={24} color="#fff" />
                   </TouchableOpacity>
                   <TouchableOpacity onPress={() => handleRemoveItem(item.id)}>
-                    <Icon name="delete" size={24} color="red" />
+                                          <MaterialIcons name="delete" size={24} color="red" />
                   </TouchableOpacity>
                 </View>
               </View>

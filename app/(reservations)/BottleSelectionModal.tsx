@@ -4,7 +4,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { fetchAllBottlesForEvent } from '../../src/utils/bottleService'; // Correct import
 import { Bottle, BackendBottle } from '../../src/utils/types';
 import { useUser } from '../../src/contexts/UserContext';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons } from '@expo/vector-icons';
 
 const PLACEHOLDER_IMAGE_URL = 'https://via.placeholder.com/150';
 
@@ -136,11 +136,11 @@ const BottleSelectionModal: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.headerRow}>
         <TouchableOpacity onPress={() => router.back()} style={styles.headerIconButton}>
-          {Icon ? <Icon name="close" size={28} color="#fff" /> : <Text style={{color:'#fff',fontSize:24}}>×</Text>}
+                      {MaterialIcons ? <MaterialIcons name="close" size={28} color="#fff" /> : <Text style={{color:'#fff',fontSize:24}}>×</Text>}
         </TouchableOpacity>
         <Text style={styles.title}>Select Bottles</Text>
         <TouchableOpacity onPress={() => router.replace('/')} style={styles.headerIconButton}>
-          {Icon ? <Icon name="home" size={28} color="#fff" /> : <Text style={{color:'#fff',fontSize:24}}>🏠</Text>}
+                      {MaterialIcons ? <MaterialIcons name="home" size={28} color="#fff" /> : <Text style={{color:'#fff',fontSize:24}}>🏠</Text>}
         </TouchableOpacity>
       </View>
       {loading ? (
