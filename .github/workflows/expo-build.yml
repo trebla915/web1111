@@ -65,6 +65,27 @@ jobs:
           echo "Branch: ${{ github.ref_name }}"
           echo "Commit: ${{ github.sha }}"
 
+      # Discord notification - Always notify about OTA activity
+      - name: 🚀 Discord OTA Notification
+        uses: rjstone/discord-webhook-notify@v1
+        with:
+          severity: info
+          username: "11:11 DEVELOPER"
+          color: '#00ff88'
+          description: |
+            🌟 **11:11 APP DEVELOPER** pushed a **OTA UPDATE** 🌟
+            
+            ⚡ **Channel:** ${{ github.event.inputs.build_profile == 'preview-device' && 'preview' || github.event.inputs.build_profile }}
+            💬 **Message:** ${{ github.event.inputs.update_message }}
+            👤 **Developer:** ${{ github.actor }}
+            🔥 **Status:** ${{ github.event.inputs.publish_update == 'true' && 'LIVE UPDATE' || 'BUILD + PREVIEW' }}
+          details: |
+            ${{ github.event.inputs.publish_update == 'true' && '🎯 Update is being published to users!' || '🛠️ Building new version for testing!' }}
+            
+            ⏰ **Time:** $(date)
+            🌐 **Build:** #${{ github.run_number }}
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+
       - name: 🍎 Build iOS app
         run: |
           echo "Starting EAS build..."
@@ -77,23 +98,6 @@ jobs:
           EAS_PROJECT_ID: e3775235-7f75-42c8-906e-8171c4a1e54b
           CI: true
 
-      # Discord notification when OTA update is triggered
-      - name: 📡 Discord OTA Update Triggered
-        uses: rjstone/discord-webhook-notify@v1
-        if: ${{ github.event.inputs.publish_update == 'true' }}
-        with:
-          severity: info
-          username: "Club1111 OTA Bot"
-          color: '#0099ff'
-          description: |
-            📡 **OTA Update Triggered**
-            
-            **Channel:** ${{ github.event.inputs.build_profile == 'preview-device' && 'preview' || github.event.inputs.build_profile }}
-            **Message:** ${{ github.event.inputs.update_message }}
-            **Actor:** ${{ github.actor }}
-          details: "Publishing update..."
-          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
-
       - name: 📡 Publish OTA Update
         if: ${{ github.event.inputs.publish_update == 'true' }}
         run: |
@@ -103,40 +107,44 @@ jobs:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           EAS_PROJECT_ID: e3775235-7f75-42c8-906e-8171c4a1e54b
 
-      # Discord notification for OTA update success
-      - name: ✅ Discord OTA Update Success
+      # Success notification - Update the original message
+      - name: ✅ Discord Success Update
         uses: rjstone/discord-webhook-notify@v1
-        if: ${{ github.event.inputs.publish_update == 'true' && success() }}
+        if: success()
         with:
           severity: info
-          username: "Club1111 OTA Bot"
+          username: "11:11 DEVELOPER"
           color: '#00ff00'
           description: |
-            ✅ **OTA Update Published Successfully!**
+            ✅ **11:11 APP UPDATE COMPLETE!** ✅
             
-            **Channel:** ${{ github.event.inputs.build_profile == 'preview-device' && 'preview' || github.event.inputs.build_profile }}
-            **Message:** ${{ github.event.inputs.update_message }}
-            **Actor:** ${{ github.actor }}
-          details: "Update is now live and available to users!"
+            🎉 **SUCCESS:** ${{ github.event.inputs.publish_update == 'true' && 'OTA Update Published!' || 'Build Ready!' }}
+            ⚡ **Channel:** ${{ github.event.inputs.build_profile == 'preview-device' && 'preview' || github.event.inputs.build_profile }}
+            👤 **Developer:** ${{ github.actor }}
+          details: |
+            ${{ github.event.inputs.publish_update == 'true' && '🚀 Users can now receive the update!' || '📱 New build is ready for download!' }}
+            
+            🔗 [Download Build](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
           webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
 
-      # Discord notification for OTA update failure
-      - name: ❌ Discord OTA Update Failed
+      # Failure notification
+      - name: ❌ Discord Failure Update
         uses: rjstone/discord-webhook-notify@v1
-        if: ${{ github.event.inputs.publish_update == 'true' && failure() }}
+        if: failure()
         with:
           severity: error
-          username: "Club1111 OTA Bot"
+          username: "11:11 DEVELOPER"
           color: '#ff0000'
           description: |
-            ❌ **OTA Update Failed!**
+            ❌ **11:11 APP UPDATE FAILED!** ❌
             
-            **Channel:** ${{ github.event.inputs.build_profile == 'preview-device' && 'preview' || github.event.inputs.build_profile }}
-            **Message:** ${{ github.event.inputs.update_message }}
-            **Actor:** ${{ github.actor }}
+            💥 **ERROR:** Build process failed
+            ⚡ **Channel:** ${{ github.event.inputs.build_profile == 'preview-device' && 'preview' || github.event.inputs.build_profile }}
+            👤 **Developer:** ${{ github.actor }}
           details: |
-            The OTA update could not be published. Check the build logs for details.
-            🔗 [View Build Logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            🔧 Check the build logs for details
+            
+            🔗 [View Logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
           webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
 
       - name: 📱 Upload build artifact
