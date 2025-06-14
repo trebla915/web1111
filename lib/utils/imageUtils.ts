@@ -20,15 +20,29 @@ export const RESPONSIVE_SIZES = {
   LOGO: '(max-width: 768px) 200px, 300px'
 } as const;
 
-// Clean Firebase Storage URLs to remove auth tokens and make them consistent
+// Clean Firebase Storage URLs to remove only cache-busting parameters while preserving essential tokens
 export function cleanFirebaseUrl(url: string): string {
   if (!url.includes('firebasestorage.googleapis.com') && !url.includes('storage.googleapis.com')) {
     return url;
   }
   
-  // Remove auth tokens and parameters to create consistent URLs
-  const cleanUrl = url.split('?')[0];
-  return cleanUrl;
+  try {
+    const urlObj = new URL(url);
+    
+    // Remove only cache-busting and timestamp parameters that cause duplicate transformations
+    // Keep essential Firebase Storage parameters like token, alt, etc.
+    const paramsToRemove = ['_', 'timestamp', 'cache', 'v', 'version'];
+    
+    paramsToRemove.forEach(param => {
+      urlObj.searchParams.delete(param);
+    });
+    
+    return urlObj.toString();
+  } catch (error) {
+    // If URL parsing fails, return original URL
+    console.warn('Failed to parse Firebase URL:', url);
+    return url;
+  }
 }
 
 // Get optimized image props for consistent usage

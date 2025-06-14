@@ -233,6 +233,7 @@ export default function EventDetails({ event }: EventDetailsProps) {
                   className="object-cover"
                   sizes="(max-width: 768px) 100vw, 40vw"
                   priority
+                  unoptimized={event.flyerUrl?.includes('firebasestorage.googleapis.com') || event.flyerUrl?.includes('storage.googleapis.com')}
                 />
                 <div className="absolute inset-0 bg-black/30 md:bg-transparent md:hover:bg-black/30 flex items-center justify-center opacity-0 md:hover:opacity-100 transition-opacity touch-target">
                   <FiShare2 className="text-white text-2xl" />
@@ -444,6 +445,7 @@ export default function EventDetails({ event }: EventDetailsProps) {
               className="object-contain"
               sizes="100vw"
               priority
+              unoptimized={event.flyerUrl?.includes('firebasestorage.googleapis.com') || event.flyerUrl?.includes('storage.googleapis.com')}
             />
           </div>
         </div>

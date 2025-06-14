@@ -366,6 +366,7 @@ export default function AddBottleToCatalogTab() {
                     fill
                     style={{objectFit: "contain"}}
                     className="rounded-lg"
+                    unoptimized={bottle.imageUrl?.includes('firebasestorage.googleapis.com') || bottle.imageUrl?.includes('storage.googleapis.com')}
                   />
                 </div>
               </div>
@@ -435,6 +436,7 @@ export default function AddBottleToCatalogTab() {
                     fill
                     style={{objectFit: "contain"}}
                     className="rounded-lg"
+                    unoptimized={modalImageUrl?.includes('firebasestorage.googleapis.com') || modalImageUrl?.includes('storage.googleapis.com')}
                   />
                 </div>
                 <label className="flex items-center justify-center w-full h-12 px-4 transition bg-zinc-800/80 border border-cyan-900/50 hover:border-cyan-500/70 rounded-lg cursor-pointer">
