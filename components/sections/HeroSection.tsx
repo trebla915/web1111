@@ -92,6 +92,7 @@ export default function HeroSection() {
               height={400}
               className="w-full h-auto"
               priority
+              unoptimized
             />
             <motion.div
               initial={{ opacity: 0, y: 20 }}
