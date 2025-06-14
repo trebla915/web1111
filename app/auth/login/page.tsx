@@ -3,9 +3,9 @@
 import LoginForm from "@/components/Auth/LoginForm";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 
-export default function LoginPage() {
+function LoginPageContent() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -39,5 +39,17 @@ export default function LoginPage() {
         <LoginForm />
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-black text-white">
+        <div className="animate-pulse">Loading...</div>
+      </div>
+    }>
+      <LoginPageContent />
+    </Suspense>
   );
 }
