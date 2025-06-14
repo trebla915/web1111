@@ -8,6 +8,12 @@ const nextConfig = {
     ignoreDuringBuilds: true
   },
   images: {
+    // Optimize image handling to reduce transformations
+    formats: ['image/webp', 'image/avif'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [128, 256, 384],
+    // Limit the number of different sizes to reduce transformations
+    minimumCacheTTL: 31536000, // 1 year cache
     remotePatterns: [
       {
         protocol: 'https',
@@ -15,11 +21,7 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'via.placeholder.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'example.com',
+        hostname: 'storage.googleapis.com',
       },
     ],
   },

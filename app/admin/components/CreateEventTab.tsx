@@ -6,7 +6,7 @@ import { uploadImageToStorage } from '@/lib/services/storage';
 import { createEvent } from '@/lib/services/events';
 import Image from 'next/image';
 import { toast } from 'react-hot-toast';
-import { FiCalendar, FiLink, FiUpload, FiTrash2, FiPlus } from 'react-icons/fi';
+import { FiCalendar, FiLink, FiUpload, FiTrash2, FiPlus, FiCheck } from 'react-icons/fi';
 
 export default function CreateEventTab() {
   const { user } = useAuth();
@@ -120,159 +120,201 @@ export default function CreateEventTab() {
   };
 
   return (
-    <div className="h-full">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Form Section */}
-        <div className="bg-zinc-900/50 rounded-lg border border-cyan-900/30 p-6">
-          <form onSubmit={handleCreateEvent} className="space-y-6">
-            {/* Event Name */}
-            <div className="space-y-2">
-              <label htmlFor="eventName" className="block text-sm font-medium text-gray-200">
-                Event Name
-              </label>
-              <input
-                type="text"
-                id="eventName"
-                value={eventName}
-                onChange={(e) => setEventName(e.target.value)}
-                className="w-full px-4 py-2 bg-black/50 border border-cyan-900/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-white placeholder-gray-500"
-                placeholder="Enter event name"
-              />
-            </div>
+    <div className="space-y-6">
+      {/* Mobile Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h2 className="text-2xl lg:text-3xl font-bold text-cyan-300">Create New Event</h2>
+        <div className="text-sm text-gray-400">Fill out the form below to create an event</div>
+      </div>
 
-            {/* Event Date */}
-            <div className="space-y-2">
-              <label htmlFor="eventDate" className="block text-sm font-medium text-gray-200">
-                Event Date
-              </label>
-              <div className="relative">
+      {/* Main Content - Mobile First Layout */}
+      <div className="space-y-6 lg:space-y-0 lg:grid lg:grid-cols-12 lg:gap-8">
+        
+        {/* Form Section - Takes full width on mobile, 8 cols on desktop */}
+        <div className="lg:col-span-8">
+          <div className="bg-zinc-900/50 rounded-lg border border-cyan-900/30 p-4 lg:p-6">
+            <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
+              <FiPlus className="text-cyan-400" />
+              Event Details
+            </h3>
+            
+            <form onSubmit={handleCreateEvent} className="space-y-6">
+              {/* Event Name */}
+              <div className="space-y-2">
+                <label htmlFor="eventName" className="block text-sm font-medium text-gray-200">
+                  Event Name *
+                </label>
                 <input
-                  type="datetime-local"
-                  id="eventDate"
-                  value={selectedDate ? selectedDate.toISOString().slice(0, 16) : ''}
-                  onChange={(e) => setSelectedDate(e.target.value ? new Date(e.target.value) : null)}
-                  className="w-full px-4 py-2 bg-black/50 border border-cyan-900/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-white"
+                  type="text"
+                  id="eventName"
+                  value={eventName}
+                  onChange={(e) => setEventName(e.target.value)}
+                  className="w-full px-4 py-3 lg:py-2 bg-black/50 border border-cyan-900/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-white placeholder-gray-500 text-base lg:text-sm"
+                  placeholder="Enter event name"
                 />
-                <FiCalendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               </div>
-            </div>
 
-            {/* Ticket Link */}
-            <div className="space-y-2">
-              <label htmlFor="ticketLink" className="block text-sm font-medium text-gray-200">
-                Ticket Link (Optional)
-              </label>
-              <div className="relative">
-                <input
-                  type="url"
-                  id="ticketLink"
-                  value={ticketLink}
-                  onChange={(e) => setTicketLink(e.target.value)}
-                  className="w-full px-4 py-2 bg-black/50 border border-cyan-900/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-white placeholder-gray-500"
-                  placeholder="https://"
-                />
-                <FiLink className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              {/* Event Date */}
+              <div className="space-y-2">
+                <label htmlFor="eventDate" className="block text-sm font-medium text-gray-200">
+                  Event Date & Time *
+                </label>
+                <div className="relative">
+                  <input
+                    type="datetime-local"
+                    id="eventDate"
+                    value={selectedDate ? selectedDate.toISOString().slice(0, 16) : ''}
+                    onChange={(e) => setSelectedDate(e.target.value ? new Date(e.target.value) : null)}
+                    className="w-full px-4 py-3 lg:py-2 bg-black/50 border border-cyan-900/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-white text-base lg:text-sm"
+                  />
+                  <FiCalendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+                </div>
               </div>
-            </div>
 
-            {/* Reservations Toggle */}
-            <div className="flex items-center space-x-3">
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={reservationsEnabled}
-                  onChange={(e) => setReservationsEnabled(e.target.checked)}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-600"></div>
-              </label>
-              <span className="text-sm font-medium text-gray-200">Enable Reservations</span>
-            </div>
+              {/* Ticket Link */}
+              <div className="space-y-2">
+                <label htmlFor="ticketLink" className="block text-sm font-medium text-gray-200">
+                  Ticket Link (Optional)
+                </label>
+                <div className="relative">
+                  <input
+                    type="url"
+                    id="ticketLink"
+                    value={ticketLink}
+                    onChange={(e) => setTicketLink(e.target.value)}
+                    className="w-full px-4 py-3 lg:py-2 bg-black/50 border border-cyan-900/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-white placeholder-gray-500 text-base lg:text-sm"
+                    placeholder="https://tickets.example.com"
+                  />
+                  <FiLink className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+                </div>
+              </div>
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full px-6 py-3 bg-gradient-to-r from-cyan-600 to-cyan-700 text-white rounded-lg font-medium
-                hover:from-cyan-500 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-colors
-                disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <div className="w-5 h-5 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
-                  <span>Creating Event...</span>
-                </>
-              ) : (
-                <>
-                  <FiPlus className="w-5 h-5" />
-                  <span>Create Event</span>
-                </>
-              )}
-            </button>
-          </form>
+              {/* Reservations Toggle - Mobile Optimized */}
+              <div className="bg-zinc-800/50 p-4 rounded-lg border border-cyan-900/20">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-200">Enable Reservations</h4>
+                    <p className="text-xs text-gray-400 mt-1">Allow users to book tables for this event</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={reservationsEnabled}
+                      onChange={(e) => setReservationsEnabled(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-cyan-500/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-600"></div>
+                  </label>
+                </div>
+              </div>
+
+              {/* Submit Button - Mobile Optimized */}
+              <div className="pt-4">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full px-6 py-4 lg:py-3 bg-gradient-to-r from-cyan-600 to-cyan-700 text-white rounded-lg font-medium text-base lg:text-sm
+                    hover:from-cyan-500 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-colors
+                    disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-5 h-5 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
+                      Creating Event...
+                    </>
+                  ) : (
+                    <>
+                      <FiCheck size={20} />
+                      Create Event
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
 
-        {/* Flyer Upload Section */}
-        <div className="bg-zinc-900/50 rounded-lg border border-cyan-900/30 p-6">
-          <div className="h-full flex flex-col gap-6">
-            {/* Upload Area */}
-            <div 
-              className={`${flyerPreview ? 'h-[200px]' : 'h-[400px]'} relative border-2 border-dashed border-cyan-900/30 rounded-lg hover:border-cyan-500/50 transition-colors cursor-pointer`}
-              onClick={() => document.getElementById('flyerInput')?.click()}
-            >
-              <input
-                id="flyerInput"
-                type="file"
-                accept="image/*"
-                onChange={handleFlyerChange}
-                className="hidden"
-              />
-              {!flyerPreview && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <div className="p-6 rounded-full bg-cyan-900/20 mb-4">
-                    <FiUpload className="h-12 w-12 text-cyan-400" />
+        {/* Flyer Upload Section - Full width on mobile, 4 cols on desktop */}
+        <div className="lg:col-span-4">
+          <div className="bg-zinc-900/50 rounded-lg border border-cyan-900/30 p-4 lg:p-6">
+            <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
+              <FiUpload className="text-cyan-400" />
+              Event Flyer
+            </h3>
+            
+            {/* Flyer Upload Area */}
+            {!flyerPreview ? (
+              <div className="border-2 border-dashed border-cyan-900/30 rounded-lg p-8 text-center hover:border-cyan-700/50 transition-colors">
+                <div className="space-y-4">
+                  <div className="mx-auto w-16 h-16 bg-cyan-900/20 rounded-full flex items-center justify-center">
+                    <FiUpload className="text-cyan-400" size={24} />
                   </div>
-                  <p className="text-lg text-gray-300 font-medium">
-                    Click to upload a flyer
-                  </p>
-                  <p className="text-sm text-gray-500 mt-2">
-                    or drag and drop an image here
-                  </p>
-                  <p className="text-xs text-gray-600 mt-4">
-                    Maximum file size: 5MB
-                  </p>
+                  <div>
+                    <h4 className="text-white font-medium">Upload Event Flyer</h4>
+                    <p className="text-gray-400 text-sm mt-1">PNG, JPG up to 5MB</p>
+                  </div>
+                  <label className="cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFlyerChange}
+                      className="hidden"
+                    />
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors text-sm">
+                      <FiPlus size={16} />
+                      Choose File
+                    </div>
+                  </label>
                 </div>
-              )}
-            </div>
-
-            {/* Preview Area */}
-            {flyerPreview && (
-              <div className="flex-1 min-h-[500px] relative rounded-lg overflow-hidden bg-black/50">
-                <div className="absolute inset-0 flex items-center justify-center">
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Flyer Preview */}
+                <div className="relative bg-black/50 rounded-lg overflow-hidden border border-cyan-900/30">
                   <Image
                     src={flyerPreview}
                     alt="Event flyer preview"
-                    fill
-                    className="object-contain"
-                    sizes="(max-width: 768px) 100vw, 50vw"
+                    width={300}
+                    height={400}
+                    className="w-full h-auto object-cover"
                   />
                 </div>
-                <div className="absolute top-4 right-4 z-10">
+                
+                {/* Flyer Actions */}
+                <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={removeFlyerImage}
-                    className="p-3 bg-red-600/90 rounded-full text-white hover:bg-red-700 transition-colors shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                    className="flex-1 px-4 py-2 bg-red-900/20 hover:bg-red-900/40 border border-red-500/40 text-red-400 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm"
                   >
-                    <FiTrash2 className="w-6 h-6" />
+                    <FiTrash2 size={16} />
+                    Remove
                   </button>
-                </div>
-                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
-                  <p className="text-sm text-gray-300">
-                    Click the trash icon to remove this image and upload a different one
-                  </p>
+                  <label className="flex-1 cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFlyerChange}
+                      className="hidden"
+                    />
+                    <div className="w-full px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2 text-sm">
+                      <FiUpload size={16} />
+                      Change
+                    </div>
+                  </label>
                 </div>
               </div>
             )}
+
+            {/* Upload Tips */}
+            <div className="mt-6 p-3 bg-zinc-800/50 rounded-lg border border-cyan-900/20">
+              <h4 className="text-xs font-medium text-cyan-300 mb-2">Tips:</h4>
+              <ul className="text-xs text-gray-400 space-y-1">
+                <li>• Use high-quality images for best results</li>
+                <li>• Recommended size: 1080x1350px</li>
+                <li>• File formats: JPG, PNG</li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>

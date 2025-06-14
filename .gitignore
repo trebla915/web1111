@@ -49,3 +49,4 @@ next-env.d.ts
 # Firebase
 *firebase-adminsdk*.json
 club-1111-firebase-adminsdk-43fx3-c9a39031bf.json
+.env*.local

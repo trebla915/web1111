@@ -227,7 +227,7 @@ export default function EventDetails({ event }: EventDetailsProps) {
             <div className="w-full md:w-2/5 relative">
               <div className="aspect-square w-full cursor-pointer pt-2 p-1 md:p-2" onClick={() => setShowFullImage(true)}>
                 <Image
-                  src={event.flyerUrl || 'https://via.placeholder.com/800x800?text=Event+Flyer'}
+                  src={event.flyerUrl || '/placeholder-event.png'}
                   alt={event.title}
                   fill
                   className="object-cover"
@@ -438,7 +438,7 @@ export default function EventDetails({ event }: EventDetailsProps) {
           </button>
           <div className="w-full h-full p-8 relative flex items-center justify-center">
             <Image
-              src={event.flyerUrl || 'https://via.placeholder.com/800x800?text=Event+Flyer'}
+              src={event.flyerUrl || '/placeholder-event.png'}
               alt={event.title}
               fill
               className="object-contain"

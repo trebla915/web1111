@@ -430,7 +430,7 @@ export default function AddBottleToCatalogTab() {
                 </label>
                 <div className="relative w-full h-48 mb-3 bg-black/30 rounded-lg border border-cyan-900/30 p-1">
                   <Image
-                    src={modalImageUrl || "https://via.placeholder.com/150"}
+                    src={modalImageUrl || "/placeholder-bottle.png"}
                     alt="Bottle"
                     fill
                     style={{objectFit: "contain"}}

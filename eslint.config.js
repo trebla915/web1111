@@ -14,8 +14,8 @@ export default [
       next: nextPlugin,
     },
     rules: {
-      // Your JavaScript-specific rules
-      'next/core-web-vitals': 'error',
+      // Use recommended Next.js rules
+      ...nextPlugin.configs.recommended.rules,
     },
   },
   {
@@ -32,8 +32,8 @@ export default [
       },
     },
     rules: {
-      // Your TypeScript-specific rules
-      'next/core-web-vitals': 'error',
+      // Use recommended Next.js rules
+      ...nextPlugin.configs.recommended.rules,
       // Add any other TypeScript-specific rules
     },
   },

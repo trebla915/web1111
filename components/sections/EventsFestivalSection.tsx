@@ -176,11 +176,11 @@ export default function EventsFestivalSection({
                   <div className="w-20 md:w-32 relative aspect-square ml-auto">
                     <div className="absolute inset-0 rounded-md overflow-hidden border border-white/20 shadow-lg">
                       <Image
-                        src={event.flyerUrl || 'https://via.placeholder.com/400x400?text=Event+Flyer'}
+                        src={event.flyerUrl || '/placeholder-event.png'}
                         alt={event.title}
                         fill
                         className="object-contain group-hover:scale-110 transition-transform duration-500"
-                        sizes="(max-width: 768px) 80px, 128px"
+                        sizes="128px"
                         placeholder="blur"
                         blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAEggJ4YA0XfwAAAABJRU5ErkJggg=="
                         loading="lazy"

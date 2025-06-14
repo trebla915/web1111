@@ -1,15 +1,11 @@
 import type { Metadata } from "next";
 import { ReactNode } from "react";
 import { AuthProvider } from "@/components/providers/AuthProvider";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
-import CookieConsent from "@/components/layout/CookieConsent";
-import ClientWrapper from "@/lib/utils/ClientWrapper"
 import StripeProvider from "@/components/providers/StripeProvider";
 import { ReservationProvider } from "@/components/providers/ReservationProvider";
 import { Toaster } from "react-hot-toast";
 import "../styles/globals.css";
-import AppDownloadPopup from "@/components/layout/AppDownloadPopup";
+import ConditionalLayout from "@/components/layout/ConditionalLayout";
 
 export const metadata: Metadata = {
   title: "11:11 | El Paso Texas Music and Concert Venue",
@@ -73,12 +69,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <AuthProvider>
           <StripeProvider>
             <ReservationProvider>
-              <ClientWrapper>
-                <Header />
-                <main className="flex-1">{children}</main>
-                <Footer />
-                <CookieConsent />
-              </ClientWrapper>
+              <ConditionalLayout>{children}</ConditionalLayout>
             </ReservationProvider>
           </StripeProvider>
         </AuthProvider>

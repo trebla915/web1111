@@ -14,6 +14,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { User } from '@/types/user';
+import { getAuth } from 'firebase/auth';
 
 const USERS_COLLECTION = 'users';
 
@@ -58,11 +59,39 @@ export const getUserById = async (userId: string): Promise<User | null> => {
     
     if (userSnap.exists()) {
       const userData = userSnap.data() as User;
-      console.log('User data from Firestore:', userData);
+      console.log('User data from Firestore (direct ID lookup):', userData);
       return userData;
     }
     
     console.log('No user document found for ID:', userId);
+    
+    // FALLBACK: If no user found by UID, try to find by email
+    // This handles the case where user IDs were migrated to email-based format
+    try {
+      // First, get the user's email from Firebase Auth
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+      
+      if (currentUser?.email) {
+        console.log('Attempting fallback lookup by email:', currentUser.email);
+        const userByEmail = await getUserByEmail(currentUser.email);
+        
+        if (userByEmail) {
+          console.log('Found user via email fallback:', userByEmail);
+          return {
+            uid: userId, // Keep the original Firebase Auth UID for consistency
+            email: userByEmail.email,
+            displayName: userByEmail.name || userByEmail.displayName,
+            photoURL: userByEmail.avatar || userByEmail.photoURL,
+            role: userByEmail.role,
+            phone: userByEmail.phone
+          } as User;
+        }
+      }
+    } catch (fallbackError) {
+      console.warn('Fallback email lookup failed:', fallbackError);
+    }
+    
     return null;
   } catch (error) {
     console.error('Error getting user:', error);
@@ -84,11 +113,25 @@ export const updateUser = async (userId: string, data: Partial<User>): Promise<v
   }
 };
 
-// Delete user document
+// Anonymize user account - removes personal data but preserves business records
 export const deleteUser = async (userId: string): Promise<void> => {
   try {
-    const userRef = doc(db, USERS_COLLECTION, userId);
-    await deleteDoc(userRef);
+    // Call the backend API to properly anonymize the user account
+    // This preserves reservations and business data while removing personal info
+    const response = await fetch(`/api/users/${userId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to delete user account');
+    }
+
+    const result = await response.json();
+    console.log('User account anonymized:', result.message);
   } catch (error) {
     console.error('Error deleting user:', error);
     throw error;
