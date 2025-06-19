@@ -9,7 +9,7 @@ export async function GET(
   try {
     const { reservationId } = params;
     
-    // Get the specific reservation
+    // Get reservation from Firestore
     const reservationDoc = await adminFirestore
       .collection('reservations')
       .doc(reservationId)
@@ -19,10 +19,12 @@ export async function GET(
       return NextResponse.json({ error: 'Reservation not found' }, { status: 404 });
     }
     
-    return NextResponse.json({
+    const reservationData = {
       id: reservationDoc.id,
       ...reservationDoc.data()
-    });
+    };
+    
+    return NextResponse.json(reservationData);
   } catch (error) {
     console.error(`Error fetching reservation ${params.reservationId}:`, error);
     return NextResponse.json({ error: 'Failed to fetch reservation' }, { status: 500 });

@@ -5,7 +5,6 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useReservation } from '@/components/providers/ReservationProvider';
 import { PaymentService } from '@/lib/services/payment';
-import { createReservation } from '@/lib/services/reservations';
 import { toast } from 'react-hot-toast';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
@@ -32,10 +31,32 @@ function PaymentForm({ clientSecret, onSuccess, user, reservationDetails }: {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Check bottle minimum for this form
+  const checkBottleMinimum = () => {
+    if (!reservationDetails) return { met: false, required: 0, current: 0 };
+    
+    const required = reservationDetails.minimumBottles || 0;
+    const current = (reservationDetails.bottles || []).length;
+    
+    return {
+      met: current >= required,
+      required,
+      current,
+    };
+  };
+
+  const bottleRequirement = checkBottleMinimum();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!stripe || !elements) {
+      return;
+    }
+
+    // Validate bottle minimum before payment
+    if (!bottleRequirement.met) {
+      setError(`Table ${reservationDetails?.tableNumber} requires a minimum of ${bottleRequirement.required} bottle${bottleRequirement.required > 1 ? 's' : ''}. You currently have ${bottleRequirement.current}.`);
       return;
     }
 
@@ -80,15 +101,25 @@ function PaymentForm({ clientSecret, onSuccess, user, reservationDetails }: {
           }}
         />
       </div>
+      {!bottleRequirement.met && (
+        <div className="text-yellow-400 text-sm bg-yellow-900/20 border border-yellow-900/30 rounded-lg p-3">
+          ⚠️ Table {reservationDetails?.tableNumber} requires a minimum of {bottleRequirement.required} bottle{bottleRequirement.required > 1 ? 's' : ''}. 
+          You currently have {bottleRequirement.current}. Please go back and add more bottles.
+        </div>
+      )}
       {error && (
         <div className="text-red-400 text-sm">{error}</div>
       )}
       <button
         type="submit"
-        disabled={!stripe || isProcessing}
-        className="w-full py-3 bg-cyan-600 text-white rounded-lg font-bold transition-all hover:bg-cyan-700 disabled:bg-cyan-900 disabled:cursor-not-allowed"
+        disabled={!stripe || isProcessing || !bottleRequirement.met}
+        className={`w-full py-3 font-bold rounded-lg transition-all ${
+          !bottleRequirement.met 
+            ? 'bg-gray-600 text-gray-300 cursor-not-allowed' 
+            : 'bg-cyan-600 hover:bg-cyan-700 text-white disabled:bg-cyan-900 disabled:cursor-not-allowed'
+        }`}
       >
-        {isProcessing ? 'Processing...' : 'Pay Now'}
+        {isProcessing ? 'Processing...' : bottleRequirement.met ? 'Pay Now' : `Add ${bottleRequirement.required - bottleRequirement.current} More Bottle${(bottleRequirement.required - bottleRequirement.current) > 1 ? 's' : ''}`}
       </button>
     </form>
   );
@@ -231,35 +262,61 @@ export default function PaymentPage() {
         return;
       }
 
-      // Create the reservation after successful payment
+      // Extract payment ID from client secret
       const paymentIntentId = clientSecret!.split('_secret_')[0];
-      const reservation = await createReservation({
-        eventId: params.id as string,
-        userId: user.uid,
-        tableId: reservationDetails.tableId,
-        tableNumber: reservationDetails.tableNumber,
-        guestCount: reservationDetails.guestCount,
-        bottles: reservationDetails.bottles?.map(bottle => ({
-          id: bottle.id,
-          name: bottle.name
-        })) || [],
-        totalAmount: calculateTotal(),
-        paymentId: paymentIntentId,
-        status: 'confirmed',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        // Include contact information
-        userName: reservationDetails.userName || user.displayName || '',
-        userEmail: reservationDetails.userEmail || user.email || '',
-        userPhone: reservationDetails.userPhone || ''
-      }, paymentIntentId); // Use the same paymentIntentId here
+      
+      // Poll for reservation creation (backend webhook will create it)
+      const maxAttempts = 30; // 30 seconds max wait
+      const pollInterval = 1000; // 1 second intervals
+      let attempts = 0;
+      
+      toast.loading('Processing your reservation...', { id: 'reservation-processing' });
+      
+      const pollForReservation = async (): Promise<boolean> => {
+        try {
+          // Check if reservation was created by checking payment status
+          const response = await fetch(`/api/payments/${paymentIntentId}/status`);
+          if (response.ok) {
+            const paymentData = await response.json();
+            if (paymentData.reservationCreated) {
+              return true;
+            }
+          }
+          
+          attempts++;
+          if (attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, pollInterval));
+            return pollForReservation();
+          }
+          return false;
+        } catch (error) {
+          console.error('Error polling for reservation:', error);
+          attempts++;
+          if (attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, pollInterval));
+            return pollForReservation();
+          }
+          return false;
+        }
+      };
 
-      // Clear reservation details and redirect to confirmation
-      clearReservationDetails();
-      router.push(`/reserve/${params.id}/confirmation`);
+      const reservationCreated = await pollForReservation();
+      
+      toast.dismiss('reservation-processing');
+      
+      if (reservationCreated) {
+        toast.success('Reservation confirmed!');
+        clearReservationDetails();
+        router.push(`/reserve/${params.id}/confirmation?paymentId=${paymentIntentId}`);
+      } else {
+        toast.error('Reservation processing is taking longer than expected. Please check your reservations or contact support.');
+        // Still redirect but with a warning
+        clearReservationDetails();
+        router.push(`/reserve/${params.id}/confirmation?paymentId=${paymentIntentId}&status=pending`);
+      }
     } catch (err) {
       console.error('Error handling payment success:', err);
-      toast.error('Failed to process payment');
+      toast.error('Payment succeeded but reservation processing failed. Please contact support.');
     }
   };
 

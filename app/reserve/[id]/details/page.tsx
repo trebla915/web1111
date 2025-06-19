@@ -82,43 +82,19 @@ export default function ReservationDetailsPage() {
   };
   
   // Calculate bottle requirements and status
-  const [bottleRequirements, setBottleRequirements] = useState({
-    required: 1,
-    current: 0,
-    isMet: false,
-    isLoading: true
-  });
-  
-  useEffect(() => {
-    const fetchBottleRequirements = async () => {
-      if (!reservationDetails) return;
-      
-      setBottleRequirements(prev => ({ ...prev, isLoading: true }));
-      
-      try {
-        const requirements = await getTableBottleRequirements(reservationDetails.eventId, reservationDetails.tableId);
-        const current = reservationDetails.bottles?.length || 0;
-        
-        setBottleRequirements({
-          required: requirements.minimumBottles,
-          current,
-          isMet: current >= requirements.minimumBottles,
-          isLoading: false
-        });
-      } catch (error) {
-        console.error('Error fetching bottle requirements:', error);
-        const current = reservationDetails.bottles?.length || 0;
-        setBottleRequirements({
-          required: 1,
-          current,
-          isMet: current >= 1,
-          isLoading: false
-        });
-        toast.error('Could not fetch bottle requirements. Using default minimum of 1 bottle.');
-      }
-    };
+  const bottleRequirements = useMemo(() => {
+    if (!reservationDetails) {
+      return { required: 0, current: 0, isMet: false };
+    }
     
-    fetchBottleRequirements();
+    const required = reservationDetails.minimumBottles || 0;
+    const current = reservationDetails.bottles?.length || 0;
+    
+    return {
+      required,
+      current,
+      isMet: current >= required
+    };
   }, [reservationDetails]);
 
   // Format cost breakdown with proper grat and fees
@@ -353,18 +329,11 @@ export default function ReservationDetailsPage() {
                 <div className="flex justify-between items-center mb-4">
                   <div>
                     <h3 className="text-lg font-bold text-white">Select Bottles</h3>
-                    {(() => {
-                      const requiredBottles = reservationDetails.tableNumber <= 4 ? 2 : 1;
-                      const currentBottles = reservationDetails.bottles?.length || 0;
-                      const remaining = Math.max(0, requiredBottles - currentBottles);
-                      return (
-                        <p className={`text-sm mt-1 ${remaining > 0 ? 'text-yellow-400' : 'text-green-400'}`}>
-                          {remaining > 0
-                            ? `${remaining} more bottle${remaining > 1 ? 's' : ''} required`
-                            : 'Minimum requirement met'}
-                        </p>
-                      );
-                    })()}
+                    <p className={`text-sm mt-1 ${bottleRequirements.isMet ? 'text-green-400' : 'text-yellow-400'}`}>
+                      {bottleRequirements.isMet
+                        ? 'Minimum requirement met'
+                        : `${bottleRequirements.required - bottleRequirements.current} more bottle${(bottleRequirements.required - bottleRequirements.current) > 1 ? 's' : ''} required`}
+                    </p>
                   </div>
                   <button
                     onClick={() => setShowBottleSelection(false)}

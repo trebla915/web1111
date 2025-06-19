@@ -123,6 +123,7 @@ export default function TableSelectionPage() {
       tableNumber: selectedTable.number,
       tablePrice: selectedTable.price,
       capacity: selectedTable.capacity,
+      minimumBottles: selectedTable.minimumBottles,
       guestCount: 1,
       userId: user.uid,
       userEmail: user.email || '',

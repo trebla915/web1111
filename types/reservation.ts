@@ -6,7 +6,7 @@ export interface Table {
   reserved: boolean;
   location: 'left' | 'right' | 'center';
   eventId?: string;
-  bottleMinimum: number;
+  minimumBottles: number;
 }
 
 export interface Event {
@@ -63,6 +63,7 @@ export interface ReservationDetails {
   tableNumber: number;
   tablePrice: number;
   capacity: number;
+  minimumBottles: number;
   guestCount: number;
   bottles?: Bottle[];
   mixers?: Mixer[];
