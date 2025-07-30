@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { FiCheckCircle, FiClock, FiAlertTriangle } from 'react-icons/fi';
+import { FiCheckCircle, FiClock, FiAlertTriangle, FiDownload, FiQrCode } from 'react-icons/fi';
+import { generateReservationQRCode } from '@/lib/utils/qrcode';
 
 export default function ConfirmationPage() {
   const params = useParams();
@@ -12,6 +13,8 @@ export default function ConfirmationPage() {
   
   const [reservationStatus, setReservationStatus] = useState<'loading' | 'confirmed' | 'pending' | 'error'>('loading');
   const [reservationData, setReservationData] = useState<any>(null);
+  const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
+  const [generatingQR, setGeneratingQR] = useState(false);
   
   const paymentId = searchParams.get('paymentId');
   const statusParam = searchParams.get('status');
@@ -20,6 +23,25 @@ export default function ConfirmationPage() {
     const checkReservationStatus = async () => {
       if (!paymentId) {
         setReservationStatus('error');
+        return;
+      }
+
+      // If status is test mode, fetch reservation directly
+      if (statusParam === 'test') {
+        try {
+          const response = await fetch(`/api/reservations/${paymentId.replace('test_', '')}`);
+          if (response.ok) {
+            const reservation = await response.json();
+            setReservationData(reservation);
+            setReservationStatus('confirmed');
+            generateQRCodeForReservation(reservation);
+          } else {
+            setReservationStatus('error');
+          }
+        } catch (error) {
+          console.error('Error fetching test reservation:', error);
+          setReservationStatus('error');
+        }
         return;
       }
 
@@ -42,6 +64,9 @@ export default function ConfirmationPage() {
                 const reservation = await reservationResponse.json();
                 setReservationData(reservation);
                 setReservationStatus('confirmed');
+                
+                // Generate QR code for the reservation
+                generateQRCodeForReservation(reservation);
               } else {
                 setReservationStatus('confirmed'); // Payment succeeded, even if we can't fetch details
               }
@@ -66,6 +91,35 @@ export default function ConfirmationPage() {
 
     checkReservationStatus();
   }, [paymentId, statusParam]);
+
+  const generateQRCodeForReservation = async (reservation: any) => {
+    if (!reservation?.id || qrCodeUrl) return;
+    
+    setGeneratingQR(true);
+    try {
+      const qrDataUrl = await generateReservationQRCode(
+        reservation.id,
+        reservation.eventId,
+        reservation.tableNumber
+      );
+      setQrCodeUrl(qrDataUrl);
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+    } finally {
+      setGeneratingQR(false);
+    }
+  };
+
+  const downloadQRCode = () => {
+    if (!qrCodeUrl || !reservationData) return;
+    
+    const link = document.createElement('a');
+    link.download = `reservation-qr-${reservationData.id}.png`;
+    link.href = qrCodeUrl;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const getStatusDisplay = () => {
     switch (reservationStatus) {
@@ -147,6 +201,54 @@ export default function ConfirmationPage() {
                   <span className="text-green-400 font-medium">{reservationData.status}</span>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* QR Code Section */}
+          {reservationStatus === 'confirmed' && (
+            <div className="mb-8 bg-zinc-800 rounded-lg p-6">
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <FiQrCode className="w-5 h-5 text-cyan-400" />
+                <h3 className="text-lg font-semibold text-white">Check-in QR Code</h3>
+              </div>
+              
+              {generatingQR ? (
+                <div className="flex flex-col items-center py-8">
+                  <div className="w-8 h-8 border-t-2 border-b-2 border-cyan-500 rounded-full animate-spin mb-3"></div>
+                  <p className="text-zinc-400 text-sm">Generating your QR code...</p>
+                </div>
+              ) : qrCodeUrl ? (
+                <div className="text-center">
+                  <div className="inline-block p-4 bg-white rounded-lg mb-4">
+                    <img 
+                      src={qrCodeUrl} 
+                      alt="Reservation QR Code" 
+                      className="w-40 h-40 mx-auto"
+                    />
+                  </div>
+                  <p className="text-zinc-300 text-sm mb-4">
+                    Show this QR code to staff when you arrive for quick check-in
+                  </p>
+                  <button
+                    onClick={downloadQRCode}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors text-sm"
+                  >
+                    <FiDownload className="w-4 h-4" />
+                    Download QR Code
+                  </button>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-zinc-400 text-sm mb-3">Unable to generate QR code</p>
+                  <button
+                    onClick={() => reservationData && generateQRCodeForReservation(reservationData)}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-600 text-white rounded-lg hover:bg-zinc-700 transition-colors text-sm"
+                  >
+                    <FiQrCode className="w-4 h-4" />
+                    Try Again
+                  </button>
+                </div>
+              )}
             </div>
           )}
 

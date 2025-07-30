@@ -8,7 +8,7 @@ import { PaymentService } from '@/lib/services/payment';
 import { toast } from 'react-hot-toast';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
-import { FiCreditCard, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import { FiCreditCard, FiCheckCircle, FiAlertCircle, FiArrowLeft } from 'react-icons/fi';
 import { User } from '@/types/user';
 
 // Initialize Stripe with error handling
@@ -125,16 +125,39 @@ function PaymentForm({ clientSecret, onSuccess, user, reservationDetails }: {
   );
 }
 
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD'
+  }).format(amount);
+};
+
 export default function PaymentPage() {
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { reservationDetails, clearReservationDetails } = useReservation();
   
   const [loading, setLoading] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [stripeError, setStripeError] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  useEffect(() => {
+    if (authLoading) return;
+
+    if (!user) {
+      toast.error('You need an account to make a reservation');
+      router.push('/auth/login');
+      return;
+    }
+
+    if (!reservationDetails) {
+      router.push(`/reserve/${params.id}`);
+      return;
+    }
+  }, [user, authLoading, reservationDetails, router, params.id]);
 
   useEffect(() => {
     // Check for Stripe configuration error
@@ -320,21 +343,83 @@ export default function PaymentPage() {
     }
   };
 
-  if (!reservationDetails) {
+  const handlePayment = async () => {
+    if (!reservationDetails) {
+      toast.error('Reservation details not found');
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      // Regular payment processing code would go here
+      toast.error('Regular payment processing not implemented in test mode');
+    } catch (error) {
+      console.error('Error processing payment:', error);
+      toast.error('Failed to process payment');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleTestModePayment = async () => {
+    if (!reservationDetails) {
+      toast.error('Reservation details not found');
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      // Get the auth token from Firebase
+      const token = await user?.auth?.getIdToken();
+      if (!token) {
+        throw new Error('Not authenticated');
+      }
+
+      const response = await fetch('/api/payments/test-mode', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          eventId: params.id,
+          tableId: reservationDetails.tableId,
+          amount: reservationDetails.totalAmount,
+          guestCount: reservationDetails.guestCount,
+          bottles: reservationDetails.bottles,
+          userName: reservationDetails.userName,
+          userEmail: reservationDetails.userEmail,
+          userPhone: reservationDetails.userPhone
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to process test payment');
+      }
+
+      const data = await response.json();
+      router.push(`/reserve/${params.id}/confirmation?paymentId=${data.paymentId}&status=test`);
+    } catch (error: any) {
+      console.error('Error processing test payment:', error);
+      toast.error(error.message || 'Failed to process test payment');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleGoBack = () => {
+    router.push(`/reserve/${params.id}/contact`);
+  };
+
+  if (loading || !reservationDetails) {
     return (
       <div className="min-h-screen pt-28 pb-12 flex flex-col items-center">
         <div className="w-full max-w-2xl mx-auto px-4">
           <div className="h-64 flex items-center justify-center">
-            <div className="text-center">
-              <FiAlertCircle className="mx-auto h-12 w-12 text-red-500 mb-4" />
-              <h2 className="text-xl font-semibold text-white mb-2">No Reservation Details</h2>
-              <p className="text-zinc-400 mb-4">Please start the reservation process again.</p>
-              <button
-                onClick={() => router.push(`/reserve/${params.id}`)}
-                className="px-4 py-2 bg-cyan-600 text-white rounded-md hover:bg-cyan-700 transition-colors"
-              >
-                Start Over
-              </button>
+            <div className="flex flex-col items-center">
+              <div className="w-12 h-12 border-t-2 border-b-2 border-cyan-500 rounded-full animate-spin"></div>
+              <p className="mt-4 text-white">Loading...</p>
             </div>
           </div>
         </div>
@@ -395,93 +480,84 @@ export default function PaymentPage() {
   return (
     <div className="min-h-screen pt-28 pb-12 flex flex-col">
       <div className="w-full max-w-2xl mx-auto px-4">
-        {/* Reservation Header */}
+        {/* Back button */}
+        <button
+          onClick={handleGoBack}
+          className="mb-6 flex items-center text-cyan-400 hover:text-cyan-300 transition-colors"
+        >
+          <FiArrowLeft className="mr-2" size={20} />
+          Back to Contact Info
+        </button>
+
+        {/* Payment Header */}
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-white mb-2">
-            Complete Your Reservation
+            Complete Payment
           </h1>
-          <p className="text-cyan-400">
-            {reservationDetails.eventName} - {new Date(reservationDetails.eventDate).toLocaleDateString('en-US', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            })}
+          <p className="text-zinc-400">
+            Table {reservationDetails.tableNumber} • {reservationDetails.guestCount} {reservationDetails.guestCount === 1 ? 'person' : 'people'}
           </p>
         </div>
 
-        {/* Cost Breakdown */}
-        <div className="mb-8 bg-zinc-900 rounded-lg border border-cyan-900/30 p-6">
-          <h2 className="text-xl font-bold text-white mb-4">Cost Breakdown</h2>
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span className="text-zinc-400">Table Price:</span>
-              <span className="text-white">${costBreakdown.tablePrice.toFixed(2)}</span>
+        {/* Order Summary */}
+        <div className="mb-8 p-6 bg-zinc-800 rounded-lg">
+          <h2 className="text-xl font-bold text-white mb-4">Order Summary</h2>
+          
+          <div className="space-y-4">
+            <div className="flex justify-between text-zinc-300">
+              <span>Table Reservation</span>
+              <span>{formatCurrency(reservationDetails.tablePrice || 0)}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-zinc-400">Bottles:</span>
-              <span className="text-white">${costBreakdown.bottlesCost.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-zinc-400">Mixers:</span>
-              <span className="text-white">${costBreakdown.mixersCost.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-zinc-400">Sales Tax (8.25%):</span>
-              <span className="text-white">${costBreakdown.salesTax.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-zinc-400">Gratuity (18% on bottles):</span>
-              <span className="text-white">${costBreakdown.gratAmount.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-zinc-400">Processing Fee (2.9% + $0.30):</span>
-              <span className="text-white">${costBreakdown.stripeFee.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-zinc-400">Subtotal:</span>
-              <span className="text-white">${costBreakdown.subtotal.toFixed(2)}</span>
-            </div>
-            <div className="border-t border-zinc-700 pt-2 mt-2 flex justify-between font-bold">
-              <span className="text-white">Total:</span>
-              <span className="text-cyan-400">${costBreakdown.total.toFixed(2)}</span>
-            </div>
-            <div className="mt-4 text-sm text-zinc-500">
-              <p>* A card processing fee of 2.9% + $0.30 is applied to all transactions to cover payment processing costs.</p>
-              <p className="mt-2">* Please note: an automatic 18% gratuity is applied to all bottle purchases at checkout.</p>
-              <p className="mt-2">* Sales tax of 8.25% is applied to all purchases except gratuity and processing fees.</p>
+            
+            {reservationDetails.bottles && reservationDetails.bottles.length > 0 && (
+              <>
+                <div className="border-t border-zinc-700 pt-4">
+                  <h3 className="text-white font-medium mb-2">Bottles</h3>
+                  {reservationDetails.bottles.map((bottle, index) => (
+                    <div key={index} className="flex justify-between text-zinc-300">
+                      <span>{bottle.name}</span>
+                      <span>{formatCurrency(bottle.price || 0)}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+            
+            <div className="border-t border-zinc-700 pt-4 flex justify-between text-white font-bold">
+              <span>Total</span>
+              <span>{formatCurrency(reservationDetails.totalAmount || 0)}</span>
             </div>
           </div>
         </div>
 
-        {/* Payment Form */}
-        <div className="bg-zinc-900 rounded-lg border border-cyan-900/30 p-6">
-          <h2 className="text-xl font-bold text-white mb-4">Payment Details</h2>
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="w-12 h-12 border-t-2 border-b-2 border-cyan-500 rounded-full animate-spin"></div>
+        {/* Payment Actions */}
+        <div className="mt-8 flex flex-col gap-4">
+          {process.env.NODE_ENV === 'development' && (
+            <div className="p-4 bg-yellow-900/20 border border-yellow-900/30 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-yellow-400">Test Mode</h3>
+                  <p className="text-sm text-yellow-300/70">Skip payment for testing purposes</p>
+                </div>
+                <button
+                  onClick={handleTestModePayment}
+                  disabled={isProcessing}
+                  className="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors disabled:opacity-50"
+                >
+                  {isProcessing ? 'Processing...' : 'Test Payment'}
+                </button>
+              </div>
             </div>
-          ) : error || stripeError ? (
-            <div className="text-center py-8">
-              <FiAlertCircle className="mx-auto h-12 w-12 text-red-500 mb-4" />
-              <p className="text-red-400 mb-4">{error || stripeError}</p>
-              <button
-                onClick={() => router.push(`/reserve/${params.id}`)}
-                className="px-4 py-2 bg-cyan-600 text-white rounded-md hover:bg-cyan-700 transition-colors"
-              >
-                Try Again
-              </button>
-            </div>
-          ) : clientSecret ? (
-            <Elements stripe={stripePromise} options={{ clientSecret }}>
-              <PaymentForm 
-                clientSecret={clientSecret} 
-                onSuccess={handlePaymentSuccess}
-                user={user}
-                reservationDetails={reservationDetails}
-              />
-            </Elements>
-          ) : null}
+          )}
+
+          {/* Regular payment button */}
+          <button
+            onClick={handlePayment}
+            disabled={isProcessing}
+            className="w-full py-4 bg-cyan-600 text-white font-bold rounded-md hover:bg-cyan-700 transition-colors disabled:opacity-50"
+          >
+            {isProcessing ? 'Processing...' : `Pay ${formatCurrency(reservationDetails.totalAmount || 0)}`}
+          </button>
         </div>
       </div>
     </div>

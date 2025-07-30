@@ -8,6 +8,7 @@ import { FaWhatsapp, FaFacebook, FaTwitter, FaInstagram } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '@/lib/hooks/useAuth';
+import AgeVerificationModal from '../ui/AgeVerificationModal';
 
 // Proper timezone handling for Mountain Time
 function adjustToMountainTime(dateStr: string): Date {
@@ -127,6 +128,7 @@ export default function EventDetails({ event }: EventDetailsProps) {
   const router = useRouter();
   const { user, isGuest } = useAuth();
   const [showFullImage, setShowFullImage] = useState(false);
+  const [showAgeVerification, setShowAgeVerification] = useState(false);
 
   // Add a debug console log to understand what date we're working with
   useEffect(() => {
@@ -201,7 +203,17 @@ export default function EventDetails({ event }: EventDetailsProps) {
       return;
     }
 
+    setShowAgeVerification(true);
+  };
+
+  const handleAgeVerified = () => {
+    setShowAgeVerification(false);
     router.push(`/reserve/${event.id}`);
+  };
+
+  const handleAgeDenied = () => {
+    setShowAgeVerification(false);
+    router.push('/');
   };
 
   // Handle ticket purchase link press
@@ -450,6 +462,12 @@ export default function EventDetails({ event }: EventDetailsProps) {
           </div>
         </div>
       )}
+      <AgeVerificationModal
+        isOpen={showAgeVerification}
+        onClose={() => setShowAgeVerification(false)}
+        onVerify={handleAgeVerified}
+        onDeny={handleAgeDenied}
+      />
     </div>
   );
 } 

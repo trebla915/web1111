@@ -6,6 +6,12 @@ interface CreateReservationRequest {
   reservationDetails: Omit<Reservation, 'id'>;
 }
 
+interface CancelReservationRequest {
+  reason?: string;
+  refundAmount?: number;
+  staffName: string;
+}
+
 export const createReservation = async (reservationData: Omit<Reservation, 'id'>, paymentId: string): Promise<Reservation> => {
   try {
     const response = await apiClient.post('/reservations', {
@@ -33,6 +39,16 @@ export const deleteReservation = async (id: string): Promise<void> => {
     await apiClient.delete(`/reservations/${id}`);
   } catch (error) {
     console.error('Error deleting reservation:', error);
+    throw error;
+  }
+};
+
+export const cancelReservation = async (id: string, cancelData: CancelReservationRequest): Promise<any> => {
+  try {
+    const response = await apiClient.post(`/reservations/${id}/cancel`, cancelData);
+    return response.data;
+  } catch (error) {
+    console.error('Error cancelling reservation:', error);
     throw error;
   }
 };

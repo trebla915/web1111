@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { getGroupedByEvent, deleteReservation } from '@/lib/services/reservations';
+import { getGroupedByEvent, deleteReservation, cancelReservation } from '@/lib/services/reservations';
 import { getAllEvents } from '@/lib/services/events';
 import { getAllTables, releaseTable } from '@/lib/services/tables';
 import { toast } from 'react-hot-toast';
-import { FiChevronDown, FiChevronUp, FiUsers, FiUser, FiRefreshCw, FiCalendar, FiAlertTriangle, FiTrash2, FiSearch, FiFilter } from 'react-icons/fi';
+import { FiChevronDown, FiChevronUp, FiUsers, FiUser, FiRefreshCw, FiCalendar, FiAlertTriangle, FiTrash2, FiSearch, FiFilter, FiX, FiDollarSign } from 'react-icons/fi';
 import { BiTable, BiWine, BiDrink } from 'react-icons/bi';
 import { Event } from '@/types/event';
 import { Reservation } from '@/types/reservation';
@@ -22,6 +22,11 @@ type ReservationsByEvent = {
   [eventTitle: string]: ReservationWithUser[];
 };
 
+interface CancelModalData {
+  reservation: ReservationWithUser;
+  isOpen: boolean;
+}
+
 export default function ManageReservationsTab() {
   const [reservationsByEvent, setReservationsByEvent] = useState<ReservationsByEvent>({});
   const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
@@ -29,6 +34,13 @@ export default function ManageReservationsTab() {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [cancelModal, setCancelModal] = useState<CancelModalData>({ reservation: {} as ReservationWithUser, isOpen: false });
+  const [cancelForm, setCancelForm] = useState({
+    reason: '',
+    refundAmount: '',
+    staffName: ''
+  });
+  const [isProcessingCancel, setIsProcessingCancel] = useState(false);
 
   useEffect(() => {
     fetchReservationsData();
@@ -102,6 +114,56 @@ export default function ManageReservationsTab() {
     } catch (error) {
       console.error('Error deleting reservation:', error);
       toast.error('Failed to delete reservation');
+    }
+  };
+
+  const openCancelModal = (reservation: ReservationWithUser) => {
+    setCancelModal({ reservation, isOpen: true });
+    setCancelForm({
+      reason: '',
+      refundAmount: reservation.totalAmount?.toString() || '',
+      staffName: ''
+    });
+  };
+
+  const closeCancelModal = () => {
+    setCancelModal({ reservation: {} as ReservationWithUser, isOpen: false });
+    setCancelForm({ reason: '', refundAmount: '', staffName: '' });
+  };
+
+  const handleCancelReservation = async () => {
+    if (!cancelForm.staffName.trim()) {
+      toast.error('Please enter your staff name');
+      return;
+    }
+
+    const refundAmount = parseFloat(cancelForm.refundAmount);
+    if (isNaN(refundAmount) || refundAmount < 0) {
+      toast.error('Please enter a valid refund amount');
+      return;
+    }
+
+    if (refundAmount > (cancelModal.reservation.totalAmount || 0)) {
+      toast.error('Refund amount cannot exceed the original payment amount');
+      return;
+    }
+
+    setIsProcessingCancel(true);
+    try {
+      await cancelReservation(cancelModal.reservation.id, {
+        reason: cancelForm.reason || 'Cancelled by admin',
+        refundAmount: refundAmount,
+        staffName: cancelForm.staffName.trim()
+      });
+
+      toast.success('Reservation cancelled and refund processed successfully');
+      closeCancelModal();
+      fetchReservationsData(); // Refresh the data
+    } catch (error: any) {
+      console.error('Error cancelling reservation:', error);
+      toast.error(error.message || 'Failed to cancel reservation');
+    } finally {
+      setIsProcessingCancel(false);
     }
   };
 
@@ -332,13 +394,26 @@ export default function ManageReservationsTab() {
                                 <p className="text-gray-400 truncate">📱 {reservation.userPhone}</p>
                               </div>
                             </div>
-                            <button
-                              onClick={() => handleDeleteReservation(reservation.id, reservation.eventId, reservation.tableNumber)}
-                              className="p-2 text-red-400 hover:bg-red-900/20 rounded-lg transition-colors shrink-0"
-                              title="Delete reservation"
-                            >
-                              <FiTrash2 size={16} />
-                            </button>
+                            <div className="flex items-center gap-2 shrink-0">
+                              {/* Cancel & Refund Button */}
+                              {reservation.status !== 'cancelled' && reservation.status !== 'completed' && (
+                                <button
+                                  onClick={() => openCancelModal(reservation)}
+                                  className="p-2 text-orange-400 hover:bg-orange-900/20 rounded-lg transition-colors"
+                                  title="Cancel & Refund"
+                                >
+                                  <FiX size={16} />
+                                </button>
+                              )}
+                              {/* Delete Button */}
+                              <button
+                                onClick={() => handleDeleteReservation(reservation.id, reservation.eventId, reservation.tableNumber)}
+                                className="p-2 text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
+                                title="Delete reservation"
+                              >
+                                <FiTrash2 size={16} />
+                              </button>
+                            </div>
                           </div>
 
                           {/* Reservation Details Grid */}
@@ -406,6 +481,110 @@ export default function ManageReservationsTab() {
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Cancel & Refund Modal */}
+      {cancelModal.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-zinc-900 rounded-lg border border-gray-700 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-white">Cancel & Refund Reservation</h3>
+                <button
+                  onClick={closeCancelModal}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <FiX size={20} />
+                </button>
+              </div>
+
+              <div className="mb-4 p-3 bg-zinc-800 rounded-lg">
+                <p className="text-sm text-gray-400">Customer</p>
+                <p className="text-white font-medium">{cancelModal.reservation.userName}</p>
+                <p className="text-sm text-gray-400 mt-1">
+                  Table #{cancelModal.reservation.tableNumber} • {formatCurrency(cancelModal.reservation.totalAmount || 0)}
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Staff Name <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={cancelForm.staffName}
+                    onChange={(e) => setCancelForm({ ...cancelForm, staffName: e.target.value })}
+                    placeholder="Enter your name"
+                    className="w-full px-3 py-2 bg-zinc-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-cyan-500 focus:outline-none"
+                    disabled={isProcessingCancel}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Refund Amount <span className="text-red-400">*</span>
+                  </label>
+                  <div className="relative">
+                    <FiDollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max={cancelModal.reservation.totalAmount || 0}
+                      value={cancelForm.refundAmount}
+                      onChange={(e) => setCancelForm({ ...cancelForm, refundAmount: e.target.value })}
+                      placeholder="0.00"
+                      className="w-full pl-10 pr-3 py-2 bg-zinc-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-cyan-500 focus:outline-none"
+                      disabled={isProcessingCancel}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Maximum: {formatCurrency(cancelModal.reservation.totalAmount || 0)}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Cancellation Reason (Optional)
+                  </label>
+                  <textarea
+                    value={cancelForm.reason}
+                    onChange={(e) => setCancelForm({ ...cancelForm, reason: e.target.value })}
+                    placeholder="Reason for cancellation..."
+                    rows={3}
+                    className="w-full px-3 py-2 bg-zinc-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-cyan-500 focus:outline-none resize-none"
+                    disabled={isProcessingCancel}
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={closeCancelModal}
+                  disabled={isProcessingCancel}
+                  className="flex-1 px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCancelReservation}
+                  disabled={isProcessingCancel || !cancelForm.staffName.trim()}
+                  className="flex-1 px-4 py-2 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  {isProcessingCancel ? (
+                    <>
+                      <div className="w-4 h-4 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
+                      Processing...
+                    </>
+                  ) : (
+                    'Cancel & Refund'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

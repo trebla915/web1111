@@ -30,13 +30,26 @@ export interface Reservation {
   bottles?: Array<{ id: string; name: string }>;
   totalAmount?: number;
   paymentId: string;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'checked-in';
   createdAt: string;
   updatedAt: string;
   // Contact information
   userName?: string;
   userEmail?: string;
   userPhone?: string;
+  // QR Code for check-in
+  qrCode?: string;
+  // Check-in information
+  checkedInAt?: string;
+  checkedInBy?: string; // Staff member who checked them in
+  // Cancellation information
+  cancelledAt?: string;
+  cancelledBy?: string; // Staff member who cancelled
+  cancellationReason?: string;
+  // Refund information
+  refundId?: string;
+  refundAmount?: number;
+  refundStatus?: string;
 }
 
 export interface Bottle {
