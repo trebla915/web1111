@@ -2,9 +2,25 @@
 
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
+import { ReactNode } from "react";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!);
 
-export default function StripeProvider({ children }: { children: ReactNode }) {
-  return <Elements stripe={stripePromise}>{children}</Elements>;
+interface StripeProviderProps {
+  children: ReactNode;
+  clientSecret?: string;
+}
+
+export default function StripeProvider({ children, clientSecret }: StripeProviderProps) {
+  // Only wrap with Elements if clientSecret is provided
+  if (clientSecret) {
+    return (
+      <Elements stripe={stripePromise} options={{ clientSecret }}>
+        {children}
+      </Elements>
+    );
+  }
+
+  // Otherwise just render children without Elements wrapper
+  return <>{children}</>;
 }

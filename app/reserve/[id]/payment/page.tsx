@@ -6,19 +6,10 @@ import { useAuth } from '@/components/providers/AuthProvider';
 import { useReservation } from '@/components/providers/ReservationProvider';
 import { PaymentService } from '@/lib/services/payment';
 import { toast } from 'react-hot-toast';
-import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
+import { PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import StripeProvider from '@/components/providers/StripeProvider';
 import { FiCreditCard, FiCheckCircle, FiAlertCircle, FiArrowLeft } from 'react-icons/fi';
 import { User } from '@/types/user';
-
-// Initialize Stripe with error handling
-const stripePromise = (async () => {
-  const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY;
-  if (!publishableKey) {
-    throw new Error('Stripe publishable key is not configured');
-  }
-  return loadStripe(publishableKey);
-})();
 
 function PaymentForm({ clientSecret, onSuccess, user, reservationDetails }: { 
   clientSecret: string; 
@@ -141,7 +132,6 @@ export default function PaymentPage() {
   const [loading, setLoading] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [stripeError, setStripeError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
@@ -158,14 +148,6 @@ export default function PaymentPage() {
       return;
     }
   }, [user, authLoading, reservationDetails, router, params.id]);
-
-  useEffect(() => {
-    // Check for Stripe configuration error
-    stripePromise.catch((err) => {
-      console.error('Stripe initialization error:', err);
-      setStripeError('Payment system is not properly configured. Please try again later.');
-    });
-  }, []);
 
   useEffect(() => {
     const initializePayment = async () => {
@@ -634,12 +616,14 @@ export default function PaymentPage() {
           {/* Payment Form */}
           {clientSecret && (
             <div className="mt-8">
-              <PaymentForm
-                clientSecret={clientSecret}
-                onSuccess={handlePaymentSuccess}
-                user={user}
-                reservationDetails={reservationDetails}
-              />
+              <StripeProvider clientSecret={clientSecret}>
+                <PaymentForm
+                  clientSecret={clientSecret}
+                  onSuccess={handlePaymentSuccess}
+                  user={user}
+                  reservationDetails={reservationDetails}
+                />
+              </StripeProvider>
             </div>
           )}
         </div>
