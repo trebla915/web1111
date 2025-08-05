@@ -176,7 +176,7 @@ export default function PaymentPage() {
 
       try {
         setLoading(true);
-        const total = calculateTotal();
+        const total = costBreakdown.total;
 
         // Prepare comprehensive metadata for the payment
         const metadata = {
@@ -220,9 +220,9 @@ export default function PaymentPage() {
           source: '1111web'
         };
 
-        // Create payment intent
+        // Create payment intent - convert to cents for Stripe
         const { clientSecret, paymentId } = await PaymentService.createPaymentIntent(
-          total,
+          Math.round(total * 100), // Convert to cents
           metadata,
           {
             userId: user.uid,
@@ -351,8 +351,56 @@ export default function PaymentPage() {
 
     setIsProcessing(true);
     try {
-      // Regular payment processing code would go here
-      toast.error('Regular payment processing not implemented in test mode');
+      // Initialize payment if not already done
+      if (!clientSecret) {
+        const total = costBreakdown.total;
+        
+        const metadata = {
+          name: reservationDetails.userName || user?.displayName || 'Guest',
+          email: reservationDetails.userEmail || user?.email || '',
+          phone: reservationDetails.userPhone || '',
+          eventName: reservationDetails.eventName,
+          eventId: params.id as string,
+          eventDate: reservationDetails.eventDate || '',
+          tableNumber: reservationDetails.tableNumber.toString(),
+          tableId: reservationDetails.tableId,
+          tablePrice: reservationDetails.tablePrice?.toString() || '0',
+          guests: reservationDetails.guestCount.toString(),
+          reservationTime: reservationDetails.reservationTime || new Date().toISOString(),
+          bottleCount: (reservationDetails.bottles?.length || 0).toString(),
+          bottlesOrdered: reservationDetails.bottles?.map(bottle => `${bottle.name} ($${bottle.price})`).join(', ') || 'None',
+          bottlesCost: (reservationDetails.bottles || []).reduce((total, bottle) => total + (bottle.price || 0), 0).toString(),
+          mixerCount: (reservationDetails.mixers?.length || 0).toString(),
+          mixersOrdered: reservationDetails.mixers?.map(mixer => `${mixer.name} ($${mixer.price})`).join(', ') || 'None',
+          mixersCost: (reservationDetails.mixers || []).reduce((total, mixer) => total + (mixer.price || 0), 0).toString(),
+          subtotal: (reservationDetails.tablePrice + 
+                    (reservationDetails.bottles || []).reduce((total, bottle) => total + (bottle.price || 0), 0) +
+                    (reservationDetails.mixers || []).reduce((total, mixer) => total + (mixer.price || 0), 0)).toString(),
+          totalAmount: total.toString(),
+          userId: user?.uid,
+          platform: 'web',
+          source: '1111web'
+        };
+
+        const { clientSecret: newClientSecret, paymentId } = await PaymentService.createPaymentIntent(
+          Math.round(total * 100), // Convert to cents
+          metadata,
+          {
+            userId: user?.uid || '',
+            eventId: params.id as string,
+            tableId: reservationDetails.tableId,
+          }
+        );
+
+        setClientSecret(newClientSecret);
+      }
+
+      // Show payment form
+      if (clientSecret) {
+        // The payment form will be rendered below
+      } else {
+        toast.error('Failed to initialize payment');
+      }
     } catch (error) {
       console.error('Error processing payment:', error);
       toast.error('Failed to process payment');
@@ -384,7 +432,7 @@ export default function PaymentPage() {
         body: JSON.stringify({
           eventId: params.id,
           tableId: reservationDetails.tableId,
-          amount: reservationDetails.totalAmount,
+          amount: costBreakdown.total,
           guestCount: reservationDetails.guestCount,
           bottles: reservationDetails.bottles,
           userName: reservationDetails.userName,
@@ -428,24 +476,37 @@ export default function PaymentPage() {
   }
 
   const costBreakdown = (() => {
-    if (!reservationDetails) return {
-      tablePrice: 0,
-      bottlesCost: 0,
-      mixersCost: 0,
-      gratAmount: 0,
-      salesTax: 0,
-      stripeFee: 0,
-      subtotal: 0,
-      total: 0
-    };
+    console.log('Payment page - reservationDetails:', reservationDetails);
+    
+    if (!reservationDetails) {
+      console.log('No reservation details available');
+      return {
+        tablePrice: 0,
+        bottlesCost: 0,
+        mixersCost: 0,
+        gratAmount: 0,
+        salesTax: 0,
+        stripeFee: 0,
+        subtotal: 0,
+        total: 0
+      };
+    }
 
-    const tablePrice = reservationDetails.tablePrice || 0;
+    const tablePrice = Number(reservationDetails.tablePrice) || 0;
     const bottles = reservationDetails.bottles || [];
     const mixers = reservationDetails.mixers || [];
     
+    console.log('Cost calculation inputs:', {
+      tablePrice,
+      bottlesCount: bottles.length,
+      mixersCount: mixers.length,
+      bottles: bottles.map(b => ({ name: b.name, price: b.price })),
+      mixers: mixers.map(m => ({ name: m.name, price: m.price }))
+    });
+    
     // Calculate costs
-    const bottlesCost = bottles.reduce((total, bottle) => total + (bottle.price || 0), 0);
-    const mixersCost = mixers.reduce((total, mixer) => total + (mixer.price || 0), 0);
+    const bottlesCost = bottles.reduce((total, bottle) => total + (Number(bottle.price) || 0), 0);
+    const mixersCost = mixers.reduce((total, mixer) => total + (Number(mixer.price) || 0), 0);
     
     // Calculate taxable subtotal (everything except gratuity and processing fee)
     const taxableSubtotal = tablePrice + bottlesCost + mixersCost;
@@ -464,6 +525,17 @@ export default function PaymentPage() {
     
     // Calculate final total
     const total = subtotal + stripeFee;
+
+    console.log('Payment page - cost breakdown:', {
+      tablePrice,
+      bottlesCost,
+      mixersCost,
+      salesTax,
+      gratAmount,
+      stripeFee,
+      subtotal,
+      total
+    });
 
     return {
       tablePrice,
@@ -525,7 +597,7 @@ export default function PaymentPage() {
             
             <div className="border-t border-zinc-700 pt-4 flex justify-between text-white font-bold">
               <span>Total</span>
-              <span>{formatCurrency(reservationDetails.totalAmount || 0)}</span>
+              <span>{formatCurrency(costBreakdown.total || 0)}</span>
             </div>
           </div>
         </div>
@@ -556,8 +628,20 @@ export default function PaymentPage() {
             disabled={isProcessing}
             className="w-full py-4 bg-cyan-600 text-white font-bold rounded-md hover:bg-cyan-700 transition-colors disabled:opacity-50"
           >
-            {isProcessing ? 'Processing...' : `Pay ${formatCurrency(reservationDetails.totalAmount || 0)}`}
+            {isProcessing ? 'Processing...' : `Pay ${formatCurrency(costBreakdown.total || 0)}`}
           </button>
+
+          {/* Payment Form */}
+          {clientSecret && (
+            <div className="mt-8">
+              <PaymentForm
+                clientSecret={clientSecret}
+                onSuccess={handlePaymentSuccess}
+                user={user}
+                reservationDetails={reservationDetails}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

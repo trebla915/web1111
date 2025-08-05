@@ -145,9 +145,11 @@ export const getTablesByEvent = async (eventId: string): Promise<Table[]> => {
   try {
     const url = API_ENDPOINTS.tables.getByEvent(eventId);
     console.log(`Fetching tables from: ${url}`);
+    console.log(`Full URL: ${apiClient.defaults.baseURL}${url}`);
     
     const response = await apiClient.get(url);
     console.log('Successfully fetched tables:', response.data?.length || 0, 'tables');
+    console.log('First table data:', response.data?.[0]);
     return response.data || [];
   } catch (error: any) {
     console.warn(`Error fetching tables for event ${eventId}:`, {

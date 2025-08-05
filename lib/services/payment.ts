@@ -63,7 +63,7 @@ export interface PaymentIntentRequest {
 export const PaymentService = {
   /**
    * Create a payment intent with Stripe
-   * @param amount Amount in dollars (will be converted to cents for Stripe)
+   * @param amount Amount in cents (already converted from dollars)
    * @param metadata Additional payment metadata
    * @param reservationDetails Reservation information
    */
@@ -73,8 +73,8 @@ export const PaymentService = {
     reservationDetails: PaymentIntentRequest['reservationDetails']
   ): Promise<PaymentIntent> => {
     try {
-      // Convert amount to cents for Stripe
-      const amountInCents = Math.round(amount * 100);
+      // Amount is already in cents from the calling code
+      const amountInCents = amount;
       
       const response = await apiClient.post(API_ENDPOINTS.payments.createIntent, {
         amount: amountInCents,

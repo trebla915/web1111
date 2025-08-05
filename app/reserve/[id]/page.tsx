@@ -98,6 +98,9 @@ export default function TableSelectionPage() {
   }, [eventId, fetchTables]);
   
   const handleTableSelect = (tableId: string, tablePrice: number) => {
+    console.log('handleTableSelect called with:', { tableId, tablePrice });
+    console.log('Available tables:', tables);
+    
     if (authLoading) {
       // Wait for auth state to be determined
       return;
@@ -110,12 +113,14 @@ export default function TableSelectionPage() {
     }
     
     const selectedTable = tables.find(table => table.id === tableId);
+    console.log('Selected table:', selectedTable);
+    
     if (!selectedTable) {
       toast.error('Unable to select this table');
       return;
     }
     
-    setReservationDetails({
+    const reservationDetails = {
       id: `temp-${Date.now()}`,
       eventId,
       eventName: eventDetails?.title || 'Event',
@@ -133,7 +138,10 @@ export default function TableSelectionPage() {
       reservationTime: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       eventDate: eventDetails?.date || new Date().toISOString()
-    });
+    };
+    
+    console.log('Setting reservation details:', reservationDetails);
+    setReservationDetails(reservationDetails);
     
     router.push(`/reserve/${eventId}/details`);
   };

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { FiCheckCircle, FiClock, FiAlertTriangle, FiDownload, FiQrCode } from 'react-icons/fi';
+import { FiCheckCircle, FiClock, FiAlertTriangle, FiDownload } from 'react-icons/fi';
 import { generateReservationQRCode } from '@/lib/utils/qrcode';
 
 export default function ConfirmationPage() {

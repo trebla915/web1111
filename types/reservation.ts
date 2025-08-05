@@ -24,6 +24,7 @@ export interface Reservation {
   id: string;
   userId: string;
   eventId: string;
+  eventName?: string; // Add event name field
   tableId: string;
   tableNumber: number;
   guestCount: number;
