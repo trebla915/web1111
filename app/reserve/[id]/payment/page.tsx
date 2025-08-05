@@ -76,7 +76,7 @@ function PaymentForm({ clientSecret, onSuccess, user, reservationDetails }: {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="p-4 border border-white/30 rounded-lg bg-transparent">
+      <div className="p-6 border border-zinc-700 rounded-lg bg-zinc-900/50">
         <PaymentElement
           options={{
             layout: 'tabs',
@@ -88,7 +88,98 @@ function PaymentForm({ clientSecret, onSuccess, user, reservationDetails }: {
             },
             business: {
               name: '1111'
-            }
+            },
+            appearance: {
+              theme: 'night',
+              variables: {
+                colorPrimary: '#0891b2',
+                colorBackground: '#18181b',
+                colorText: '#ffffff',
+                colorDanger: '#ef4444',
+                fontFamily: 'system-ui, sans-serif',
+                spacingUnit: '4px',
+                borderRadius: '8px',
+              },
+              rules: {
+                '.Tab': {
+                  border: '1px solid #52525b',
+                  boxShadow: '0px 1px 3px 0px rgba(0, 0, 0, 0.1), 0px 1px 2px 0px rgba(0, 0, 0, 0.06)',
+                  backgroundColor: '#27272a',
+                  color: '#ffffff',
+                },
+                '.Tab:hover': {
+                  color: '#0891b2',
+                  borderColor: '#0891b2',
+                },
+                '.Tab--selected': {
+                  backgroundColor: '#0891b2',
+                  color: '#ffffff',
+                  borderColor: '#0891b2',
+                },
+                '.Tab--selected:hover': {
+                  backgroundColor: '#0e7490',
+                  color: '#ffffff',
+                },
+                '.TabLabel': {
+                  color: '#ffffff',
+                },
+                '.TabLabel--selected': {
+                  color: '#ffffff',
+                },
+                '.Input': {
+                  backgroundColor: '#27272a',
+                  border: '1px solid #52525b',
+                  color: '#ffffff',
+                },
+                '.Input:focus': {
+                  borderColor: '#0891b2',
+                  boxShadow: '0 0 0 1px #0891b2',
+                },
+                '.Input::placeholder': {
+                  color: '#a1a1aa',
+                },
+                '.Label': {
+                  color: '#ffffff',
+                },
+                '.Text': {
+                  color: '#ffffff',
+                },
+                '.Text--secondary': {
+                  color: '#a1a1aa',
+                },
+                '.Text--small': {
+                  color: '#a1a1aa',
+                },
+                '.Icon': {
+                  color: '#a1a1aa',
+                },
+                '.Icon--selected': {
+                  color: '#0891b2',
+                },
+                '.Divider': {
+                  backgroundColor: '#52525b',
+                },
+                '.Spinner': {
+                  color: '#0891b2',
+                },
+                '.Alert': {
+                  backgroundColor: '#dc2626',
+                  color: '#ffffff',
+                },
+                '.Alert--error': {
+                  backgroundColor: '#dc2626',
+                  color: '#ffffff',
+                },
+                '.Alert--warning': {
+                  backgroundColor: '#d97706',
+                  color: '#ffffff',
+                },
+                '.Alert--info': {
+                  backgroundColor: '#0891b2',
+                  color: '#ffffff',
+                },
+              },
+            },
           }}
         />
       </div>
@@ -554,30 +645,30 @@ export default function PaymentPage() {
         </div>
 
         {/* Order Summary */}
-        <div className="mb-8 p-6 bg-zinc-800 rounded-lg">
+        <div className="mb-8 p-6 bg-zinc-900/80 border border-zinc-700 rounded-lg">
           <h2 className="text-xl font-bold text-white mb-4">Order Summary</h2>
           
           <div className="space-y-4">
-            <div className="flex justify-between text-zinc-300">
-              <span>Table Reservation</span>
-              <span>{formatCurrency(reservationDetails.tablePrice || 0)}</span>
+            <div className="flex justify-between text-white">
+              <span className="font-medium">Table Reservation</span>
+              <span className="font-semibold">{formatCurrency(reservationDetails.tablePrice || 0)}</span>
             </div>
             
             {reservationDetails.bottles && reservationDetails.bottles.length > 0 && (
               <>
-                <div className="border-t border-zinc-700 pt-4">
-                  <h3 className="text-white font-medium mb-2">Bottles</h3>
+                <div className="border-t border-zinc-600 pt-4">
+                  <h3 className="text-white font-semibold mb-3">Bottles</h3>
                   {reservationDetails.bottles.map((bottle, index) => (
-                    <div key={index} className="flex justify-between text-zinc-300">
+                    <div key={index} className="flex justify-between text-white mb-2">
                       <span>{bottle.name}</span>
-                      <span>{formatCurrency(bottle.price || 0)}</span>
+                      <span className="font-medium">{formatCurrency(bottle.price || 0)}</span>
                     </div>
                   ))}
                 </div>
               </>
             )}
             
-            <div className="border-t border-zinc-700 pt-4 flex justify-between text-white font-bold">
+            <div className="border-t border-zinc-600 pt-4 flex justify-between text-white font-bold text-lg">
               <span>Total</span>
               <span>{formatCurrency(costBreakdown.total || 0)}</span>
             </div>
@@ -585,18 +676,18 @@ export default function PaymentPage() {
         </div>
 
         {/* Payment Actions */}
-        <div className="mt-8 flex flex-col gap-4">
+        <div className="mt-8 flex flex-col gap-6">
           {process.env.NODE_ENV === 'development' && (
-            <div className="p-4 bg-yellow-900/20 border border-yellow-900/30 rounded-lg">
+            <div className="p-6 bg-amber-900/30 border border-amber-700/50 rounded-lg">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold text-yellow-400">Test Mode</h3>
-                  <p className="text-sm text-yellow-300/70">Skip payment for testing purposes</p>
+                  <h3 className="text-lg font-semibold text-amber-300">Test Mode</h3>
+                  <p className="text-sm text-amber-200/80">Skip payment for testing purposes</p>
                 </div>
                 <button
                   onClick={handleTestModePayment}
                   disabled={isProcessing}
-                  className="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors disabled:opacity-50"
+                  className="px-6 py-3 bg-amber-600 text-white font-semibold rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
                 >
                   {isProcessing ? 'Processing...' : 'Test Payment'}
                 </button>
@@ -608,7 +699,7 @@ export default function PaymentPage() {
           <button
             onClick={handlePayment}
             disabled={isProcessing}
-            className="w-full py-4 bg-cyan-600 text-white font-bold rounded-md hover:bg-cyan-700 transition-colors disabled:opacity-50"
+            className="w-full py-4 bg-cyan-600 text-white font-bold text-lg rounded-lg hover:bg-cyan-700 transition-colors disabled:opacity-50 shadow-lg"
           >
             {isProcessing ? 'Processing...' : `Pay ${formatCurrency(costBreakdown.total || 0)}`}
           </button>
