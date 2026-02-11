@@ -16,6 +16,7 @@ export default function CreateEventTab() {
   const [ticketLink, setTicketLink] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [loading, setLoading] = useState(false);
+  const [description, setDescription] = useState('');
   const [reservationsEnabled, setReservationsEnabled] = useState(true);
 
   const validateForm = () => {
@@ -93,6 +94,7 @@ export default function CreateEventTab() {
       const eventData = {
         title: eventName.trim(),
         date: selectedDate?.toISOString() || '',
+        ...(description.trim() && { description: description.trim() }),
         ticketLink: ticketLink.trim(),
         flyerUrl,
         createdBy: user.uid,
@@ -106,6 +108,7 @@ export default function CreateEventTab() {
       // Reset form
       setEventName('');
       setSelectedDate(null);
+      setDescription('');
       setTicketLink('');
       setFlyerFile(null);
       if (flyerPreview) {
@@ -157,18 +160,33 @@ export default function CreateEventTab() {
               {/* Event Date */}
               <div className="space-y-2">
                 <label htmlFor="eventDate" className="block text-sm font-medium text-gray-200">
-                  Event Date & Time *
+                  Event Date *
                 </label>
                 <div className="relative">
                   <input
-                    type="datetime-local"
+                    type="date"
                     id="eventDate"
-                    value={selectedDate ? selectedDate.toISOString().slice(0, 16) : ''}
-                    onChange={(e) => setSelectedDate(e.target.value ? new Date(e.target.value) : null)}
+                    value={selectedDate ? selectedDate.toISOString().slice(0, 10) : ''}
+                    onChange={(e) => setSelectedDate(e.target.value ? new Date(e.target.value + 'T00:00:00') : null)}
                     className="w-full px-4 py-3 lg:py-2 bg-black/50 border border-cyan-900/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-white text-base lg:text-sm"
                   />
                   <FiCalendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
                 </div>
+              </div>
+
+              {/* Description */}
+              <div className="space-y-2">
+                <label htmlFor="description" className="block text-sm font-medium text-gray-200">
+                  Description (Optional)
+                </label>
+                <textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={3}
+                  className="w-full px-4 py-3 lg:py-2 bg-black/50 border border-cyan-900/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-white placeholder-gray-500 text-base lg:text-sm resize-none"
+                  placeholder="Notes about the event..."
+                />
               </div>
 
               {/* Ticket Link */}

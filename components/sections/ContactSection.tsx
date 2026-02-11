@@ -47,7 +47,7 @@ export default function ContactSection() {
                   <FiPhone className="text-white mt-1 mr-3 flex-shrink-0" size={20} />
                   <div>
                     <h4 className="font-bold text-white/60">PHONE</h4>
-                    <p className="text-white">(915)999-9999</p>
+                    <p className="text-white">+1 (915) 246-3945</p>
                   </div>
                 </div>
                 
