@@ -25,13 +25,10 @@ export function formatDate(dateStr: string): string {
     const date = new Date(year, month - 1, day);
     if (isNaN(date.getTime())) return 'Invalid date';
     
-    return date.toLocaleString('en-US', {
+    return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
+      year: 'numeric'
     });
   } catch (error) {
     console.error('Error formatting date:', error);
