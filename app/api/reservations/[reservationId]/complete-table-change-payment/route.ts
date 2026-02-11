@@ -53,9 +53,13 @@ export async function POST(
       return NextResponse.json({ error: 'Invalid payment for this reservation' }, { status: 400 });
     }
 
+    const previousTotal = Number(reservation.totalAmount ?? 0);
+    const newTotal = Math.round((previousTotal + pendingAmount) * 100) / 100;
+
     const updateData = {
       tableChangeInvoiceId: paymentIntentId,
       tableChangeAmount: pendingAmount,
+      totalAmount: newTotal,
       pendingTableChangePaymentIntentId: null,
       pendingTableChangeAmount: null,
       updatedAt: new Date().toISOString(),

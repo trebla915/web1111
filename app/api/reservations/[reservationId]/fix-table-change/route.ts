@@ -110,9 +110,12 @@ export async function POST(
         },
       });
 
+      const previousTotal = Number(reservation.totalAmount ?? 0);
+      const newTotal = Math.round((previousTotal - refundAmount) * 100) / 100;
       await reservationRef.update({
         tableChangeRefundId: refund.id,
         tableChangeAmount: -refundAmount,
+        totalAmount: newTotal,
         updatedAt: new Date().toISOString(),
       });
 
@@ -126,6 +129,7 @@ export async function POST(
         await userResRef.update({
           tableChangeRefundId: refund.id,
           tableChangeAmount: -refundAmount,
+          totalAmount: newTotal,
           updatedAt: new Date().toISOString(),
         });
       }
