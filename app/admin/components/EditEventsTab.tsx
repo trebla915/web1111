@@ -17,6 +17,7 @@ export default function EditEventsTab() {
   const [eventDate, setEventDate] = useState('');
   const [ticketLink, setTicketLink] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [description, setDescription] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [reservationsEnabled, setReservationsEnabled] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -74,6 +75,7 @@ export default function EditEventsTab() {
       setSelectedEventId(eventId);
       setEventTitle(selectedEvent.title || '');
       setEventDate(selectedEvent.date ? selectedEvent.date.split('T')[0] : '');
+      setDescription(selectedEvent.description || '');
       setTicketLink(selectedEvent.ticketLink || '');
       console.log('Event reservationsEnabled:', selectedEvent.reservationsEnabled);
       setReservationsEnabled(selectedEvent.reservationsEnabled !== false);
@@ -99,6 +101,7 @@ export default function EditEventsTab() {
       const updatedEvent = {
         title: eventTitle,
         date: eventDate ? new Date(eventDate).toISOString() : undefined,
+        description: description.trim() || '',
         ticketLink,
         reservationsEnabled: reservationsEnabled
       };
@@ -133,6 +136,7 @@ export default function EditEventsTab() {
       setSelectedEventId(null);
       setEventTitle('');
       setEventDate('');
+      setDescription('');
       setTicketLink('');
       setReservationsEnabled(true);
       setConfirmDelete(null);
@@ -274,6 +278,20 @@ export default function EditEventsTab() {
                       />
                       <FiLink className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                     </div>
+                  </div>
+
+                  {/* Description */}
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-200">
+                      Description (Optional)
+                    </label>
+                    <textarea
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      rows={3}
+                      className="w-full px-4 py-2 bg-black/50 border border-cyan-900/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-white placeholder-gray-500 resize-none"
+                      placeholder="Notes about the event..."
+                    />
                   </div>
 
                   {/* Reservations Toggle */}
