@@ -3,8 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
-import { FiCamera, FiRefreshCw, FiAlertCircle, FiCheckCircle } from 'react-icons/fi';
-import { parseQRCodeUrl, isValidReservationQRCode } from '@/lib/utils/qrcode';
+import { parseQRCodeUrl } from '@/lib/utils/qrcode';
 
 export default function QRScannerPage() {
   const router = useRouter();
@@ -13,121 +12,90 @@ export default function QRScannerPage() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [manualUrl, setManualUrl] = useState('');
-  const [lastScannedCode, setLastScannedCode] = useState<string | null>(null);
+  const [showManual, setShowManual] = useState(false);
   const isNavigatingRef = useRef(false);
+  const lastScannedRef = useRef<string | null>(null);
 
   const handleQRCodeDetected = useCallback((decodedText: string) => {
-    // Prevent duplicate processing
     if (isNavigatingRef.current) return;
 
-    // Check if it's a valid check-in URL
     const reservationId = parseQRCodeUrl(decodedText);
 
     if (reservationId) {
       isNavigatingRef.current = true;
-      setLastScannedCode(decodedText);
-      toast.success('QR code scanned successfully!');
+      lastScannedRef.current = decodedText;
+      toast.success('QR code scanned!');
 
-      // Stop scanner before navigating
       if (scannerRef.current) {
-        try {
-          scannerRef.current.pause(true);
-        } catch {
-          // Scanner may already be stopped
-        }
+        try { scannerRef.current.pause(true); } catch { /* noop */ }
       }
 
       router.push(`/staff/check-in/${reservationId}`);
       return;
     }
 
-    // If the scanned text is not a URL but looks like a reservation ID (alphanumeric string)
+    // Fallback: treat as raw reservation ID if it looks valid
     if (decodedText && decodedText.length > 5 && !decodedText.includes(' ')) {
       isNavigatingRef.current = true;
-      setLastScannedCode(decodedText);
-      toast.success('QR code scanned successfully!');
+      lastScannedRef.current = decodedText;
+      toast.success('QR code scanned!');
 
       if (scannerRef.current) {
-        try {
-          scannerRef.current.pause(true);
-        } catch {
-          // Scanner may already be stopped
-        }
+        try { scannerRef.current.pause(true); } catch { /* noop */ }
       }
 
       router.push(`/staff/check-in/${decodedText}`);
       return;
     }
 
-    // Invalid QR code
-    if (decodedText !== lastScannedCode) {
-      setLastScannedCode(decodedText);
-      toast.error('Invalid QR code. Please scan a valid reservation QR code.');
+    if (decodedText !== lastScannedRef.current) {
+      lastScannedRef.current = decodedText;
+      toast.error('Invalid QR code');
     }
-  }, [router, lastScannedCode]);
+  }, [router]);
 
   const startScanner = useCallback(async () => {
     try {
       setError(null);
       setHasPermission(null);
 
-      // Dynamic import — html5-qrcode uses browser APIs
       const { Html5Qrcode } = await import('html5-qrcode');
 
-      // Clean up existing scanner instance
       if (scannerRef.current) {
         try {
           await scannerRef.current.stop();
           scannerRef.current.clear();
-        } catch {
-          // Ignore cleanup errors
-        }
+        } catch { /* noop */ }
       }
 
-      const scanner = new Html5Qrcode('qr-reader', {
-        verbose: false,
-      });
+      const scanner = new Html5Qrcode('qr-reader', { verbose: false });
       scannerRef.current = scanner;
-
-      const config = {
-        fps: 10,
-        qrbox: { width: 250, height: 250 },
-        aspectRatio: 1.0,
-        disableFlip: false,
-      };
 
       await scanner.start(
         { facingMode: 'environment' },
-        config,
-        (decodedText: string) => {
-          handleQRCodeDetected(decodedText);
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.0,
+          disableFlip: false,
         },
-        () => {
-          // Scan error — ignore, this fires on every frame without a QR code
-        }
+        (decodedText: string) => handleQRCodeDetected(decodedText),
+        () => { /* scan miss — ignore */ }
       );
 
       setHasPermission(true);
       setScanning(true);
     } catch (err: any) {
-      console.error('Error starting QR scanner:', err);
+      console.error('Scanner error:', err);
 
       if (err?.message?.includes('NotAllowedError') || err?.name === 'NotAllowedError') {
-        setError(
-          'Camera permission denied. Please allow camera access in your browser settings and reload the page.'
-        );
+        setError('Camera permission denied. Allow camera access in your browser settings, then reload.');
       } else if (err?.message?.includes('NotFoundError') || err?.name === 'NotFoundError') {
-        setError(
-          'No camera found on this device. Please use the manual entry option below.'
-        );
+        setError('No camera found. Use manual entry below.');
       } else if (err?.message?.includes('NotReadableError') || err?.name === 'NotReadableError') {
-        setError(
-          'Camera is already in use by another app. Please close other apps using the camera and try again.'
-        );
+        setError('Camera in use by another app. Close it and try again.');
       } else {
-        setError(
-          `Unable to start camera: ${err?.message || 'Unknown error'}. You can use manual entry below.`
-        );
+        setError(`Camera error: ${err?.message || 'Unknown'}. Use manual entry below.`);
       }
 
       setHasPermission(false);
@@ -140,9 +108,7 @@ export default function QRScannerPage() {
       try {
         await scannerRef.current.stop();
         scannerRef.current.clear();
-      } catch {
-        // Ignore stop errors
-      }
+      } catch { /* noop */ }
       scannerRef.current = null;
     }
     setScanning(false);
@@ -150,9 +116,7 @@ export default function QRScannerPage() {
 
   useEffect(() => {
     startScanner();
-
     return () => {
-      // Cleanup on unmount
       if (scannerRef.current) {
         scannerRef.current.stop().catch(() => {});
       }
@@ -162,186 +126,168 @@ export default function QRScannerPage() {
 
   const refreshScanner = async () => {
     isNavigatingRef.current = false;
-    setLastScannedCode(null);
+    lastScannedRef.current = null;
     await stopScanner();
-    // Small delay to allow DOM to reset
-    setTimeout(() => {
-      startScanner();
-    }, 500);
+    setTimeout(() => startScanner(), 500);
   };
 
   const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!manualUrl.trim()) {
-      toast.error('Please enter a URL or reservation ID');
-      return;
-    }
+    const val = manualUrl.trim();
+    if (!val) { toast.error('Enter a reservation ID'); return; }
 
-    // Try parsing as URL first
-    const reservationId = parseQRCodeUrl(manualUrl.trim());
-    if (reservationId) {
-      router.push(`/staff/check-in/${reservationId}`);
-      return;
-    }
-
-    // If not a URL, treat as direct reservation ID
-    if (manualUrl.trim().length > 0) {
-      router.push(`/staff/check-in/${manualUrl.trim()}`);
-    } else {
-      toast.error('Invalid URL or reservation ID');
-    }
+    const reservationId = parseQRCodeUrl(val);
+    router.push(`/staff/check-in/${reservationId || val}`);
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-cyan-400 mb-2">
-            QR Code Scanner
-          </h1>
-          <p className="text-gray-400">Scan customer reservation QR codes for check-in</p>
-        </div>
-
-        {/* Scanner Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Camera View */}
-          <div className="bg-zinc-900 rounded-lg border border-cyan-900/30 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-cyan-400 flex items-center gap-2">
-                <FiCamera className="w-5 h-5" />
-                Camera Scanner
-              </h2>
-              {scanning && (
-                <button
-                  onClick={refreshScanner}
-                  className="p-2 bg-zinc-800 text-white rounded-lg hover:bg-zinc-700 transition-colors"
-                  title="Refresh Camera"
-                >
-                  <FiRefreshCw className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-
-            {hasPermission === null && (
-              <div className="text-center py-8">
-                <div className="w-12 h-12 border-t-2 border-b-2 border-cyan-500 rounded-full animate-spin mx-auto mb-4"></div>
-                <p className="text-gray-400">Starting camera...</p>
-              </div>
-            )}
-
-            {hasPermission === false && (
-              <div className="text-center py-8">
-                <FiAlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                <p className="text-red-400 mb-4 text-sm">{error}</p>
-                <button
-                  onClick={refreshScanner}
-                  className="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors"
-                >
-                  Try Again
-                </button>
-              </div>
-            )}
-
-            {/* html5-qrcode renders the camera feed into this div */}
-            <div
-              id="qr-reader"
-              className={`w-full rounded-lg overflow-hidden ${hasPermission === true ? '' : 'hidden'}`}
-              style={{ minHeight: scanning ? '300px' : '0' }}
-            />
-
-            {scanning && (
-              <div className="mt-3 flex items-center justify-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-green-400 text-sm">Scanning — point camera at QR code</span>
-              </div>
-            )}
-
-            <div className="mt-4">
-              <p className="text-sm text-gray-400 text-center">
-                Position the QR code within the scanning area
-              </p>
-            </div>
-          </div>
-
-          {/* Manual Entry */}
-          <div className="bg-zinc-900 rounded-lg border border-cyan-900/30 p-6">
-            <h2 className="text-xl font-bold text-cyan-400 mb-4">
-              Manual Entry
-            </h2>
-
-            <form onSubmit={handleManualSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="manualUrl" className="block text-gray-400 text-sm mb-2">
-                  Enter QR Code URL or Reservation ID
-                </label>
-                <input
-                  type="text"
-                  id="manualUrl"
-                  value={manualUrl}
-                  onChange={(e) => setManualUrl(e.target.value)}
-                  placeholder="https://... or reservation ID"
-                  className="w-full px-4 py-3 bg-zinc-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-cyan-500 focus:outline-none"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full px-6 py-3 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded-lg transition-colors"
-              >
-                Check In
-              </button>
-            </form>
-
-            <div className="mt-6 pt-6 border-t border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-300 mb-3">How to Use</h3>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li className="flex items-start gap-2">
-                  <FiCheckCircle className="w-4 h-4 text-green-400 mt-0.5 shrink-0" />
-                  <span>Ask customer to show their reservation QR code</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <FiCheckCircle className="w-4 h-4 text-green-400 mt-0.5 shrink-0" />
-                  <span>Point your camera at the QR code</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <FiCheckCircle className="w-4 h-4 text-green-400 mt-0.5 shrink-0" />
-                  <span>Or manually enter the reservation ID</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <FiCheckCircle className="w-4 h-4 text-green-400 mt-0.5 shrink-0" />
-                  <span>Review details and complete check-in</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Troubleshooting */}
-            <div className="mt-6 pt-6 border-t border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-300 mb-3">Camera Not Working?</h3>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li className="flex items-start gap-2">
-                  <span className="text-cyan-400 shrink-0">iPhone:</span>
-                  <span>Settings &gt; Safari &gt; Camera &gt; Allow</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-cyan-400 shrink-0">Android:</span>
-                  <span>Tap lock icon in address bar &gt; Permissions &gt; Camera &gt; Allow</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="mt-8 text-center">
+    <div
+      className="fixed inset-0 bg-black text-white flex flex-col"
+      style={{
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+        paddingLeft: 'env(safe-area-inset-left)',
+        paddingRight: 'env(safe-area-inset-right)',
+      }}
+    >
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-4 py-3 shrink-0">
+        <h1 className="text-lg font-bold text-cyan-400">Staff Check-In</h1>
+        <div className="flex items-center gap-2">
+          {scanning && (
+            <button
+              onClick={refreshScanner}
+              className="p-2 rounded-lg bg-zinc-800 active:bg-zinc-700 transition-colors"
+              aria-label="Refresh camera"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+          )}
           <button
-            onClick={() => router.push('/staff')}
-            className="px-6 py-3 bg-zinc-700 text-white rounded-lg hover:bg-zinc-600 transition-colors"
+            onClick={() => setShowManual(!showManual)}
+            className="p-2 rounded-lg bg-zinc-800 active:bg-zinc-700 transition-colors"
+            aria-label="Manual entry"
           >
-            Back to Staff Dashboard
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
           </button>
         </div>
       </div>
+
+      {/* Scanner area — fills remaining space */}
+      <div className="flex-1 relative overflow-hidden">
+        {/* Loading state */}
+        {hasPermission === null && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
+            <div className="w-10 h-10 border-t-2 border-cyan-500 rounded-full animate-spin mb-3"></div>
+            <p className="text-gray-400 text-sm">Starting camera...</p>
+          </div>
+        )}
+
+        {/* Error state */}
+        {hasPermission === false && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-8 text-center">
+            <svg className="w-16 h-16 text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            <p className="text-red-400 text-sm mb-4">{error}</p>
+            <button
+              onClick={refreshScanner}
+              className="px-5 py-2.5 bg-cyan-600 rounded-lg text-sm font-semibold active:bg-cyan-700 transition-colors"
+            >
+              Try Again
+            </button>
+            <div className="mt-6 text-xs text-gray-500 space-y-1">
+              <p><span className="text-gray-400">iPhone:</span> Settings &gt; Safari &gt; Camera &gt; Allow</p>
+              <p><span className="text-gray-400">Android:</span> Tap lock icon &gt; Permissions &gt; Camera</p>
+            </div>
+          </div>
+        )}
+
+        {/* Camera feed rendered by html5-qrcode */}
+        <div
+          id="qr-reader"
+          className={`w-full h-full ${hasPermission === true ? '' : 'opacity-0 pointer-events-none'}`}
+        />
+
+        {/* Scanning overlay — corner brackets */}
+        {scanning && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="w-64 h-64 relative">
+              {/* Corners */}
+              <div className="absolute top-0 left-0 w-8 h-8 border-t-[3px] border-l-[3px] border-cyan-400 rounded-tl-lg" />
+              <div className="absolute top-0 right-0 w-8 h-8 border-t-[3px] border-r-[3px] border-cyan-400 rounded-tr-lg" />
+              <div className="absolute bottom-0 left-0 w-8 h-8 border-b-[3px] border-l-[3px] border-cyan-400 rounded-bl-lg" />
+              <div className="absolute bottom-0 right-0 w-8 h-8 border-b-[3px] border-r-[3px] border-cyan-400 rounded-br-lg" />
+              {/* Scan line animation */}
+              <div className="absolute left-2 right-2 h-0.5 bg-cyan-400/60 animate-scan-line" />
+            </div>
+          </div>
+        )}
+
+        {/* Status pill */}
+        {scanning && (
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            <span className="text-green-400 text-xs font-medium">Scanning</span>
+          </div>
+        )}
+      </div>
+
+      {/* Bottom hint */}
+      <div className="shrink-0 text-center py-3 px-4">
+        <p className="text-gray-500 text-xs">Point camera at guest&apos;s QR code</p>
+      </div>
+
+      {/* Manual entry slide-up panel */}
+      {showManual && (
+        <div className="absolute inset-0 z-50 flex flex-col justify-end">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => setShowManual(false)}
+          />
+          {/* Panel */}
+          <div
+            className="relative bg-zinc-900 rounded-t-2xl border-t border-zinc-700/50 px-5 pt-4 pb-6"
+            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1.5rem)' }}
+          >
+            {/* Drag handle */}
+            <div className="w-10 h-1 bg-zinc-700 rounded-full mx-auto mb-4" />
+
+            <h2 className="text-lg font-bold text-white mb-3">Manual Entry</h2>
+
+            <form onSubmit={handleManualSubmit} className="space-y-3">
+              <input
+                type="text"
+                value={manualUrl}
+                onChange={(e) => setManualUrl(e.target.value)}
+                placeholder="Reservation ID or URL"
+                autoFocus
+                className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none text-base"
+              />
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowManual(false)}
+                  className="flex-1 px-4 py-3 border border-zinc-700 text-gray-300 rounded-xl font-medium active:bg-zinc-800 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-3 bg-cyan-600 text-white rounded-xl font-bold active:bg-cyan-700 transition-colors"
+                >
+                  Check In
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

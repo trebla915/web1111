@@ -13,9 +13,10 @@ interface ConditionalLayoutProps {
 export default function ConditionalLayout({ children }: ConditionalLayoutProps) {
   const pathname = usePathname();
   const isAdminRoute = pathname.startsWith('/admin');
+  const isStaffRoute = pathname.startsWith('/staff');
 
-  if (isAdminRoute) {
-    // Admin routes get clean layout without header/footer
+  if (isAdminRoute || isStaffRoute) {
+    // Admin and staff routes get clean layout without header/footer/cookies
     return <main className="flex-1">{children}</main>;
   }
 
