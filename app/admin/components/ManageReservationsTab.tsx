@@ -1,12 +1,36 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { getGroupedByEvent, deleteReservation, cancelReservation } from '@/lib/services/reservations';
+import {
+  getGroupedByEvent,
+  deleteReservation,
+  cancelReservation,
+  resendConfirmationEmail,
+  updateReservationContact,
+  getAvailableTablesForReservation,
+  changeReservationTableAdmin,
+} from '@/lib/services/reservations';
 import { getAllEvents } from '@/lib/services/events';
-import { getAllTables } from '@/lib/services/tables';
 import { toast } from 'react-hot-toast';
-import { FiChevronDown, FiChevronUp, FiUsers, FiUser, FiRefreshCw, FiCalendar, FiAlertTriangle, FiTrash2, FiSearch, FiFilter, FiX, FiDollarSign } from 'react-icons/fi';
-import { BiTable, BiWine, BiDrink } from 'react-icons/bi';
+import {
+  FiChevronDown,
+  FiChevronUp,
+  FiUsers,
+  FiUser,
+  FiRefreshCw,
+  FiCalendar,
+  FiAlertTriangle,
+  FiTrash2,
+  FiSearch,
+  FiFilter,
+  FiX,
+  FiDollarSign,
+  FiMail,
+  FiEdit2,
+  FiExternalLink,
+  FiCopy,
+} from 'react-icons/fi';
+import { BiTable, BiWine } from 'react-icons/bi';
 import { Event } from '@/types/event';
 import { Reservation } from '@/types/reservation';
 import { User } from '@/types/user';
@@ -27,6 +51,16 @@ interface CancelModalData {
   isOpen: boolean;
 }
 
+interface EditContactModalData {
+  reservation: ReservationWithUser;
+  isOpen: boolean;
+}
+
+interface ChangeTableModalData {
+  reservation: ReservationWithUser;
+  isOpen: boolean;
+}
+
 export default function ManageReservationsTab() {
   const [reservationsByEvent, setReservationsByEvent] = useState<ReservationsByEvent>({});
   const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
@@ -41,6 +75,18 @@ export default function ManageReservationsTab() {
     staffName: ''
   });
   const [isProcessingCancel, setIsProcessingCancel] = useState(false);
+
+  const [editContactModal, setEditContactModal] = useState<EditContactModalData>({ reservation: {} as ReservationWithUser, isOpen: false });
+  const [editContactForm, setEditContactForm] = useState({ userEmail: '', userName: '', userPhone: '' });
+  const [isSavingContact, setIsSavingContact] = useState(false);
+
+  const [changeTableModal, setChangeTableModal] = useState<ChangeTableModalData>({ reservation: {} as ReservationWithUser, isOpen: false });
+  const [availableTables, setAvailableTables] = useState<Array<{ id: string; number: number; price: number; reserved: boolean }>>([]);
+  const [selectedNewTableId, setSelectedNewTableId] = useState<string | null>(null);
+  const [isLoadingTables, setIsLoadingTables] = useState(false);
+  const [isChangingTable, setIsChangingTable] = useState(false);
+
+  const [resendEmailLoadingId, setResendEmailLoadingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchReservationsData();
@@ -163,6 +209,113 @@ export default function ManageReservationsTab() {
     }
   };
 
+  const handleResendConfirmation = async (reservation: ReservationWithUser) => {
+    if (!reservation.userEmail || reservation.userEmail === 'No email') {
+      toast.error('No email on this reservation. Edit contact first.');
+      return;
+    }
+    setResendEmailLoadingId(reservation.id);
+    try {
+      const result = await resendConfirmationEmail(reservation.id, true);
+      toast.success(result.alreadySent ? 'Confirmation email was already sent' : 'Confirmation email sent');
+      if (!result.alreadySent) fetchReservationsData();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to send email');
+    } finally {
+      setResendEmailLoadingId(null);
+    }
+  };
+
+  const openEditContactModal = (reservation: ReservationWithUser) => {
+    setEditContactModal({ reservation, isOpen: true });
+    setEditContactForm({
+      userEmail: reservation.userEmail || '',
+      userName: reservation.userName || '',
+      userPhone: reservation.userPhone || '',
+    });
+  };
+
+  const closeEditContactModal = () => {
+    setEditContactModal({ reservation: {} as ReservationWithUser, isOpen: false });
+    setEditContactForm({ userEmail: '', userName: '', userPhone: '' });
+  };
+
+  const handleSaveContact = async () => {
+    if (!editContactModal.reservation.id) return;
+    if (!editContactForm.userEmail.trim()) {
+      toast.error('Email is required');
+      return;
+    }
+    setIsSavingContact(true);
+    try {
+      await updateReservationContact(editContactModal.reservation.id, {
+        userEmail: editContactForm.userEmail.trim(),
+        userName: editContactForm.userName.trim() || undefined,
+        userPhone: editContactForm.userPhone.trim() || undefined,
+      });
+      toast.success('Contact updated');
+      closeEditContactModal();
+      fetchReservationsData();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to update');
+    } finally {
+      setIsSavingContact(false);
+    }
+  };
+
+  const openChangeTableModal = async (reservation: ReservationWithUser) => {
+    setChangeTableModal({ reservation, isOpen: true });
+    setSelectedNewTableId(null);
+    setAvailableTables([]);
+    setIsLoadingTables(true);
+    try {
+      const data = await getAvailableTablesForReservation(reservation.id);
+      const others = (data.tables || []).filter(
+        (t: { id: string; reserved: boolean }) => !t.reserved || t.id === reservation.tableId
+      );
+      setAvailableTables(others);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to load tables');
+      setChangeTableModal({ reservation: {} as ReservationWithUser, isOpen: false });
+    } finally {
+      setIsLoadingTables(false);
+    }
+  };
+
+  const closeChangeTableModal = () => {
+    setChangeTableModal({ reservation: {} as ReservationWithUser, isOpen: false });
+    setSelectedNewTableId(null);
+    setAvailableTables([]);
+  };
+
+  const handleAdminChangeTable = async () => {
+    const reservation = changeTableModal.reservation;
+    if (!reservation.id || !selectedNewTableId) {
+      toast.error('Select a table');
+      return;
+    }
+    if (selectedNewTableId === reservation.tableId) {
+      toast.error('Select a different table');
+      return;
+    }
+    setIsChangingTable(true);
+    try {
+      await changeReservationTableAdmin(reservation.id, selectedNewTableId);
+      toast.success('Table changed (no charge or refund)');
+      closeChangeTableModal();
+      fetchReservationsData();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to change table');
+    } finally {
+      setIsChangingTable(false);
+    }
+  };
+
+  const copyConfirmationLink = (reservation: ReservationWithUser) => {
+    const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/reservation/${reservation.id}/change-table`;
+    navigator.clipboard.writeText(url).then(() => toast.success('Link copied to clipboard')).catch(() => toast.error('Could not copy'));
+  };
+
   const toggleEventExpand = (eventTitle: string) => {
     setExpandedEventId(expandedEventId === eventTitle ? null : eventTitle);
   };
@@ -248,6 +401,7 @@ export default function ManageReservationsTab() {
       case 'cancelled':
         return 'bg-red-900/30 text-red-400 border-red-500/50';
       case 'completed':
+      case 'checked-in':
         return 'bg-cyan-900/30 text-cyan-400 border-cyan-500/50';
       default:
         return 'bg-gray-800 text-gray-300 border-gray-600';
@@ -303,6 +457,7 @@ export default function ManageReservationsTab() {
                 <option value="confirmed">Confirmed</option>
                 <option value="completed">Completed</option>
                 <option value="cancelled">Cancelled</option>
+                <option value="checked-in">Checked-in</option>
               </select>
             </div>
           </div>
@@ -400,8 +555,59 @@ export default function ManageReservationsTab() {
                                 <p className="text-gray-400 truncate">📱 {reservation.userPhone}</p>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                              {/* Cancel & Refund Button - Show for all active reservations */}
+                            <div className="flex flex-wrap items-center gap-1 shrink-0">
+                              {/* Resend confirmation email */}
+                              {reservation.status !== 'cancelled' && (
+                                <button
+                                  onClick={() => handleResendConfirmation(reservation)}
+                                  disabled={resendEmailLoadingId === reservation.id}
+                                  className="p-2 text-cyan-400 hover:bg-cyan-900/20 rounded-lg transition-colors disabled:opacity-50"
+                                  title="Resend confirmation email"
+                                >
+                                  {resendEmailLoadingId === reservation.id ? (
+                                    <div className="w-4 h-4 border-t-2 border-b-2 border-cyan-400 rounded-full animate-spin" />
+                                  ) : (
+                                    <FiMail size={16} />
+                                  )}
+                                </button>
+                              )}
+                              {/* Edit contact (email, name, phone) */}
+                              <button
+                                onClick={() => openEditContactModal(reservation)}
+                                className="p-2 text-gray-400 hover:bg-gray-700/30 rounded-lg transition-colors"
+                                title="Edit email / contact"
+                              >
+                                <FiEdit2 size={16} />
+                              </button>
+                              {/* Change table (admin override) */}
+                              {reservation.status !== 'cancelled' && reservation.status !== 'checked-in' && (
+                                <button
+                                  onClick={() => openChangeTableModal(reservation)}
+                                  className="p-2 text-emerald-400 hover:bg-emerald-900/20 rounded-lg transition-colors"
+                                  title="Change table (no charge)"
+                                >
+                                  <BiTable size={16} />
+                                </button>
+                              )}
+                              {/* Copy change-table / manage link */}
+                              <button
+                                onClick={() => copyConfirmationLink(reservation)}
+                                className="p-2 text-gray-400 hover:bg-gray-700/30 rounded-lg transition-colors"
+                                title="Copy manage reservation link"
+                              >
+                                <FiCopy size={16} />
+                              </button>
+                              {/* Open change-table page in new tab */}
+                              <a
+                                href={`/reservation/${reservation.id}/change-table`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 text-gray-400 hover:bg-gray-700/30 rounded-lg transition-colors"
+                                title="Open change-table page (customer flow)"
+                              >
+                                <FiExternalLink size={16} />
+                              </a>
+                              {/* Cancel & Refund - Show for all active reservations */}
                               {reservation.status !== 'cancelled' && (
                                 <button
                                   onClick={() => openCancelModal(reservation)}
@@ -503,6 +709,145 @@ export default function ManageReservationsTab() {
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Edit contact modal */}
+      {editContactModal.isOpen && editContactModal.reservation.id && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-zinc-900 rounded-lg border border-gray-700 w-full max-w-md">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-white">Edit contact</h3>
+                <button onClick={closeEditContactModal} className="text-gray-400 hover:text-white">
+                  <FiX size={20} />
+                </button>
+              </div>
+              <p className="text-sm text-gray-400 mb-4">
+                Table #{editContactModal.reservation.tableNumber} · {editContactModal.reservation.userName}
+              </p>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Email *</label>
+                  <input
+                    type="email"
+                    value={editContactForm.userEmail}
+                    onChange={(e) => setEditContactForm((f) => ({ ...f, userEmail: e.target.value }))}
+                    className="w-full px-3 py-2 bg-zinc-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-cyan-500 focus:outline-none"
+                    placeholder="guest@example.com"
+                    disabled={isSavingContact}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Name</label>
+                  <input
+                    type="text"
+                    value={editContactForm.userName}
+                    onChange={(e) => setEditContactForm((f) => ({ ...f, userName: e.target.value }))}
+                    className="w-full px-3 py-2 bg-zinc-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-cyan-500 focus:outline-none"
+                    placeholder="Guest name"
+                    disabled={isSavingContact}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Phone</label>
+                  <input
+                    type="tel"
+                    value={editContactForm.userPhone}
+                    onChange={(e) => setEditContactForm((f) => ({ ...f, userPhone: e.target.value }))}
+                    className="w-full px-3 py-2 bg-zinc-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-cyan-500 focus:outline-none"
+                    placeholder="Phone"
+                    disabled={isSavingContact}
+                  />
+                </div>
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={closeEditContactModal}
+                  disabled={isSavingContact}
+                  className="flex-1 px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-zinc-800 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveContact}
+                  disabled={isSavingContact || !editContactForm.userEmail.trim()}
+                  className="flex-1 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 disabled:opacity-50 text-white rounded-lg"
+                >
+                  {isSavingContact ? 'Saving…' : 'Save'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Change table modal (admin override) */}
+      {changeTableModal.isOpen && changeTableModal.reservation.id && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-zinc-900 rounded-lg border border-gray-700 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-white">Change table (admin)</h3>
+                <button onClick={closeChangeTableModal} className="text-gray-400 hover:text-white">
+                  <FiX size={20} />
+                </button>
+              </div>
+              <p className="text-sm text-gray-400 mb-4">
+                {changeTableModal.reservation.userName} · Current: Table #{changeTableModal.reservation.tableNumber}. No charge or refund.
+              </p>
+              {isLoadingTables ? (
+                <div className="flex justify-center py-8">
+                  <div className="w-8 h-8 border-t-2 border-b-2 border-cyan-500 rounded-full animate-spin" />
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {availableTables.map((table) => {
+                      const isCurrent = table.id === changeTableModal.reservation.tableId;
+                      return (
+                        <button
+                          key={table.id}
+                          type="button"
+                          onClick={() => !isCurrent && setSelectedNewTableId(table.id)}
+                          disabled={isCurrent}
+                          className={`w-full text-left px-3 py-2 rounded-lg border transition-colors ${
+                            selectedNewTableId === table.id
+                              ? 'border-cyan-500 bg-cyan-900/30'
+                              : isCurrent
+                                ? 'border-gray-700 bg-zinc-800/50 opacity-60 cursor-not-allowed'
+                                : 'border-gray-700 hover:border-gray-600'
+                          }`}
+                        >
+                          <span className="text-white font-medium">Table #{table.number}</span>
+                          <span className="text-gray-400 text-sm ml-2">
+                            {formatCurrency(table.price)}
+                            {isCurrent && ' (current)'}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="flex gap-3 mt-6">
+                    <button
+                      onClick={closeChangeTableModal}
+                      disabled={isChangingTable}
+                      className="flex-1 px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-zinc-800"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleAdminChangeTable}
+                      disabled={isChangingTable || !selectedNewTableId || selectedNewTableId === changeTableModal.reservation.tableId}
+                      className="flex-1 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg"
+                    >
+                      {isChangingTable ? 'Changing…' : 'Change table'}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
         </div>
       )}
 

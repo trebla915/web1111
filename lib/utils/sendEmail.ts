@@ -7,6 +7,10 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'reservations@1111eptx.com';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.1111eptx.com';
 
+export function getChangeTableUrl(reservationId: string): string {
+  return `${APP_URL}/reservation/${reservationId}/change-table`;
+}
+
 interface ReservationEmailData {
   reservationId: string;
   customerName: string;
@@ -191,6 +195,21 @@ export async function sendReservationConfirmation(
                       </tr>
                       ` : ''}
                     </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Change table -->
+          <tr>
+            <td style="padding:0 40px 20px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#1a1a1a;border-radius:8px;border:1px solid #2a2a2a;">
+                <tr>
+                  <td style="padding:20px;text-align:center;">
+                    <p style="margin:0 0 12px;font-size:14px;color:#bbbbbb;">Need a different table?</p>
+                    <a href="${getChangeTableUrl(data.reservationId)}" style="display:inline-block;padding:12px 24px;background-color:#0891b2;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;border-radius:8px;">Change table</a>
+                    <p style="margin:12px 0 0;font-size:12px;color:#888888;">You can switch to another available table. Price differences may apply.</p>
                   </td>
                 </tr>
               </table>

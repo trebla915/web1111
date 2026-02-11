@@ -280,6 +280,14 @@ export default function ConfirmationPage() {
           )}
 
           <div className="space-y-4">
+            {reservationData?.id && (
+              <a
+                href={`/reservation/${reservationData.id}/change-table`}
+                className="w-full block py-3 bg-zinc-700 text-white rounded-lg font-bold transition-all hover:bg-zinc-600 text-center"
+              >
+                Change table
+              </a>
+            )}
             <button
               onClick={() => window.location.href = '/dashboard/reservations'}
               className="w-full py-3 bg-cyan-600 text-white rounded-lg font-bold transition-all hover:bg-cyan-700"

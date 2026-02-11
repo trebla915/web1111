@@ -51,6 +51,14 @@ export interface Reservation {
   refundId?: string;
   refundAmount?: number;
   refundStatus?: string;
+  // Table change information
+  previousTableId?: string;
+  previousTableNumber?: number;
+  tableChangedAt?: string;
+  tableChangeInvoiceId?: string;
+  tableChangeRefundId?: string;
+  tableChangeAmount?: number;
+  eventDate?: string;
 }
 
 export interface Bottle {
