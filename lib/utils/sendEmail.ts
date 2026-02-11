@@ -55,12 +55,28 @@ async function uploadQRCodeAndGetUrl(reservationId: string): Promise<string> {
 }
 
 /**
- * Format a date string for display in emails
+ * Format a date for display in emails. Accepts ISO string, Firestore Timestamp, or { _seconds }.
  */
-function formatEmailDate(dateInput: string): string {
+function formatEmailDate(dateInput: string | { _seconds?: number; _nanoseconds?: number; toDate?: () => Date } | null | undefined): string {
+  if (dateInput == null) return 'N/A';
+  let date: Date | undefined;
+  if (typeof dateInput === 'string') {
+    const s = dateInput.trim();
+    if (!s || s === '[object Object]') return 'N/A';
+    date = new Date(s);
+  } else if (typeof dateInput === 'object') {
+    if (typeof (dateInput as { toDate?: () => Date }).toDate === 'function') {
+      date = (dateInput as { toDate: () => Date }).toDate();
+    } else if (typeof (dateInput as { _seconds?: number })._seconds === 'number') {
+      date = new Date((dateInput as { _seconds: number })._seconds * 1000);
+    } else {
+      return 'N/A';
+    }
+  } else {
+    return 'N/A';
+  }
   try {
-    const date = new Date(dateInput);
-    if (isNaN(date.getTime())) return dateInput;
+    if (!date || isNaN(date.getTime())) return 'N/A';
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
@@ -70,7 +86,7 @@ function formatEmailDate(dateInput: string): string {
       minute: '2-digit',
     });
   } catch {
-    return dateInput;
+    return 'N/A';
   }
 }
 
