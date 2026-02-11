@@ -8,6 +8,7 @@ import { parseQRCodeUrl } from '@/lib/utils/qrcode';
 export default function QRScannerPage() {
   const router = useRouter();
   const scannerRef = useRef<any>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [scanning, setScanning] = useState(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -71,13 +72,21 @@ export default function QRScannerPage() {
       const scanner = new Html5Qrcode('qr-reader', { verbose: false });
       scannerRef.current = scanner;
 
+      // Calculate a responsive qrbox based on screen size
+      const screenWidth = window.innerWidth;
+      const qrboxSize = Math.min(250, Math.floor(screenWidth * 0.65));
+
       await scanner.start(
         { facingMode: 'environment' },
         {
           fps: 10,
-          qrbox: { width: 250, height: 250 },
-          aspectRatio: 1.0,
+          qrbox: { width: qrboxSize, height: qrboxSize },
           disableFlip: false,
+          videoConstraints: {
+            facingMode: 'environment',
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          },
         },
         (decodedText: string) => handleQRCodeDetected(decodedText),
         () => { /* scan miss — ignore */ }
@@ -178,7 +187,7 @@ export default function QRScannerPage() {
       </div>
 
       {/* Scanner area — fills remaining space */}
-      <div className="flex-1 relative overflow-hidden">
+      <div ref={containerRef} className="flex-1 relative overflow-hidden min-h-0">
         {/* Loading state */}
         {hasPermission === null && (
           <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
@@ -207,10 +216,10 @@ export default function QRScannerPage() {
           </div>
         )}
 
-        {/* Camera feed rendered by html5-qrcode */}
+        {/* Camera feed rendered by html5-qrcode — absolute fill so it gets real pixel dimensions */}
         <div
           id="qr-reader"
-          className={`w-full h-full ${hasPermission === true ? '' : 'opacity-0 pointer-events-none'}`}
+          className={`absolute inset-0 ${hasPermission === true ? '' : 'opacity-0 pointer-events-none'}`}
         />
 
         {/* Scanning overlay — corner brackets */}
