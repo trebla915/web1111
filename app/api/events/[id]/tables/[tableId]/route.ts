@@ -37,6 +37,35 @@ export async function GET(
   }
 }
 
+// PUT /api/events/[id]/tables/[tableId] - Update a table (e.g. release it)
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string; tableId: string } }
+) {
+  try {
+    const { id, tableId } = params;
+    const data = await request.json();
+
+    const tableRef = adminFirestore
+      .collection('events')
+      .doc(id)
+      .collection('tables')
+      .doc(tableId);
+
+    const tableDoc = await tableRef.get();
+    if (!tableDoc.exists) {
+      return NextResponse.json({ error: 'Table not found' }, { status: 404 });
+    }
+
+    await tableRef.update(data);
+
+    return NextResponse.json({ message: 'Table updated successfully' });
+  } catch (error) {
+    console.error(`Error updating table ${params.tableId} for event ${params.id}:`, error);
+    return NextResponse.json({ error: 'Failed to update table' }, { status: 500 });
+  }
+}
+
 // DELETE /api/events/[id]/tables/[tableId] - Delete a specific table from an event
 export async function DELETE(
   request: NextRequest,

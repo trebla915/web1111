@@ -34,9 +34,11 @@ export const updateReservation = async (id: string, reservationData: Partial<Res
   }
 };
 
-export const deleteReservation = async (id: string): Promise<void> => {
+export const deleteReservation = async (eventId: string, id: string): Promise<void> => {
   try {
-    await apiClient.delete(`/reservations/${id}`);
+    // Backend route: DELETE /reservations/:eventId/:id
+    // This also releases the table and cleans up user sub-collection in a transaction
+    await apiClient.delete(`/reservations/${eventId}/${id}`);
   } catch (error) {
     console.error('Error deleting reservation:', error);
     throw error;

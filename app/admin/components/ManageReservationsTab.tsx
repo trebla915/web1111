@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { getGroupedByEvent, deleteReservation, cancelReservation } from '@/lib/services/reservations';
 import { getAllEvents } from '@/lib/services/events';
-import { getAllTables, releaseTable } from '@/lib/services/tables';
+import { getAllTables } from '@/lib/services/tables';
 import { toast } from 'react-hot-toast';
 import { FiChevronDown, FiChevronUp, FiUsers, FiUser, FiRefreshCw, FiCalendar, FiAlertTriangle, FiTrash2, FiSearch, FiFilter, FiX, FiDollarSign } from 'react-icons/fi';
 import { BiTable, BiWine, BiDrink } from 'react-icons/bi';
@@ -96,23 +96,14 @@ export default function ManageReservationsTab() {
     }
   };
 
-  const handleDeleteReservation = async (reservationId: string, eventId: string, tableId: string | undefined) => {
+  const handleDeleteReservation = async (reservationId: string, eventId: string) => {
     if (!confirm('Are you sure you want to delete this reservation?')) {
       return;
     }
 
     try {
-      // Release the table first if we have the table document ID (backend expects tableId, not table number)
-      if (eventId && tableId) {
-        try {
-          await releaseTable(eventId, tableId);
-        } catch (releaseError) {
-          // Don't block delete if release fails (e.g. table already released or legacy data)
-          console.warn('Table release failed, continuing with delete:', releaseError);
-        }
-      }
-
-      await deleteReservation(reservationId);
+      // Backend handles reservation delete, table release, and user sub-collection cleanup in a transaction
+      await deleteReservation(eventId, reservationId);
 
       toast.success('Reservation deleted successfully');
       fetchReservationsData(); // Refresh the data
@@ -422,7 +413,7 @@ export default function ManageReservationsTab() {
                               )}
                               {/* Delete Button */}
                               <button
-                                onClick={() => handleDeleteReservation(reservation.id, reservation.eventId, reservation.tableId)}
+                                onClick={() => handleDeleteReservation(reservation.id, reservation.eventId)}
                                 className="p-2 text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
                                 title="Delete reservation"
                               >

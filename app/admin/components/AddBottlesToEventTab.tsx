@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import Image from "next/image";
 import { FiSearch, FiPlus, FiTrash2, FiSave } from "react-icons/fi";
-import { BottleService } from "@/lib/services/backend/bottles";
+import { BottleService } from "@/lib/services/bottles";
 import { Bottle } from '@/types/reservation';
 
 interface AddBottlesToEventTabProps {

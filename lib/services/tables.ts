@@ -167,12 +167,26 @@ export const getTablesByEvent = async (eventId: string): Promise<Table[]> => {
 
 export const releaseTable = async (eventId: string, tableId: string): Promise<void> => {
   try {
-    await apiClient.put(API_ENDPOINTS.tables.release(eventId, tableId), {});
+    // Use local Next.js API route to update the table directly in Firestore
+    const res = await fetch(`/api/events/${eventId}/tables/${tableId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reserved: false }),
+    });
+    if (!res.ok) {
+      const status = res.status;
+      // 404 = table not found or already released; don't block delete
+      if (status === 404) {
+        console.warn('Table release returned 404 (table may be already released or id invalid), continuing.');
+        return;
+      }
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || `Failed to release table (${status})`);
+    }
   } catch (error: any) {
-    const status = error?.response?.status;
-    // 404 = table not found or already released; don't block delete
-    if (status === 404) {
-      console.warn('Table release returned 404 (table may be already released or id invalid), continuing.');
+    // Still handle 404 gracefully in case of network errors with status
+    if (error?.message?.includes('404')) {
+      console.warn('Table release returned 404, continuing.');
       return;
     }
     console.error('Error releasing table:', error);
