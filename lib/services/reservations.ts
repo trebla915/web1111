@@ -199,20 +199,40 @@ export const completeTableChangePayment = async (
 };
 
 /** Resend confirmation email. Set forceResend true to send even if already sent (e.g. admin). */
+/** Uses same-origin so the Next.js API route (Vercel) runs it; that route needs RESEND_* and Firebase Admin env vars on Vercel. */
 export const resendConfirmationEmail = async (
   reservationId: string,
   forceResend = false
 ): Promise<{ success: boolean; message?: string; alreadySent?: boolean }> => {
-  const response = await fetch(`/api/reservations/${reservationId}/send-confirmation`, {
+  const url = `/api/reservations/${reservationId}/send-confirmation`;
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('auth_token');
+    if (token) headers.Authorization = `Bearer ${token}`;
+  }
+  const res = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify({ forceResend }),
   });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(data.error || 'Failed to send confirmation email');
+  const data = await res.json().catch(() => ({})) as {
+    success?: boolean;
+    message?: string;
+    alreadySent?: boolean;
+    error?: string;
+    details?: string;
+  };
+  if (!res.ok) {
+    const message = data?.details
+      ? `${data.error ?? 'Failed to send confirmation email'}: ${data.details}`
+      : (data?.error || 'Failed to send confirmation email');
+    throw new Error(message);
   }
-  return data;
+  return {
+    success: data.success ?? true,
+    message: data.message,
+    alreadySent: data.alreadySent,
+  };
 };
 
 /** Update reservation contact info (userEmail, userName, userPhone). Uses Next.js API. */

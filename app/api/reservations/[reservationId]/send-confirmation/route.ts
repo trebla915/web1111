@@ -11,7 +11,9 @@ export async function POST(
 ) {
   try {
     const { reservationId } = params;
-    const body = await request.json().catch(() => ({}));
+    const body = await request
+      .json()
+      .catch(() => ({})) as { forceResend?: boolean } | undefined;
     const forceResend = !!body?.forceResend;
 
     // Get reservation from Firestore
@@ -89,7 +91,10 @@ export async function POST(
         result.error
       );
       return NextResponse.json(
-        { error: 'Failed to send confirmation email', details: result.error },
+        {
+          error: 'Failed to send confirmation email',
+          details: result.error,
+        },
         { status: 500 }
       );
     }
@@ -107,12 +112,16 @@ export async function POST(
       emailId: result.emailId,
     });
   } catch (error: any) {
+    const message = error?.message || String(error);
     console.error(
       `Error in send-confirmation for ${params.reservationId}:`,
       error
     );
     return NextResponse.json(
-      { error: 'Failed to send confirmation email' },
+      {
+        error: 'Failed to send confirmation email',
+        details: process.env.NODE_ENV === 'development' ? message : undefined,
+      },
       { status: 500 }
     );
   }
