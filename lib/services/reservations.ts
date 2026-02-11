@@ -154,6 +154,50 @@ export const changeReservationTable = async (
   return data;
 };
 
+/** Fix table-change price difference for a reservation already moved (e.g. old admin override). Refunds or charges and sends email. */
+export const fixTableChangePriceDifference = async (
+  reservationId: string
+): Promise<
+  | { success: true; message: string; refund?: { id: string; amount: number } }
+  | { needsPayment: true; clientSecret: string; paymentIntentId: string; amountDue: number; message: string }
+> => {
+  const response = await fetch(`/api/reservations/${reservationId}/fix-table-change`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.error || 'Failed to fix table change');
+  }
+  return data;
+};
+
+/** Get pending table-change payment (for fix upgrade). Returns clientSecret so customer can pay. */
+export const getPendingTableChangePayment = async (reservationId: string) => {
+  const response = await fetch(`/api/reservations/${reservationId}/pending-table-change-payment`);
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error || 'No pending payment');
+  }
+  return response.json() as Promise<{ clientSecret: string; paymentIntentId: string; amountDue: number }>;
+};
+
+/** Complete a pending table-change payment (after customer pays the fix upgrade). */
+export const completeTableChangePayment = async (
+  reservationId: string,
+  paymentIntentId: string
+): Promise<void> => {
+  const response = await fetch(`/api/reservations/${reservationId}/complete-table-change-payment`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ paymentIntentId }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.error || 'Failed to complete payment');
+  }
+};
+
 /** Resend confirmation email. Set forceResend true to send even if already sent (e.g. admin). */
 export const resendConfirmationEmail = async (
   reservationId: string,

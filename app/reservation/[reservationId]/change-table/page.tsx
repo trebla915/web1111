@@ -9,6 +9,8 @@ import StripeProvider from "@/components/providers/StripeProvider";
 import {
   getAvailableTablesForReservation,
   changeReservationTable,
+  getPendingTableChangePayment,
+  completeTableChangePayment,
   type ChangeTableInitResponse,
   type ChangeTableSuccessResponse,
 } from "@/lib/services/reservations";
@@ -101,6 +103,82 @@ function PaymentStep({
   );
 }
 
+function PendingFixPaymentStep({
+  clientSecret,
+  amountDue,
+  reservationId,
+  paymentIntentId,
+  onSuccess,
+}: {
+  clientSecret: string;
+  amountDue: number;
+  reservationId: string;
+  paymentIntentId: string;
+  onSuccess: () => void;
+}) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+    setIsProcessing(true);
+    setError(null);
+    try {
+      const returnUrl = `${window.location.origin}/reservation/${reservationId}/change-table?fixPayment=1`;
+      const { error: submitError } = await stripe.confirmPayment({
+        elements,
+        confirmParams: { return_url: returnUrl },
+      });
+      if (submitError) {
+        setError(submitError.message || "Payment failed");
+        setIsProcessing(false);
+        return;
+      }
+      await completeTableChangePayment(reservationId, paymentIntentId);
+      onSuccess();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <p className="text-zinc-300 text-sm">
+        Pay the outstanding price difference of <strong className="text-cyan-400">{formatCurrency(amountDue)}</strong>.
+      </p>
+      <div className="p-4 border border-zinc-700 rounded-lg bg-zinc-900/50">
+        <PaymentElement
+          options={{
+            layout: "tabs",
+            appearance: {
+              theme: "night",
+              variables: {
+                colorPrimary: "#0891b2",
+                colorBackground: "#18181b",
+                colorText: "#ffffff",
+                borderRadius: "8px",
+              },
+            },
+          }}
+        />
+      </div>
+      {error && <p className="text-red-400 text-sm">{error}</p>}
+      <button
+        type="submit"
+        disabled={!stripe || isProcessing}
+        className="w-full py-3 bg-cyan-600 text-white font-semibold rounded-lg hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {isProcessing ? "Processing…" : `Pay ${formatCurrency(amountDue)}`}
+      </button>
+    </form>
+  );
+}
+
 export default function ChangeTablePage() {
   const params = useParams();
   const router = useRouter();
@@ -119,40 +197,65 @@ export default function ChangeTablePage() {
   } | null>(null);
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
   const [paymentStep, setPaymentStep] = useState<ChangeTableInitResponse | null>(null);
+  const [pendingFixPayment, setPendingFixPayment] = useState<{
+    clientSecret: string;
+    paymentIntentId: string;
+    amountDue: number;
+  } | null>(null);
   const [success, setSuccess] = useState<ChangeTableSuccessResponse | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // After Stripe redirect (3DS etc.), complete the table change
+  // After Stripe redirect (3DS etc.), complete the table change or pending fix payment
   useEffect(() => {
     const paymentIntent = searchParams.get("payment_intent");
     const redirectStatus = searchParams.get("redirect_status");
     const newTableIdFromUrl = searchParams.get("newTableId");
+    const fixPayment = searchParams.get("fixPayment");
+
     if (
       !completedRedirectRef.current &&
       reservationId &&
       paymentIntent &&
-      redirectStatus === "succeeded" &&
-      newTableIdFromUrl
+      redirectStatus === "succeeded"
     ) {
       completedRedirectRef.current = true;
-      changeReservationTable(reservationId, newTableIdFromUrl, paymentIntent)
-        .then((result) => {
-          if ("success" in result && result.success) {
-            setSuccess(result);
+      if (fixPayment === "1") {
+        completeTableChangePayment(reservationId, paymentIntent)
+          .then(() => {
+            setSuccess({ success: true, message: "Payment recorded. Your table change is complete.", reservation: {} as any });
             router.replace(`/reservation/${reservationId}/change-table`);
-          } else {
-            setError("Could not complete table change. Please try again.");
-          }
-        })
-        .catch((err) => setError(err instanceof Error ? err.message : "Failed to complete"))
-        .finally(() => setLoading(false));
+          })
+          .catch((err) => setError(err instanceof Error ? err.message : "Failed to complete"))
+          .finally(() => setLoading(false));
+      } else if (newTableIdFromUrl) {
+        changeReservationTable(reservationId, newTableIdFromUrl, paymentIntent)
+          .then((result) => {
+            if ("success" in result && result.success) {
+              setSuccess(result);
+              router.replace(`/reservation/${reservationId}/change-table`);
+            } else {
+              setError("Could not complete table change. Please try again.");
+            }
+          })
+          .catch((err) => setError(err instanceof Error ? err.message : "Failed to complete"))
+          .finally(() => setLoading(false));
+      } else {
+        setLoading(false);
+      }
       return;
     }
     if (!reservationId) return;
-    getAvailableTablesForReservation(reservationId)
-      .then(setData)
-      .catch((err) => setError(err instanceof Error ? err.message : "Failed to load"))
-      .finally(() => setLoading(false));
+    getPendingTableChangePayment(reservationId)
+      .then((pending) => {
+        setPendingFixPayment(pending);
+        setLoading(false);
+      })
+      .catch(() => {
+        getAvailableTablesForReservation(reservationId)
+          .then(setData)
+          .catch((err) => setError(err instanceof Error ? err.message : "Failed to load"))
+          .finally(() => setLoading(false));
+      });
   }, [reservationId, searchParams, router]);
 
   const currentTable = data?.tables.find((t) => t.id === data.currentTableId);
@@ -204,6 +307,33 @@ export default function ChangeTablePage() {
       <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6">
         <p className="text-red-400 mb-4">{error}</p>
         <Link href="/" className="text-cyan-400 hover:underline">Back to home</Link>
+      </div>
+    );
+  }
+
+  if (pendingFixPayment) {
+    return (
+      <div className="min-h-screen bg-black text-white py-24 px-4">
+        <div className="max-w-md mx-auto">
+          <h1 className="text-2xl font-bold mb-2">Pay price difference</h1>
+          <p className="text-zinc-400 mb-6">Your table was updated. Please pay the outstanding amount below.</p>
+          <StripeProvider clientSecret={pendingFixPayment.clientSecret}>
+            <PendingFixPaymentStep
+              clientSecret={pendingFixPayment.clientSecret}
+              amountDue={pendingFixPayment.amountDue}
+              reservationId={reservationId}
+              paymentIntentId={pendingFixPayment.paymentIntentId}
+              onSuccess={() => {
+                setPendingFixPayment(null);
+                setSuccess({
+                  success: true,
+                  message: "Payment recorded. Your table change is complete.",
+                  reservation: {} as any,
+                });
+              }}
+            />
+          </StripeProvider>
+        </div>
       </div>
     );
   }

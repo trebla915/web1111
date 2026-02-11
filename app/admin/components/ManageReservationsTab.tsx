@@ -9,6 +9,7 @@ import {
   updateReservationContact,
   getAvailableTablesForReservation,
   changeReservationTable,
+  fixTableChangePriceDifference,
 } from '@/lib/services/reservations';
 import { getAllEvents } from '@/lib/services/events';
 import { toast } from 'react-hot-toast';
@@ -88,6 +89,8 @@ export default function ManageReservationsTab() {
   const [changeTableNeedsPayment, setChangeTableNeedsPayment] = useState<{ amountDue: number; paymentUrl: string } | null>(null);
 
   const [resendEmailLoadingId, setResendEmailLoadingId] = useState<string | null>(null);
+  const [fixPriceLoadingId, setFixPriceLoadingId] = useState<string | null>(null);
+  const [fixPriceNeedsPayment, setFixPriceNeedsPayment] = useState<{ reservationId: string; amountDue: number; paymentUrl: string } | null>(null);
 
   useEffect(() => {
     fetchReservationsData();
@@ -323,6 +326,32 @@ export default function ManageReservationsTab() {
   const copyConfirmationLink = (reservation: ReservationWithUser) => {
     const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/reservation/${reservation.id}/change-table`;
     navigator.clipboard.writeText(url).then(() => toast.success('Link copied to clipboard')).catch(() => toast.error('Could not copy'));
+  };
+
+  const needsTableChangeFix = (r: ReservationWithUser) => {
+    const hasMoved = r.previousTableId && r.tableId && r.previousTableId !== r.tableId;
+    const notFixed = (r.tableChangeAmount === 0 || r.tableChangeAmount == null) && !r.tableChangeRefundId && !r.tableChangeInvoiceId;
+    return hasMoved && notFixed && r.status !== 'cancelled';
+  };
+
+  const handleFixTableChangePrice = async (reservation: ReservationWithUser) => {
+    setFixPriceLoadingId(reservation.id);
+    setFixPriceNeedsPayment(null);
+    try {
+      const result = await fixTableChangePriceDifference(reservation.id);
+      if ('success' in result && result.success) {
+        toast.success(result.message);
+        fetchReservationsData();
+      } else if ('needsPayment' in result && result.needsPayment) {
+        const paymentUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/reservation/${reservation.id}/change-table`;
+        setFixPriceNeedsPayment({ reservationId: reservation.id, amountDue: result.amountDue, paymentUrl });
+        toast.success(result.message);
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to fix price difference');
+    } finally {
+      setFixPriceLoadingId(null);
+    }
   };
 
   const toggleEventExpand = (eventTitle: string) => {
@@ -588,12 +617,27 @@ export default function ManageReservationsTab() {
                               >
                                 <FiEdit2 size={16} />
                               </button>
-                              {/* Change table (admin override) */}
+                              {/* Fix price difference (table was moved but refund/charge not applied) */}
+                              {needsTableChangeFix(reservation) && (
+                                <button
+                                  onClick={() => handleFixTableChangePrice(reservation)}
+                                  disabled={fixPriceLoadingId === reservation.id}
+                                  className="p-2 text-amber-400 hover:bg-amber-900/20 rounded-lg transition-colors disabled:opacity-50"
+                                  title="Refund or charge price difference and send email"
+                                >
+                                  {fixPriceLoadingId === reservation.id ? (
+                                    <div className="w-4 h-4 border-t-2 border-b-2 border-amber-400 rounded-full animate-spin" />
+                                  ) : (
+                                    <FiDollarSign size={16} />
+                                  )}
+                                </button>
+                              )}
+                              {/* Change table */}
                               {reservation.status !== 'cancelled' && reservation.status !== 'checked-in' && (
                                 <button
                                   onClick={() => openChangeTableModal(reservation)}
                                   className="p-2 text-emerald-400 hover:bg-emerald-900/20 rounded-lg transition-colors"
-                                  title="Change table (no charge)"
+                                  title="Change table (charge/refund difference)"
                                 >
                                   <BiTable size={16} />
                                 </button>
@@ -786,6 +830,32 @@ export default function ManageReservationsTab() {
                   {isSavingContact ? 'Saving…' : 'Save'}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fix price difference – customer must pay (modal when upgrade fix) */}
+      {fixPriceNeedsPayment && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-zinc-900 rounded-lg border border-gray-700 w-full max-w-md">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-white">Customer must pay price difference</h3>
+                <button onClick={() => setFixPriceNeedsPayment(null)} className="text-gray-400 hover:text-white">
+                  <FiX size={20} />
+                </button>
+              </div>
+              <p className="text-2xl font-bold text-cyan-400 mb-2">{formatCurrency(fixPriceNeedsPayment.amountDue)}</p>
+              <p className="text-sm text-gray-400 mb-4">An email was sent with the payment link. They can also use the link below.</p>
+              <a href={fixPriceNeedsPayment.paymentUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg font-medium mb-2">
+                <FiExternalLink size={18} />
+                Open payment page
+              </a>
+              <button type="button" onClick={() => { navigator.clipboard.writeText(fixPriceNeedsPayment.paymentUrl); toast.success('Link copied'); }} className="w-full py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-zinc-800 flex items-center justify-center gap-2">
+                <FiCopy size={16} />
+                Copy link
+              </button>
             </div>
           </div>
         </div>
