@@ -168,7 +168,13 @@ export const getTablesByEvent = async (eventId: string): Promise<Table[]> => {
 export const releaseTable = async (eventId: string, tableId: string): Promise<void> => {
   try {
     await apiClient.put(API_ENDPOINTS.tables.release(eventId, tableId), {});
-  } catch (error) {
+  } catch (error: any) {
+    const status = error?.response?.status;
+    // 404 = table not found or already released; don't block delete
+    if (status === 404) {
+      console.warn('Table release returned 404 (table may be already released or id invalid), continuing.');
+      return;
+    }
     console.error('Error releasing table:', error);
     throw error;
   }

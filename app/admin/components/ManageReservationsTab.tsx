@@ -208,30 +208,31 @@ export default function ManageReservationsTab() {
     }).format(amount);
   };
 
-  // Format date
-  const formatDate = (dateInput?: string | { _seconds: number, _nanoseconds: number }) => {
-    if (!dateInput) return 'N/A';
+  // Format date – handles ISO strings, Firestore timestamps, and legacy formats
+  const formatDate = (dateInput?: string | { _seconds: number, _nanoseconds: number } | Record<string, unknown>) => {
+    if (dateInput == null) return 'N/A';
 
-    let date: Date;
-    if (typeof dateInput === 'object' && dateInput._seconds) {
-      date = new Date(dateInput._seconds * 1000);
-    } else if (typeof dateInput === 'string') {
-      // Handle various date string formats
-      if (dateInput === 'Invalid Date') {
+    let date: Date | undefined;
+    if (typeof dateInput === 'object') {
+      if ('_seconds' in dateInput && typeof (dateInput as { _seconds: number })._seconds === 'number') {
+        date = new Date((dateInput as { _seconds: number })._seconds * 1000);
+      } else if ('toDate' in dateInput && typeof (dateInput as { toDate: () => Date }).toDate === 'function') {
+        date = (dateInput as { toDate: () => Date }).toDate();
+      } else {
         return 'N/A';
       }
-      // Try parsing as ISO string first
-      date = new Date(dateInput);
+    } else if (typeof dateInput === 'string') {
+      const s = dateInput.trim();
+      if (s === '' || s === 'Invalid Date') return 'N/A';
+      date = new Date(s);
       if (isNaN(date.getTime())) {
-        // Try adding 'Z' if it's missing
-        date = new Date(dateInput + 'Z');
+        date = new Date(s.endsWith('Z') ? s : s + 'Z');
       }
     } else {
       return 'N/A';
     }
 
-    if (isNaN(date.getTime())) {
-      console.warn('Invalid date string:', dateInput);
+    if (!date || isNaN(date.getTime())) {
       return 'N/A';
     }
 
