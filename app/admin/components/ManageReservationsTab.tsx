@@ -96,7 +96,7 @@ export default function ManageReservationsTab() {
     fetchReservationsData();
   }, []);
 
-  const fetchReservationsData = async () => {
+  const fetchReservationsData = async (): Promise<ReservationsByEvent | null> => {
     setLoading(true);
     try {
       const reservationsData = await getGroupedByEvent();
@@ -137,10 +137,12 @@ export default function ManageReservationsTab() {
 
       setReservationsByEvent(reservationsByEventTitle);
       setError(null);
+      return reservationsByEventTitle;
     } catch (err: any) {
       console.error('Error fetching reservations:', err.message || err);
       setError('Failed to load reservations. Please try again.');
       toast.error('Failed to load reservations');
+      return null;
     } finally {
       setLoading(false);
     }
@@ -313,8 +315,8 @@ export default function ManageReservationsTab() {
         toast.success(`Email sent to customer with payment link. They pay ${formatCurrency(result.amountDue)} and the table changes.`);
       } else if ('success' in result && result.success) {
         toast.success(result.message || 'Table changed. Refund processed if applicable.');
+        await fetchReservationsData();
         closeChangeTableModal();
-        fetchReservationsData();
       }
     } catch (err: any) {
       toast.error(err.message || 'Failed to change table');

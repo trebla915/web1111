@@ -38,20 +38,41 @@ async function generateQRCodeBuffer(reservationId: string): Promise<Buffer> {
 
 /**
  * Upload QR to Firebase Storage and return public URL.
- * Hosted URLs display in Gmail/Outlook; data URIs are often blocked.
+ * If the bucket doesn't exist or upload fails, returns a data URL so the email still sends
+ * (some email clients block data URLs; Gmail/Outlook prefer hosted URLs).
  */
 async function uploadQRCodeAndGetUrl(reservationId: string): Promise<string> {
-  const buffer = await generateQRCodeBuffer(reservationId);
   const path = `reservation-qr/${reservationId}.png`;
-  const bucket = adminStorage.bucket();
-  const file = bucket.file(path);
-
-  await file.save(buffer, {
-    metadata: { contentType: 'image/png' },
+  const bucketName =
+    process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
+    (process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
+      ? `${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}.appspot.com`
+      : null);
+  if (bucketName) {
+    try {
+      const bucket = adminStorage.bucket(bucketName);
+      const file = bucket.file(path);
+      const buffer = await generateQRCodeBuffer(reservationId);
+      await file.save(buffer, {
+        metadata: { contentType: 'image/png' },
+      });
+      await file.makePublic();
+      return `https://storage.googleapis.com/${bucket.name}/${path}`;
+    } catch (err: unknown) {
+      const msg = err && typeof err === 'object' && 'message' in err ? String((err as { message: string }).message) : '';
+      if (msg.includes('does not exist') || msg.includes('404') || msg.includes('notFound')) {
+        console.warn(`Storage bucket "${bucketName}" not found or inaccessible; using inline QR. Set NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET to your bucket (e.g. club-1111.firebasestorage.app or club-1111.appspot.com).`);
+      } else {
+        console.warn('QR upload to Storage failed, using inline QR:', err);
+      }
+    }
+  }
+  const dataUrl = await QRCode.toDataURL(`${APP_URL}/staff/check-in/${reservationId}`, {
+    width: 400,
+    margin: 2,
+    color: { dark: '#000000', light: '#FFFFFF' },
   });
-  await file.makePublic();
-
-  return `https://storage.googleapis.com/${bucket.name}/${path}`;
+  return dataUrl;
 }
 
 /**
