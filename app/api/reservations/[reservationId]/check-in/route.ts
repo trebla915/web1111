@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminFirestore } from '@/lib/firebase/admin';
+import { notifyVipCheckin } from '@/lib/utils/dispatcher';
 
 // GET /api/reservations/[reservationId]/check-in - Get reservation details for check-in
 export async function GET(
@@ -52,40 +53,68 @@ export async function POST(
     const body = await request.json().catch(() => ({}));
     const staffName = (body.staffName && String(body.staffName).trim()) || 'QR Scan';
     
-    // Verify reservation exists
     const reservationRef = adminFirestore
       .collection('reservations')
       .doc(reservationId);
-    
-    const reservationDoc = await reservationRef.get();
-    if (!reservationDoc.exists) {
-      return NextResponse.json({ error: 'Reservation not found' }, { status: 404 });
+
+    // Use a transaction to prevent race conditions from double submissions
+    const result = await adminFirestore.runTransaction(async (tx) => {
+      const reservationDoc = await tx.get(reservationRef);
+
+      if (!reservationDoc.exists) {
+        return { status: 404, body: { error: 'Reservation not found' } } as const;
+      }
+
+      const reservationData = reservationDoc.data()!;
+
+      if (reservationData.status === 'checked-in') {
+        return {
+          status: 400,
+          body: {
+            error: 'Reservation already checked in',
+            checkedInAt: reservationData.checkedInAt,
+            checkedInBy: reservationData.checkedInBy,
+          },
+        } as const;
+      }
+
+      const checkedInAt = new Date().toISOString();
+
+      tx.update(reservationRef, {
+        status: 'checked-in',
+        checkedInAt,
+        checkedInBy: staffName,
+        updatedAt: checkedInAt,
+      });
+
+      return {
+        status: 200,
+        body: {
+          message: 'Reservation checked in successfully',
+          checkedInAt,
+          checkedInBy: staffName,
+        },
+        reservationData,
+        checkedInAt,
+      } as const;
+    });
+
+    if (result.status === 200 && 'reservationData' in result) {
+      // Dispatcher notification is fire-and-forget to ensure check-in is never blocked.
+      notifyVipCheckin({
+        table: result.reservationData.tableNumber ?? '',
+        name: result.reservationData.userName ?? '',
+        partySize: result.reservationData.guestCount ?? 0,
+        eventName: result.reservationData.eventName ?? '',
+        reservationId,
+        checkedInAt: result.checkedInAt,
+        checkedInBy: staffName,
+      }).catch((err) =>
+        console.error('Dispatcher notify failed', err.message)
+      );
     }
 
-    const reservationData = reservationDoc.data();
-    
-    // Check if already checked in
-    if (reservationData?.status === 'checked-in') {
-      return NextResponse.json({ 
-        error: 'Reservation already checked in',
-        checkedInAt: reservationData.checkedInAt,
-        checkedInBy: reservationData.checkedInBy
-      }, { status: 400 });
-    }
-    
-    // Update reservation status to checked-in
-    await reservationRef.update({
-      status: 'checked-in',
-      checkedInAt: new Date().toISOString(),
-      checkedInBy: staffName,
-      updatedAt: new Date().toISOString()
-    });
-    
-    return NextResponse.json({ 
-      message: 'Reservation checked in successfully',
-      checkedInAt: new Date().toISOString(),
-      checkedInBy: staffName
-    });
+    return NextResponse.json(result.body, { status: result.status });
   } catch (error) {
     console.error(`Error checking in reservation ${params.reservationId}:`, error);
     return NextResponse.json({ error: 'Failed to check in reservation' }, { status: 500 });
