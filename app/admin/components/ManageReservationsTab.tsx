@@ -96,19 +96,24 @@ export default function ManageReservationsTab() {
     }
   };
 
-  const handleDeleteReservation = async (reservationId: string, eventId: string, tableNumber: number) => {
+  const handleDeleteReservation = async (reservationId: string, eventId: string, tableId: string | undefined) => {
     if (!confirm('Are you sure you want to delete this reservation?')) {
       return;
     }
 
     try {
-      // First, release the table
-      const tableId = tableNumber.toString();
-      await releaseTable(eventId, tableId);
-      
-      // Then delete the reservation
+      // Release the table first if we have the table document ID (backend expects tableId, not table number)
+      if (eventId && tableId) {
+        try {
+          await releaseTable(eventId, tableId);
+        } catch (releaseError) {
+          // Don't block delete if release fails (e.g. table already released or legacy data)
+          console.warn('Table release failed, continuing with delete:', releaseError);
+        }
+      }
+
       await deleteReservation(reservationId);
-      
+
       toast.success('Reservation deleted successfully');
       fetchReservationsData(); // Refresh the data
     } catch (error) {
@@ -211,14 +216,23 @@ export default function ManageReservationsTab() {
     if (typeof dateInput === 'object' && dateInput._seconds) {
       date = new Date(dateInput._seconds * 1000);
     } else if (typeof dateInput === 'string') {
-      date = new Date(dateInput + 'Z');
+      // Handle various date string formats
+      if (dateInput === 'Invalid Date') {
+        return 'N/A';
+      }
+      // Try parsing as ISO string first
+      date = new Date(dateInput);
+      if (isNaN(date.getTime())) {
+        // Try adding 'Z' if it's missing
+        date = new Date(dateInput + 'Z');
+      }
     } else {
-      return 'Invalid Date';
+      return 'N/A';
     }
 
     if (isNaN(date.getTime())) {
       console.warn('Invalid date string:', dateInput);
-      return 'Invalid Date';
+      return 'N/A';
     }
 
     return new Intl.DateTimeFormat('en-US', {
@@ -395,8 +409,8 @@ export default function ManageReservationsTab() {
                               </div>
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
-                              {/* Cancel & Refund Button */}
-                              {reservation.status !== 'cancelled' && reservation.status !== 'completed' && (
+                              {/* Cancel & Refund Button - Show for all active reservations */}
+                              {reservation.status !== 'cancelled' && (
                                 <button
                                   onClick={() => openCancelModal(reservation)}
                                   className="p-2 text-orange-400 hover:bg-orange-900/20 rounded-lg transition-colors"
@@ -407,7 +421,7 @@ export default function ManageReservationsTab() {
                               )}
                               {/* Delete Button */}
                               <button
-                                onClick={() => handleDeleteReservation(reservation.id, reservation.eventId, reservation.tableNumber)}
+                                onClick={() => handleDeleteReservation(reservation.id, reservation.eventId, reservation.tableId)}
                                 className="p-2 text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
                                 title="Delete reservation"
                               >
@@ -441,6 +455,27 @@ export default function ManageReservationsTab() {
                             </div>
                           </div>
 
+                          {/* Event & Booking Dates */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                            <div>
+                              <span className="text-gray-400 block">Event Date</span>
+                              <span className="text-white font-medium flex items-center gap-1">
+                                <FiCalendar size={14} />
+                                {reservation.eventDate && reservation.eventDate !== 'Invalid Date' ? 
+                                  formatDate(reservation.eventDate) : 
+                                  (reservation.eventId ? `Event ID: ${reservation.eventId}` : 'N/A')
+                                }
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-gray-400 block">Booked On</span>
+                              <span className="text-white font-medium flex items-center gap-1">
+                                <FiCalendar size={14} />
+                                {formatDate(reservation.createdAt)}
+                              </span>
+                            </div>
+                          </div>
+
                           {/* Bottles Section */}
                           {reservation.bottles && reservation.bottles.length > 0 && (
                             <div className="bg-zinc-800/50 p-3 rounded-lg">
@@ -468,11 +503,6 @@ export default function ManageReservationsTab() {
                               <span className="text-white text-sm">{reservation.specialRequests}</span>
                             </div>
                           )}
-
-                          {/* Timestamp */}
-                          <div className="text-xs text-gray-500 pt-2 border-t border-gray-700/30">
-                            Reserved: {formatDate(reservation.createdAt)}
-                          </div>
                         </div>
                       </div>
                     ))}

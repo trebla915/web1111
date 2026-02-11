@@ -44,77 +44,66 @@ export default function StaffCheckInPage() {
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [checkingIn, setCheckingIn] = useState(false);
-  const [staffName, setStaffName] = useState('');
   const [error, setError] = useState<string | null>(null);
 
+  // Load details and auto check-in when page loads (scan = check in; no staff name step)
   useEffect(() => {
-    fetchReservationDetails();
+    if (!reservationId) return;
+
+    let cancelled = false;
+
+    const run = async () => {
+      try {
+        // 1. Load reservation details
+        const getRes = await fetch(`/api/reservations/${reservationId}/check-in`);
+        if (cancelled) return;
+        if (!getRes.ok) {
+          if (getRes.status === 404) setError('Reservation not found');
+          else setError('Failed to load reservation details');
+          setLoading(false);
+          return;
+        }
+        const getData = await getRes.json();
+        const resData = getData.reservation;
+        const evtData = getData.event;
+
+        if (resData?.status === 'checked-in') {
+          setReservation(resData);
+          setEvent(evtData);
+          setLoading(false);
+          return;
+        }
+
+        // 2. Not checked in yet → auto check-in (no staff name)
+        const postRes = await fetch(`/api/reservations/${reservationId}/check-in`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+        });
+        if (cancelled) return;
+        if (!postRes.ok) {
+          const errData = await postRes.json().catch(() => ({}));
+          setError(errData.error || 'Failed to check in');
+          setReservation(resData);
+          setEvent(evtData);
+          setLoading(false);
+          return;
+        }
+        const postData = await postRes.json();
+        toast.success('Checked in!');
+        setCheckingIn(true);
+        setReservation({ ...resData, status: 'checked-in', checkedInAt: postData.checkedInAt, checkedInBy: postData.checkedInBy });
+        setEvent(evtData);
+      } catch (err) {
+        if (!cancelled) setError('Failed to load or check in');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    run();
+    return () => { cancelled = true; };
   }, [reservationId]);
-
-  const fetchReservationDetails = async () => {
-    try {
-      const response = await fetch(`/api/reservations/${reservationId}/check-in`);
-      
-      if (!response.ok) {
-        if (response.status === 404) {
-          setError('Reservation not found');
-        } else {
-          setError('Failed to load reservation details');
-        }
-        return;
-      }
-      
-      const data = await response.json();
-      setReservation(data.reservation);
-      setEvent(data.event);
-    } catch (err) {
-      console.error('Error fetching reservation:', err);
-      setError('Failed to load reservation details');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCheckIn = async () => {
-    if (!staffName.trim()) {
-      toast.error('Please enter your name');
-      return;
-    }
-
-    setCheckingIn(true);
-    try {
-      const response = await fetch(`/api/reservations/${reservationId}/check-in`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ staffName: staffName.trim() }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (response.status === 400 && data.error.includes('already checked in')) {
-          toast.error(`Already checked in by ${data.checkedInBy} at ${formatDate(data.checkedInAt)}`);
-        } else {
-          toast.error(data.error || 'Failed to check in');
-        }
-        return;
-      }
-
-      toast.success('Successfully checked in!');
-      // Refresh reservation data
-      await fetchReservationDetails();
-      
-      // Clear staff name
-      setStaffName('');
-    } catch (err) {
-      console.error('Error checking in:', err);
-      toast.error('Failed to check in');
-    } finally {
-      setCheckingIn(false);
-    }
-  };
 
   const formatDate = (dateString: string) => {
     try {
@@ -342,46 +331,6 @@ export default function StaffCheckInPage() {
             </div>
           </div>
         </div>
-
-        {/* Check-in Section */}
-        {!isAlreadyCheckedIn && (
-          <div className="mt-8 bg-zinc-900 rounded-lg border border-cyan-900/30 p-6">
-            <h2 className="text-xl font-bold text-cyan-400 mb-4">Check In Customer</h2>
-            
-            <div className="max-w-md">
-              <label htmlFor="staffName" className="block text-gray-400 text-sm mb-2">
-                Your Name (Staff)
-              </label>
-              <input
-                type="text"
-                id="staffName"
-                value={staffName}
-                onChange={(e) => setStaffName(e.target.value)}
-                placeholder="Enter your name"
-                className="w-full px-4 py-3 bg-zinc-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-cyan-500 focus:outline-none"
-                disabled={checkingIn}
-              />
-              
-              <button
-                onClick={handleCheckIn}
-                disabled={checkingIn || !staffName.trim()}
-                className="w-full mt-4 px-6 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2"
-              >
-                {checkingIn ? (
-                  <>
-                    <div className="w-4 h-4 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
-                    Checking In...
-                  </>
-                ) : (
-                  <>
-                    <FiCheckCircle className="w-5 h-5" />
-                    Check In Customer
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* Reservation Metadata */}
         <div className="mt-6 bg-zinc-900 rounded-lg border border-cyan-900/30 p-6">

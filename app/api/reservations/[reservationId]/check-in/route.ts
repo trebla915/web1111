@@ -49,11 +49,8 @@ export async function POST(
 ) {
   try {
     const { reservationId } = params;
-    const { staffName } = await request.json();
-    
-    if (!staffName) {
-      return NextResponse.json({ error: 'Staff name is required' }, { status: 400 });
-    }
+    const body = await request.json().catch(() => ({}));
+    const staffName = (body.staffName && String(body.staffName).trim()) || 'QR Scan';
     
     // Verify reservation exists
     const reservationRef = adminFirestore
