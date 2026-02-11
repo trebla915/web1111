@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { FiCheckCircle, FiClock, FiAlertTriangle, FiDownload } from 'react-icons/fi';
+import { BiQrScan } from 'react-icons/bi';
 import { generateReservationQRCode } from '@/lib/utils/qrcode';
 
 export default function ConfirmationPage() {
@@ -15,6 +16,7 @@ export default function ConfirmationPage() {
   const [reservationData, setReservationData] = useState<any>(null);
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [generatingQR, setGeneratingQR] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
   
   const paymentId = searchParams.get('paymentId');
   const statusParam = searchParams.get('status');
@@ -35,6 +37,7 @@ export default function ConfirmationPage() {
             setReservationData(reservation);
             setReservationStatus('confirmed');
             generateQRCodeForReservation(reservation);
+            sendConfirmationEmail(reservation);
           } else {
             setReservationStatus('error');
           }
@@ -67,6 +70,8 @@ export default function ConfirmationPage() {
                 
                 // Generate QR code for the reservation
                 generateQRCodeForReservation(reservation);
+                // Send confirmation email with QR code
+                sendConfirmationEmail(reservation);
               } else {
                 setReservationStatus('confirmed'); // Payment succeeded, even if we can't fetch details
               }
@@ -107,6 +112,22 @@ export default function ConfirmationPage() {
       console.error('Error generating QR code:', error);
     } finally {
       setGeneratingQR(false);
+    }
+  };
+
+  // Send confirmation email with QR code (fire-and-forget, idempotent on server)
+  const sendConfirmationEmail = async (reservation: any) => {
+    if (!reservation?.id || emailSent) return;
+    try {
+      const res = await fetch(`/api/reservations/${reservation.id}/send-confirmation`, {
+        method: 'POST',
+      });
+      if (res.ok) {
+        setEmailSent(true);
+      }
+    } catch (err) {
+      // Don't block the confirmation page if email fails
+      console.error('Error sending confirmation email:', err);
     }
   };
 
@@ -176,9 +197,15 @@ export default function ConfirmationPage() {
             {statusDisplay.title}
           </h1>
           
-          <p className="text-lg text-zinc-300 mb-8">
+          <p className="text-lg text-zinc-300 mb-4">
             {statusDisplay.message}
           </p>
+
+          {emailSent && reservationStatus === 'confirmed' && (
+            <p className="text-sm text-green-400 mb-6">
+              A confirmation email with your QR code has been sent to your email.
+            </p>
+          )}
 
           {reservationData && (
             <div className="mb-8 text-left bg-zinc-800 rounded-lg p-6">
@@ -208,7 +235,7 @@ export default function ConfirmationPage() {
           {reservationStatus === 'confirmed' && (
             <div className="mb-8 bg-zinc-800 rounded-lg p-6">
               <div className="flex items-center justify-center gap-2 mb-4">
-                <FiQrCode className="w-5 h-5 text-cyan-400" />
+                <BiQrScan className="w-5 h-5 text-cyan-400" />
                 <h3 className="text-lg font-semibold text-white">Check-in QR Code</h3>
               </div>
               
@@ -244,7 +271,7 @@ export default function ConfirmationPage() {
                     onClick={() => reservationData && generateQRCodeForReservation(reservationData)}
                     className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-600 text-white rounded-lg hover:bg-zinc-700 transition-colors text-sm"
                   >
-                    <FiQrCode className="w-4 h-4" />
+                    <BiQrScan className="w-4 h-4" />
                     Try Again
                   </button>
                 </div>
