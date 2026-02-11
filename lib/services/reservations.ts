@@ -132,14 +132,16 @@ export interface ChangeTableSuccessResponse {
   refund?: { id: string; amount: number };
 }
 
-/** Initiate or complete a table change. For upgrades, call once (get clientSecret), collect payment, then call again with paymentIntentId. */
+/** Initiate or complete a table change. For upgrades, call once (get clientSecret), collect payment, then call again with paymentIntentId. Use deferPaymentIntent: true from admin so customer pays on their page. */
 export const changeReservationTable = async (
   reservationId: string,
   newTableId: string,
-  paymentIntentId?: string
+  paymentIntentId?: string,
+  options?: { deferPaymentIntent?: boolean }
 ): Promise<ChangeTableInitResponse | ChangeTableSuccessResponse> => {
-  const body: { newTableId: string; paymentIntentId?: string } = { newTableId };
+  const body: { newTableId: string; paymentIntentId?: string; deferPaymentIntent?: boolean } = { newTableId };
   if (paymentIntentId) body.paymentIntentId = paymentIntentId;
+  if (options?.deferPaymentIntent) body.deferPaymentIntent = true;
   const response = await fetch(`/api/reservations/${reservationId}/change-table`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -150,23 +152,6 @@ export const changeReservationTable = async (
     throw new Error(data.error || 'Failed to change table');
   }
   return data;
-};
-
-/** Admin: change table with no charge/refund (override). */
-export const changeReservationTableAdmin = async (
-  reservationId: string,
-  newTableId: string
-): Promise<ChangeTableSuccessResponse> => {
-  const response = await fetch(`/api/reservations/${reservationId}/change-table`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ newTableId, adminOverride: true }),
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(data.error || 'Failed to change table');
-  }
-  return data as ChangeTableSuccessResponse;
 };
 
 /** Resend confirmation email. Set forceResend true to send even if already sent (e.g. admin). */

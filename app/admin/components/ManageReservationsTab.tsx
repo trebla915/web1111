@@ -8,7 +8,7 @@ import {
   resendConfirmationEmail,
   updateReservationContact,
   getAvailableTablesForReservation,
-  changeReservationTableAdmin,
+  changeReservationTable,
 } from '@/lib/services/reservations';
 import { getAllEvents } from '@/lib/services/events';
 import { toast } from 'react-hot-toast';
@@ -85,6 +85,7 @@ export default function ManageReservationsTab() {
   const [selectedNewTableId, setSelectedNewTableId] = useState<string | null>(null);
   const [isLoadingTables, setIsLoadingTables] = useState(false);
   const [isChangingTable, setIsChangingTable] = useState(false);
+  const [changeTableNeedsPayment, setChangeTableNeedsPayment] = useState<{ amountDue: number; paymentUrl: string } | null>(null);
 
   const [resendEmailLoadingId, setResendEmailLoadingId] = useState<string | null>(null);
 
@@ -286,6 +287,7 @@ export default function ManageReservationsTab() {
     setChangeTableModal({ reservation: {} as ReservationWithUser, isOpen: false });
     setSelectedNewTableId(null);
     setAvailableTables([]);
+    setChangeTableNeedsPayment(null);
   };
 
   const handleAdminChangeTable = async () => {
@@ -299,11 +301,18 @@ export default function ManageReservationsTab() {
       return;
     }
     setIsChangingTable(true);
+    setChangeTableNeedsPayment(null);
     try {
-      await changeReservationTableAdmin(reservation.id, selectedNewTableId);
-      toast.success('Table changed (no charge or refund)');
-      closeChangeTableModal();
-      fetchReservationsData();
+      const result = await changeReservationTable(reservation.id, selectedNewTableId, undefined, { deferPaymentIntent: true });
+      if ('needsPayment' in result && result.needsPayment) {
+        const paymentUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/reservation/${reservation.id}/change-table`;
+        setChangeTableNeedsPayment({ amountDue: result.amountDue, paymentUrl });
+        toast.success(`Email sent to customer with payment link. They pay ${formatCurrency(result.amountDue)} and the table changes.`);
+      } else if ('success' in result && result.success) {
+        toast.success(result.message || 'Table changed. Refund processed if applicable.');
+        closeChangeTableModal();
+        fetchReservationsData();
+      }
     } catch (err: any) {
       toast.error(err.message || 'Failed to change table');
     } finally {
@@ -782,21 +791,56 @@ export default function ManageReservationsTab() {
         </div>
       )}
 
-      {/* Change table modal (admin override) */}
+      {/* Change table modal – same charge/refund logic as customer */}
       {changeTableModal.isOpen && changeTableModal.reservation.id && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-zinc-900 rounded-lg border border-gray-700 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-white">Change table (admin)</h3>
+                <h3 className="text-xl font-bold text-white">Change table</h3>
                 <button onClick={closeChangeTableModal} className="text-gray-400 hover:text-white">
                   <FiX size={20} />
                 </button>
               </div>
               <p className="text-sm text-gray-400 mb-4">
-                {changeTableModal.reservation.userName} · Current: Table #{changeTableModal.reservation.tableNumber}. No charge or refund.
+                {changeTableModal.reservation.userName} · Current: Table #{changeTableModal.reservation.tableNumber}. Upgrade = charge difference; downgrade = refund difference.
               </p>
-              {isLoadingTables ? (
+
+              {changeTableNeedsPayment ? (
+                <div className="space-y-4">
+                  <div className="p-4 bg-amber-900/20 border border-amber-700/50 rounded-lg">
+                    <p className="text-amber-200 font-medium">Customer must pay price difference</p>
+                    <p className="text-2xl font-bold text-white mt-1">{formatCurrency(changeTableNeedsPayment.amountDue)}</p>
+                    <p className="text-sm text-gray-400 mt-2">An email was sent to the customer with the payment link. Once they pay, the table will change automatically.</p>
+                  </div>
+                  <a
+                    href={changeTableNeedsPayment.paymentUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 w-full py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg font-medium"
+                  >
+                    <FiExternalLink size={18} />
+                    Open payment page for customer
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(changeTableNeedsPayment.paymentUrl);
+                      toast.success('Link copied');
+                    }}
+                    className="w-full py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-zinc-800 flex items-center justify-center gap-2"
+                  >
+                    <FiCopy size={16} />
+                    Copy link
+                  </button>
+                  <button
+                    onClick={closeChangeTableModal}
+                    className="w-full py-2 text-gray-400 hover:text-white"
+                  >
+                    Close
+                  </button>
+                </div>
+              ) : isLoadingTables ? (
                 <div className="flex justify-center py-8">
                   <div className="w-8 h-8 border-t-2 border-b-2 border-cyan-500 rounded-full animate-spin" />
                 </div>

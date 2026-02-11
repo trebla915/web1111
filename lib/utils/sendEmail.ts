@@ -272,3 +272,220 @@ export async function sendReservationConfirmation(
     return { success: false, error: err.message || 'Unknown error' };
   }
 }
+
+export interface TableChangeEmailData {
+  reservationId: string;
+  customerName: string;
+  customerEmail: string;
+  eventName: string;
+  eventDate: string;
+  previousTableNumber: number;
+  newTableNumber: number;
+  /** If set, mention that a refund will be processed (e.g. when customer paid to change to cheaper table). */
+  refundAmount?: number;
+  /** If true, message says staff updated the table (no payment from customer). */
+  changedByAdmin?: boolean;
+}
+
+/**
+ * Send email when a reservation's table has been changed (e.g. by admin or after customer paid difference).
+ */
+export async function sendTableChangeNotification(
+  data: TableChangeEmailData
+): Promise<{ success: boolean; emailId?: string; error?: string }> {
+  try {
+    const refundLine =
+      data.refundAmount != null && data.refundAmount > 0
+        ? `<p style="margin:12px 0 0;font-size:14px;color:#22d3ee;">A refund of ${formatCurrency(data.refundAmount)} for the price difference will be processed to your original payment method.</p>`
+        : '';
+
+    const whoChanged = data.changedByAdmin
+      ? 'We’ve updated your table assignment.'
+      : 'Your table change is complete.';
+
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;background-color:#000000;font-family:Arial,Helvetica,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#000000;padding:20px 0;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:#111111;border-radius:12px;overflow:hidden;border:1px solid #222222;">
+          <tr>
+            <td style="background-color:#000000;padding:30px 40px;text-align:center;border-bottom:1px solid #222222;">
+              <h1 style="margin:0;font-size:28px;color:#ffffff;letter-spacing:4px;font-weight:700;">11:11</h1>
+              <p style="margin:8px 0 0;font-size:12px;color:#888888;letter-spacing:2px;text-transform:uppercase;">El Paso, Texas</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:30px 40px;text-align:center;">
+              <h2 style="margin:0 0 8px;font-size:22px;color:#22d3ee;font-weight:700;">Table updated</h2>
+              <p style="margin:0;font-size:14px;color:#999999;">${whoChanged}</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 40px 30px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#1a1a1a;border-radius:8px;border:1px solid #2a2a2a;">
+                <tr>
+                  <td style="padding:20px;">
+                    <p style="margin:0 0 8px;font-size:12px;color:#888888;text-transform:uppercase;">Event</p>
+                    <p style="margin:0 0 16px;font-size:16px;color:#ffffff;font-weight:600;">${data.eventName}</p>
+                    <p style="margin:0 0 8px;font-size:12px;color:#888888;text-transform:uppercase;">Date</p>
+                    <p style="margin:0 0 16px;font-size:15px;color:#ffffff;">${formatEmailDate(data.eventDate)}</p>
+                    <p style="margin:0 0 8px;font-size:12px;color:#888888;text-transform:uppercase;">Your new table</p>
+                    <p style="margin:0;font-size:24px;color:#22d3ee;font-weight:700;">Table #${data.newTableNumber}</p>
+                    <p style="margin:8px 0 0;font-size:13px;color:#999999;">Previously: Table #${data.previousTableNumber}</p>
+                    ${refundLine}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 40px 20px;text-align:center;">
+              <a href="${getChangeTableUrl(data.reservationId)}" style="display:inline-block;padding:12px 24px;background-color:#0891b2;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;border-radius:8px;">View reservation</a>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:20px 40px;text-align:center;border-top:1px solid #222222;">
+              <p style="margin:0 0 4px;font-size:12px;color:#666666;">Reservation ID: ${data.reservationId}</p>
+              <p style="margin:0;font-size:12px;color:#666666;">11:11 EPTX &bull; El Paso, Texas</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+    const { data: emailResult, error } = await resend.emails.send({
+      from: `11:11 EPTX <${FROM_EMAIL}>`,
+      to: [data.customerEmail],
+      subject: `Table updated — Now Table #${data.newTableNumber} | ${data.eventName}`,
+      html,
+      tags: [
+        { name: 'type', value: 'table_change_notification' },
+        { name: 'reservation_id', value: data.reservationId },
+      ],
+    });
+
+    if (error) {
+      console.error('Resend table change notification error:', error);
+      return { success: false, error: error.message };
+    }
+    console.log(`Table change email sent for reservation ${data.reservationId}: ${emailResult?.id}`);
+    return { success: true, emailId: emailResult?.id };
+  } catch (err: any) {
+    console.error('Error sending table change notification:', err);
+    return { success: false, error: err.message || 'Unknown error' };
+  }
+}
+
+export interface TableChangePaymentRequiredData {
+  reservationId: string;
+  customerName: string;
+  customerEmail: string;
+  eventName: string;
+  eventDate: string;
+  amountDue: number;
+  previousTableNumber: number;
+  newTableNumber: number;
+}
+
+/**
+ * Send email when customer must pay the price difference to confirm a table change (upgrade).
+ * They click the link, pay, and the table changes after payment succeeds.
+ */
+export async function sendTableChangePaymentRequired(
+  data: TableChangePaymentRequiredData
+): Promise<{ success: boolean; emailId?: string; error?: string }> {
+  try {
+    const paymentUrl = getChangeTableUrl(data.reservationId);
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;background-color:#000000;font-family:Arial,Helvetica,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#000000;padding:20px 0;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:#111111;border-radius:12px;overflow:hidden;border:1px solid #222222;">
+          <tr>
+            <td style="background-color:#000000;padding:30px 40px;text-align:center;border-bottom:1px solid #222222;">
+              <h1 style="margin:0;font-size:28px;color:#ffffff;letter-spacing:4px;font-weight:700;">11:11</h1>
+              <p style="margin:8px 0 0;font-size:12px;color:#888888;letter-spacing:2px;text-transform:uppercase;">El Paso, Texas</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:30px 40px;text-align:center;">
+              <h2 style="margin:0 0 8px;font-size:22px;color:#22d3ee;font-weight:700;">Confirm your table change</h2>
+              <p style="margin:0;font-size:14px;color:#999999;">Pay the price difference to move to your new table</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 40px 30px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#1a1a1a;border-radius:8px;border:1px solid #2a2a2a;">
+                <tr>
+                  <td style="padding:20px;">
+                    <p style="margin:0 0 8px;font-size:12px;color:#888888;text-transform:uppercase;">Event</p>
+                    <p style="margin:0 0 16px;font-size:16px;color:#ffffff;font-weight:600;">${data.eventName}</p>
+                    <p style="margin:0 0 8px;font-size:12px;color:#888888;text-transform:uppercase;">Date</p>
+                    <p style="margin:0 0 16px;font-size:15px;color:#ffffff;">${formatEmailDate(data.eventDate)}</p>
+                    <p style="margin:0 0 8px;font-size:12px;color:#888888;text-transform:uppercase;">Table change</p>
+                    <p style="margin:0;font-size:15px;color:#ffffff;">Table #${data.previousTableNumber} → Table #${data.newTableNumber}</p>
+                    <p style="margin:12px 0 0;font-size:12px;color:#888888;text-transform:uppercase;">Price difference to pay</p>
+                    <p style="margin:4px 0 0;font-size:24px;color:#22d3ee;font-weight:700;">${formatCurrency(data.amountDue)}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 40px 30px;text-align:center;">
+              <a href="${paymentUrl}" style="display:inline-block;padding:14px 28px;background-color:#22d3ee;color:#000000;font-size:16px;font-weight:700;text-decoration:none;border-radius:8px;">Pay ${formatCurrency(data.amountDue)} & confirm table</a>
+              <p style="margin:12px 0 0;font-size:12px;color:#888888;">Once payment succeeds, your table will be updated and you’ll receive a confirmation.</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:20px 40px;text-align:center;border-top:1px solid #222222;">
+              <p style="margin:0 0 4px;font-size:12px;color:#666666;">Reservation ID: ${data.reservationId}</p>
+              <p style="margin:0;font-size:12px;color:#666666;">11:11 EPTX &bull; El Paso, Texas</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+    const { data: emailResult, error } = await resend.emails.send({
+      from: `11:11 EPTX <${FROM_EMAIL}>`,
+      to: [data.customerEmail],
+      subject: `Pay ${formatCurrency(data.amountDue)} to confirm table change | ${data.eventName}`,
+      html,
+      tags: [
+        { name: 'type', value: 'table_change_payment_required' },
+        { name: 'reservation_id', value: data.reservationId },
+      ],
+    });
+
+    if (error) {
+      console.error('Resend table change payment required error:', error);
+      return { success: false, error: error.message };
+    }
+    console.log(`Table change payment-required email sent for reservation ${data.reservationId}: ${emailResult?.id}`);
+    return { success: true, emailId: emailResult?.id };
+  } catch (err: any) {
+    console.error('Error sending table change payment required:', err);
+    return { success: false, error: err.message || 'Unknown error' };
+  }
+}

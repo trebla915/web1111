@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminFirestore } from '@/lib/firebase/admin';
 import Stripe from 'stripe';
+import { sendTableChangeNotification, sendTableChangePaymentRequired } from '@/lib/utils/sendEmail';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-06-20',
@@ -13,10 +14,8 @@ const SERVICE_FEE_RATE = 0.1;
  *
  * Body (initiate change): { newTableId: string }
  * Body (complete after payment): { newTableId: string, paymentIntentId: string }
- * Body (admin override): { newTableId: string, adminOverride: true } - swap table with no charge/refund
  *
- * - If new table costs more: returns { needsPayment: true, clientSecret, amountDue }; frontend collects payment then POSTs again with paymentIntentId.
- * - If new table costs same/less: performs swap, refunds difference, returns { success: true }.
+ * Same logic for admin and customer: upgrade = charge difference (return needsPayment); downgrade/same = refund if applicable and swap.
  */
 export async function POST(
   request: NextRequest,
@@ -25,7 +24,7 @@ export async function POST(
   try {
     const { reservationId } = params;
     const body = await request.json();
-    const { newTableId, paymentIntentId, adminOverride } = body;
+    const { newTableId, paymentIntentId, deferPaymentIntent } = body;
 
     if (!newTableId || typeof newTableId !== 'string') {
       return NextResponse.json({ error: 'newTableId is required' }, { status: 400 });
@@ -67,55 +66,6 @@ export async function POST(
     const newTable = newTableDoc.data()!;
     const oldPrice = Number(oldTable.price ?? 0);
     const newPrice = Number(newTable.price ?? 0);
-
-    // Admin override: swap table with no charge or refund
-    if (adminOverride === true) {
-      if (newTable.reserved) {
-        return NextResponse.json({ error: 'That table is already reserved' }, { status: 409 });
-      }
-      await adminFirestore.runTransaction(async (transaction) => {
-        const newTableSnap = await transaction.get(newTableRef);
-        if (!newTableSnap.exists || newTableSnap.data()?.reserved) {
-          throw new Error('NEW_TABLE_NO_LONGER_AVAILABLE');
-        }
-        transaction.update(oldTableRef, {
-          reserved: false,
-          reservedBy: null,
-          reservationId: null,
-          updatedAt: new Date().toISOString(),
-        });
-        transaction.update(newTableRef, {
-          reserved: true,
-          reservedBy: reservation.userId ?? null,
-          reservationId,
-          updatedAt: new Date().toISOString(),
-        });
-        const updateData = {
-          tableId: newTableId,
-          tableNumber: newTable.number ?? reservation.tableNumber,
-          previousTableId: currentTableId,
-          previousTableNumber: oldTable.number ?? reservation.tableNumber,
-          tableChangedAt: new Date().toISOString(),
-          tableChangeAmount: 0,
-          updatedAt: new Date().toISOString(),
-        };
-        transaction.update(reservationRef, updateData);
-        if (reservation.userId) {
-          const userResRef = adminFirestore
-            .collection('users')
-            .doc(reservation.userId)
-            .collection('reservations')
-            .doc(reservationId);
-          transaction.update(userResRef, updateData);
-        }
-      });
-      const updated = (await reservationRef.get()).data();
-      return NextResponse.json({
-        success: true,
-        message: 'Table changed by admin (no charge or refund)',
-        reservation: { id: reservationId, ...updated },
-      });
-    }
 
     // If customer already paid for the upgrade, complete the table swap
     if (paymentIntentId) {
@@ -160,7 +110,7 @@ export async function POST(
         const tableDiff = newPrice - oldPrice;
         const tableDiffWithFee = Math.round((tableDiff * (1 + SERVICE_FEE_RATE)) * 100) / 100;
         const newTotal = Math.round((previousTotal + tableDiffWithFee) * 100) / 100;
-
+        // Only update table and total fields; bottles/mixers stay unchanged
         transaction.update(reservationRef, {
           tableId: newTableId,
           tableNumber: newTable.number ?? newTableData?.number,
@@ -192,6 +142,33 @@ export async function POST(
       });
 
       const updated = (await reservationRef.get()).data();
+      const customerEmail = reservation.userEmail || updated?.userEmail;
+      if (customerEmail && typeof customerEmail === 'string') {
+        let eventName = reservation.eventName || updated?.eventName || 'Event';
+        let eventDate = reservation.eventDate || updated?.eventDate || reservation.createdAt || '';
+        if (reservation.eventId && (!eventName || eventName === 'Event' || !eventDate)) {
+          try {
+            const eventDoc = await adminFirestore.collection('events').doc(reservation.eventId).get();
+            if (eventDoc.exists) {
+              const ed = eventDoc.data();
+              if (ed?.title) eventName = ed.title;
+              if (ed?.date) eventDate = ed.date;
+            }
+          } catch (e) {
+            console.error('Error fetching event for table-change email:', e);
+          }
+        }
+        sendTableChangeNotification({
+          reservationId,
+          customerName: reservation.userName || updated?.userName || 'Guest',
+          customerEmail,
+          eventName,
+          eventDate,
+          previousTableNumber: oldTable.number ?? reservation.tableNumber,
+          newTableNumber: newTable.number ?? updated?.tableNumber,
+          changedByAdmin: false,
+        }).catch((err) => console.error('Failed to send table change email:', err));
+      }
       return NextResponse.json({
         success: true,
         message: 'Table changed successfully',
@@ -234,7 +211,7 @@ export async function POST(
 
         const previousTotal = Number(reservation.totalAmount ?? 0);
         const newTotal = Math.round((previousTotal - refundAmount) * 100) / 100;
-
+        // Only update table and total fields; bottles/mixers stay unchanged
         const updateData: Record<string, unknown> = {
           tableId: newTableId,
           tableNumber: newTable.number,
@@ -295,6 +272,34 @@ export async function POST(
       }
 
       const updated = (await reservationRef.get()).data();
+      const customerEmail = reservation.userEmail || updated?.userEmail;
+      if (customerEmail && typeof customerEmail === 'string') {
+        let eventName = reservation.eventName || updated?.eventName || 'Event';
+        let eventDate = reservation.eventDate || updated?.eventDate || reservation.createdAt || '';
+        if (reservation.eventId && (!eventName || eventName === 'Event' || !eventDate)) {
+          try {
+            const eventDoc = await adminFirestore.collection('events').doc(reservation.eventId).get();
+            if (eventDoc.exists) {
+              const ed = eventDoc.data();
+              if (ed?.title) eventName = ed.title;
+              if (ed?.date) eventDate = ed.date;
+            }
+          } catch (e) {
+            console.error('Error fetching event for table-change email:', e);
+          }
+        }
+        sendTableChangeNotification({
+          reservationId,
+          customerName: reservation.userName || updated?.userName || 'Guest',
+          customerEmail,
+          eventName,
+          eventDate,
+          previousTableNumber: oldTable.number ?? reservation.tableNumber,
+          newTableNumber: newTable.number ?? updated?.tableNumber,
+          refundAmount: refundAmount > 0 ? refundAmount : undefined,
+          changedByAdmin: false,
+        }).catch((err) => console.error('Failed to send table change email:', err));
+      }
       return NextResponse.json({
         success: true,
         message: refundAmount > 0
@@ -305,10 +310,51 @@ export async function POST(
       });
     }
 
-    // Upgrade: create PaymentIntent for the difference; customer pays then POSTs again with paymentIntentId
+    // Upgrade: charge difference. If deferPaymentIntent (e.g. admin), return amount due without creating PaymentIntent; customer will pay on their page.
     const amountCents = Math.round(tableDiffWithFee * 100);
     if (amountCents <= 0) {
       return NextResponse.json({ success: true, message: 'Table changed successfully.' });
+    }
+
+    const payload = {
+      needsPayment: true as const,
+      amountDue: tableDiffWithFee,
+      newTableId,
+      newTableNumber: newTable.number,
+      currentTableNumber: oldTable.number ?? reservation.tableNumber,
+    };
+
+    // Send customer an email with price difference and payment link (pay → then table changes)
+    const customerEmail = reservation.userEmail;
+    if (customerEmail && typeof customerEmail === 'string') {
+      let eventName = reservation.eventName || 'Event';
+      let eventDate = reservation.eventDate || reservation.createdAt || '';
+      if (reservation.eventId && (!eventName || eventName === 'Event' || !eventDate)) {
+        try {
+          const eventDoc = await adminFirestore.collection('events').doc(reservation.eventId).get();
+          if (eventDoc.exists) {
+            const ed = eventDoc.data();
+            if (ed?.title) eventName = ed.title;
+            if (ed?.date) eventDate = ed.date;
+          }
+        } catch (e) {
+          console.error('Error fetching event for table-change payment email:', e);
+        }
+      }
+      sendTableChangePaymentRequired({
+        reservationId,
+        customerName: reservation.userName || 'Guest',
+        customerEmail,
+        eventName,
+        eventDate,
+        amountDue: tableDiffWithFee,
+        previousTableNumber: oldTable.number ?? reservation.tableNumber,
+        newTableNumber: newTable.number,
+      }).catch((err) => console.error('Failed to send table change payment-required email:', err));
+    }
+
+    if (deferPaymentIntent === true) {
+      return NextResponse.json(payload);
     }
 
     const paymentIntent = await stripe.paymentIntents.create({
@@ -325,13 +371,9 @@ export async function POST(
     });
 
     return NextResponse.json({
-      needsPayment: true,
+      ...payload,
       clientSecret: paymentIntent.client_secret,
       paymentIntentId: paymentIntent.id,
-      amountDue: tableDiffWithFee,
-      newTableId,
-      newTableNumber: newTable.number,
-      currentTableNumber: oldTable.number ?? reservation.tableNumber,
     });
   } catch (err: unknown) {
     if (err instanceof Error && err.message === 'NEW_TABLE_NO_LONGER_AVAILABLE') {
