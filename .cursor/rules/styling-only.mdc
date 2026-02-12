@@ -1,0 +1,25 @@
+---
+description: All styling must live only in designated style files; do not add inline or scattered styles elsewhere.
+alwaysApply: true
+---
+
+# Styling: Single Source of Truth
+
+**Apply and change styling only in these places.** Do not add new colors, spacing, fonts, or layout rules in component files or random CSS. This keeps one place to look when debugging style issues.
+
+## Where styling lives (only)
+
+| What | Where |
+|------|--------|
+| **Design tokens** (colors, typography, shadows, layout vars) | `styles/theme/tokens.css` |
+| **Global layout, base, utilities, keyframes, component-like classes** | `styles/globals.css` (use `var(--*)` from tokens) |
+| **Tailwind theme** (screens, animations, theme extensions) | `tailwind.config.js` (extend from tokens where possible) |
+
+## Rules
+
+1. **Do not** add new CSS files for styling. Do not add `<style>` tags or style objects in components for layout/theme.
+2. **Do not** introduce new hardcoded colors, fonts, or spacing in TSX/JSX (e.g. `style={{ color: '...' }}`, random Tailwind colors). Use token-based Tailwind classes from the theme: `bg-brand`, `text-fg`, `text-accent`, `border-border`, `font-heading`, etc., or add the value to `styles/theme/tokens.css` and use it from there.
+3. **When fixing style bugs**, look only in: `styles/theme/tokens.css`, `styles/globals.css`, and `tailwind.config.js`. Do not chase styles across component files unless a component is overriding with inline or local styles (then remove that and use the central files).
+4. **Adding a new design value** (e.g. a new color or shadow): add it to `styles/theme/tokens.css`, then reference it in `styles/globals.css` via `var(--*)` or in Tailwind via the existing theme extension.
+
+See `styles/README.md` for the full convention.

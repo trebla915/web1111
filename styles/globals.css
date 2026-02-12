@@ -1,19 +1,15 @@
+/* ─── Single source of truth: styles/theme/tokens.css ─────────────────────── */
+@import './theme/tokens.css';
+
 /* Google Fonts Import */
 @import url('https://fonts.googleapis.com/css2?family=Anta&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
-
-/* Excon Font Import */
 @import url('https://api.fontshare.com/v2/css?f[]=excon@600&display=swap');
-
-/* Impact Font for headings */
 @import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
-
-/* Click/Display Font for 11:11 Logo */
 @import url('https://fonts.googleapis.com/css2?family=Bungee+Shade&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Rubik+Glitch&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Monoton&display=swap');
 
-/* Digital-7 Font */
 @font-face {
   font-family: 'Digital-7';
   src: url('/fonts/digital-7.ttf') format('truetype');
@@ -22,7 +18,6 @@
   font-display: block;
 }
 
-/* Digital Dismay Font for 11:11 Hero */
 @font-face {
   font-family: 'Digital Dismay';
   src: url('/fonts/Digital-Dismay.otf') format('opentype');
@@ -31,56 +26,54 @@
   font-display: block;
 }
 
-/* Tailwind Base Styles */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Global Theme Properties */
-:root {
-  --background: #000000; /* ✅ Set Plain Black Background */
-  --foreground: #ededed;
-  --primary: #ffffff; /* White color for primary elements */
-  --secondary: #0284c7; /* Sky-600 for secondary elements */
-  --accent: #7c3aed; /* Violet-600 for accent elements */
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #000000; /* ✅ No Gradient, Just Black */
-    --foreground: #ededed;
-  }
-}
-
-/* Full-page layout: document scroll only (fixes iOS one-finger scroll) */
+/* Single scroll container: only #__scroll-root scrolls (no double scrollbar) */
 html {
-  min-height: 100%;
+  height: 100%;
   -webkit-text-size-adjust: 100%;
-  overflow-x: hidden;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: none;
+  overflow: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar {
+  display: none;
 }
 
 body {
-  background-color: #000000;
+  background-color: var(--color-bg);
   color: var(--foreground);
-  font-family: 'Inter', Arial, Helvetica, sans-serif;
-  min-height: 100%;
-  min-height: 100dvh;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  font-family: var(--font-sans);
   margin: 0;
   padding: 0;
   width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  padding-left: env(safe-area-inset-left, 0);
+  padding-right: env(safe-area-inset-right, 0);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+body::-webkit-scrollbar {
+  display: none;
+}
+
+/* Only this element scrolls; one scrollbar on the page */
+#__scroll-root {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: none;
-  /* Lock touch to vertical scroll only — prevents pinch/drag moving the page around */
-  touch-action: pan-y;
-  position: relative;
   padding-left: env(safe-area-inset-left, 0);
   padding-right: env(safe-area-inset-right, 0);
 }
@@ -122,7 +115,7 @@ a, button {
 
 /* Titles and Headings Styling */
 h1, h2, h3, .title {
-  font-family: 'Anton', 'Anta', sans-serif;
+  font-family: var(--font-heading);
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -181,11 +174,8 @@ h1, h2, h3, .title {
 
 /* Neon glow effect */
 .neon-text {
-  color: #fff;
-  text-shadow:
-    0 0 5px rgba(255, 255, 255, 0.7),
-    0 0 10px rgba(255, 255, 255, 0.5),
-    0 0 15px rgba(255, 255, 255, 0.3);
+  color: var(--color-foreground);
+  text-shadow: var(--shadow-glow-white);
 }
 
 /* Flashing animation */
@@ -281,10 +271,11 @@ h1, h2, h3, .title {
 }
 
 .digital-glow-soft {
-  text-shadow:
-    0 0 2px rgba(255, 255, 255, 0.5),
-    0 0 8px rgba(255, 255, 255, 0.3),
-    0 0 12px rgba(255, 255, 255, 0.2);
+  text-shadow: var(--shadow-glow-soft);
+}
+
+.digital-glow-soft-right {
+  box-shadow: var(--shadow-glow-accent-soft);
 }
 
 /* Header Navigation */
@@ -357,7 +348,7 @@ h1, h2, h3, .title {
 /* Active Link - Simpler Club Style */
 .active-link {
   position: relative;
-  color: white;
+  color: var(--color-foreground);
 }
 
 .active-link span {
@@ -551,46 +542,41 @@ h1, h2, h3, .title {
     }
   }
 
-  /* Custom scrollbar for mobile */
   .custom-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: rgba(6, 182, 212, 0.3) transparent;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
   }
-  
+
   .custom-scrollbar::-webkit-scrollbar {
     width: 4px;
   }
-  
+
   .custom-scrollbar::-webkit-scrollbar-track {
     background: transparent;
   }
-  
+
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: rgba(6, 182, 212, 0.3);
+    background-color: var(--scrollbar-thumb);
     border-radius: 2px;
   }
 
-  /* Mobile menu animation */
   .animate-slideIn {
     animation: slideIn 0.3s ease-out forwards;
   }
 
-  /* Digital glow effects for admin */
   .digital-glow-soft {
-    text-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+    text-shadow: var(--shadow-glow-accent);
   }
 
-  /* Focus visible for better accessibility */
   .focus-visible:focus {
-    outline: 2px solid rgba(6, 182, 212, 0.6);
+    outline: 2px solid var(--color-accent-focus);
     outline-offset: 2px;
   }
 
-  /* Mobile-optimized card hover effects */
   @media (hover: hover) {
     .mobile-card-hover:hover {
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(6, 182, 212, 0.1);
+      box-shadow: var(--shadow-card-hover);
     }
   }
 
@@ -621,7 +607,7 @@ h1, h2, h3, .title {
   height: 100% !important;
   position: relative !important;
   overflow: hidden !important;
-  background: #000 !important;
+  background: var(--color-bg) !important;
 }
 
 #qr-reader video {
@@ -668,20 +654,17 @@ h1, h2, h3, .title {
 
 /* Base layer overrides for mobile */
 @layer base {
-  /* Prevent horizontal scroll, ensure vertical scroll works */
+  /* Scroll is on #__scroll-root; keep html/body non-scrolling */
   html, body {
-    overflow-x: hidden;
-    overflow-y: auto;
+    overflow: hidden;
   }
-  
-  /* Smooth scrolling */
-  html {
+
+  #__scroll-root {
     scroll-behavior: smooth;
   }
 
-  /* Better tap highlighting */
   * {
-    -webkit-tap-highlight-color: rgba(6, 182, 212, 0.1);
+    -webkit-tap-highlight-color: var(--color-accent-tap);
   }
 
   /* Font size adjustments for mobile readability */

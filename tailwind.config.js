@@ -14,6 +14,37 @@ module.exports = {
       '2xl': '1536px',
     },
     extend: {
+      /* Single source of truth: styles/theme/tokens.css */
+      colors: {
+        brand: 'var(--color-bg)',
+        surface: {
+          DEFAULT: 'var(--color-bg-elevated)',
+          overlay: 'var(--color-bg-overlay)',
+          muted: 'var(--color-bg-muted)',
+        },
+        fg: {
+          DEFAULT: 'var(--color-foreground)',
+          muted: 'var(--color-foreground-muted)',
+          subtle: 'var(--color-foreground-subtle)',
+          faint: 'var(--color-foreground-faint)',
+        },
+        accent: {
+          DEFAULT: 'var(--color-accent)',
+          muted: 'var(--color-accent-muted)',
+          soft: 'var(--color-accent-soft)',
+        },
+        border: {
+          DEFAULT: 'var(--color-border)',
+          subtle: 'var(--color-border-subtle)',
+          strong: 'var(--color-border-strong)',
+        },
+      },
+      fontFamily: {
+        sans: ['var(--font-sans)'],
+        heading: ['var(--font-heading)'],
+        display: ['var(--font-display)'],
+        impact: ['var(--font-impact)'],
+      },
       animation: {
         'spin-slow': 'spin 3s linear infinite',
         'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',

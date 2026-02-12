@@ -1,7 +1,0 @@
-/* Add this class with the other digital glow effects in your globals.css */
-
-.digital-glow-soft-right {
-  box-shadow: 2px 0 10px rgba(6, 182, 212, 0.3);
-}
-
-/* Make sure this doesn't overwrite existing styles - add it in the appropriate section */ 

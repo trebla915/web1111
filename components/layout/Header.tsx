@@ -48,58 +48,53 @@ export default function Header() {
   }, []);
 
   // Track scroll position for header styling, visibility, and active section
+  // Use #__scroll-root when present (iOS scroll wrapper), else window
   useEffect(() => {
+    const scrollRoot = typeof document !== "undefined" ? document.getElementById("__scroll-root") : null;
+
+    const getScrollY = () => (scrollRoot ? scrollRoot.scrollTop : window.scrollY);
+
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      
-      // Update header style based on scroll position
+      const currentScrollY = getScrollY();
+
       setScrolled(currentScrollY > 20);
-      
-      // Hide header when scrolling down, show when scrolling up (slide up out of view)
+
       const scrollDelta = currentScrollY - lastScrollY.current;
       if (scrollDelta > 8 && currentScrollY > 80 && !menuOpen) {
         setHidden(true);
       } else if (scrollDelta < -8 || currentScrollY <= 80) {
         setHidden(false);
       }
-      
-      // Update last scroll position
+
       lastScrollY.current = currentScrollY;
-      
+
       if (!isHomePage) return;
-      
+
       const sections = ["events", "venue", "faq", "contact", "location"];
-      
-      // Get current scroll position
-      const scrollPosition = currentScrollY + 120; // Offset for larger header height
-      
-      // Default to home if at the top
-      if (scrollPosition < 300) {
+      const headerOffset = 120;
+
+      if (currentScrollY < 300) {
         setActiveSection("");
         return;
       }
-      
-      // Find the section that is currently in view
+
       for (const section of sections) {
         const element = document.getElementById(section);
         if (element) {
-          const { offsetTop, offsetHeight } = element;
-          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
+          const rect = element.getBoundingClientRect();
+          if (rect.top <= headerOffset && rect.bottom >= headerOffset) {
             setActiveSection(section);
             return;
           }
         }
       }
     };
-    
-    // Add scroll event listener
-    window.addEventListener("scroll", handleScroll);
-    
-    // Call once on mount to set initial active section
+
+    const target = scrollRoot ?? window;
+    target.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
-    
-    // Clean up
-    return () => window.removeEventListener("scroll", handleScroll);
+
+    return () => target.removeEventListener("scroll", handleScroll);
   }, [isHomePage, menuOpen]);
 
   // Smooth scroll to section handler

@@ -1,0 +1,67 @@
+/**
+ * 11:11 EPTX — Single source of truth for styling
+ * Change colors, typography, spacing, and effects here only.
+ * Tailwind theme extends these tokens; globals.css uses var(--*).
+ */
+
+:root {
+  /* ─── Colors ─────────────────────────────────────────────────────────── */
+  --color-bg: #000000;
+  --color-bg-elevated: rgba(0, 0, 0, 0.95);
+  --color-bg-overlay: rgba(0, 0, 0, 0.8);
+  --color-bg-muted: rgba(0, 0, 0, 0.3);
+  --color-bg-hover: rgba(255, 255, 255, 0.05);
+  --color-bg-hover-strong: rgba(255, 255, 255, 0.1);
+
+  --color-foreground: #ffffff;
+  --color-foreground-muted: rgba(255, 255, 255, 0.6);
+  --color-foreground-subtle: rgba(255, 255, 255, 0.5);
+  --color-foreground-faint: rgba(255, 255, 255, 0.4);
+  --color-foreground-dim: rgba(255, 255, 255, 0.8);
+
+  --color-accent: #06b6d4;
+  --color-accent-muted: rgba(6, 182, 212, 0.5);
+  --color-accent-soft: rgba(6, 182, 212, 0.3);
+  --color-accent-focus: rgba(6, 182, 212, 0.6);
+  --color-accent-tap: rgba(6, 182, 212, 0.1);
+  --color-accent-shadow: rgba(6, 182, 212, 0.1);
+
+  --color-border: rgba(255, 255, 255, 0.2);
+  --color-border-subtle: rgba(255, 255, 255, 0.1);
+  --color-border-strong: rgba(255, 255, 255, 0.5);
+  --color-border-focus: rgba(255, 255, 255, 0.8);
+
+  --color-gradient-dot: #06b6d4;
+
+  /* Legacy names (used by existing :root in globals) */
+  --background: var(--color-bg);
+  --foreground: #ededed;
+  --primary: var(--color-foreground);
+  --secondary: #0284c7;
+  --accent: #7c3aed;
+
+  /* ─── Typography ─────────────────────────────────────────────────────── */
+  --font-sans: 'Inter', Arial, Helvetica, sans-serif;
+  --font-heading: 'Anton', 'Anta', sans-serif;
+  --font-display: 'Digital Dismay', 'Digital-7', monospace;
+  --font-impact: 'Impact', sans-serif;
+
+  /* ─── Effects ─────────────────────────────────────────────────────────── */
+  --shadow-glow-white: 0 0 5px rgba(255, 255, 255, 0.7), 0 0 10px rgba(255, 255, 255, 0.5), 0 0 15px rgba(255, 255, 255, 0.3);
+  --shadow-glow-soft: 0 0 2px rgba(255, 255, 255, 0.5), 0 0 8px rgba(255, 255, 255, 0.3), 0 0 12px rgba(255, 255, 255, 0.2);
+  --shadow-glow-accent: 0 0 10px var(--color-accent-muted);
+  --shadow-glow-accent-soft: 2px 0 10px var(--color-accent-soft);
+  --shadow-card-hover: 0 4px 12px var(--color-accent-shadow);
+  --shadow-focus: 0 0 0 2px var(--color-accent-focus);
+
+  /* ─── Layout ─────────────────────────────────────────────────────────── */
+  --touch-target-min: 44px;
+  --scrollbar-thumb: var(--color-accent-soft);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: var(--color-bg);
+    --foreground: #ededed;
+  }
+}

@@ -44,18 +44,21 @@ export function useScrollParallax(options: UseScrollParallaxOptions = {}) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    const scrollRoot = document.getElementById("__scroll-root");
+    const getScrollY = () => (scrollRoot ? scrollRoot.scrollTop : window.scrollY);
     const onScroll = () => {
       if (ticking.current) return;
       ticking.current = true;
       rafId.current = requestAnimationFrame(() => {
-        setScrollY(window.scrollY);
+        setScrollY(getScrollY());
         ticking.current = false;
       });
     };
-    window.addEventListener("scroll", onScroll, { passive: true });
+    const target = scrollRoot ?? window;
+    target.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => {
-      window.removeEventListener("scroll", onScroll);
+      target.removeEventListener("scroll", onScroll);
       if (rafId.current != null) cancelAnimationFrame(rafId.current);
     };
   }, []);
@@ -104,18 +107,21 @@ export function useScrollY() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    const scrollRoot = document.getElementById("__scroll-root");
+    const getScrollY = () => (scrollRoot ? scrollRoot.scrollTop : window.scrollY);
     const onScroll = () => {
       if (ticking.current) return;
       ticking.current = true;
       rafId.current = requestAnimationFrame(() => {
-        setScrollY(window.scrollY);
+        setScrollY(getScrollY());
         ticking.current = false;
       });
     };
-    window.addEventListener("scroll", onScroll, { passive: true });
+    const target = scrollRoot ?? window;
+    target.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => {
-      window.removeEventListener("scroll", onScroll);
+      target.removeEventListener("scroll", onScroll);
       if (rafId.current != null) cancelAnimationFrame(rafId.current);
     };
   }, []);
