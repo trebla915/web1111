@@ -43,7 +43,12 @@ export default function EventsPage() {
           </div>
         </div>
         
-        <EventsFestivalSection className="pt-0" />
+        <EventsFestivalSection 
+          title="ALL EVENTS" 
+          maxEvents={undefined}
+          className="pt-0"
+          showYear={true}
+        />
       </div>
     </div>
   );

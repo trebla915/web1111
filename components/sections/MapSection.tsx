@@ -3,7 +3,6 @@
 
 import React from 'react';
 import { useScrollParallax } from '@/lib/hooks/useScrollParallax';
-import SectionHeader from '@/components/ui/SectionHeader';
 
 export default function MapSection() {
   const { style: mapParallaxStyle, ref: mapParallaxRef } = useScrollParallax({
@@ -15,19 +14,27 @@ export default function MapSection() {
   return (
     <section
       id="location"
-      className="py-16 md:py-24 bg-black text-white relative overflow-hidden border-t border-white/10"
+      className="py-16 bg-black text-white relative overflow-hidden border-t border-white/20"
     >
-      <div className="absolute inset-0 noise opacity-5" />
-      <div className="absolute inset-0 spotlight opacity-10" />
+      {/* Background effects */}
+      <div className="absolute inset-0 noise opacity-5"></div>
+      <div className="absolute inset-0 spotlight opacity-10"></div>
 
       <div className="container mx-auto px-4 relative z-10">
-        <SectionHeader
-          label="location"
-          lines={["FIND", "US"]}
-          subtitle="9740 Dyer Street, El Paso, Texas 79924."
-        />
+        {/* Festival-style header */}
+        <div className="mb-8">
+          <div className="w-full py-2 bg-white relative mb-1">
+            <div className="absolute inset-0 bg-[linear-gradient(45deg,_transparent_25%,_rgba(0,0,0,0.05)_25%,_rgba(0,0,0,0.05)_50%,_transparent_50%,_transparent_75%,_rgba(0,0,0,0.05)_75%)] bg-[length:10px_10px]"></div>
+            <h1 className="text-3xl md:text-5xl font-bold text-black text-center tracking-wider relative z-10" style={{ fontFamily: 'Digital-7, sans-serif' }}>
+              FIND US
+            </h1>
+          </div>
+          <p className="text-center max-w-2xl mx-auto text-white/60 tracking-wide">
+            LOCATED IN NORTHEAST EL PASO
+          </p>
+        </div>
 
-        <div ref={mapParallaxRef} className="w-full max-w-5xl mx-auto border border-white/20 overflow-hidden mt-10">
+        <div ref={mapParallaxRef} className="w-full max-w-5xl mx-auto border border-white/50 overflow-hidden">
           <div className="w-full h-96 bg-gray-900 flex items-center justify-center relative" style={mapParallaxStyle}>
             {/* This would be replaced with an actual map integration */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#06b6d4_0,_transparent_8px)] bg-[length:30px_30px] opacity-5" />

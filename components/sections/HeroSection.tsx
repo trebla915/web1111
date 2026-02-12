@@ -80,46 +80,44 @@ export default function HeroSection() {
         className="relative z-[60] flex flex-col items-center justify-center flex-grow pb-12 md:pb-16"
         style={parallaxStyle}
       >
-        {/* Logo + tagline — minimal, editorial */}
+        {/* Logo container */}
         <div className="relative w-full max-w-xs sm:max-w-sm md:max-w-2xl mx-auto px-4">
           <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, ease: "easeOut" }}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
             className="relative"
           >
             <Image
               src="/1111logo.png"
-              alt="11:11"
+              alt="1111 Logo"
               width={800}
               height={400}
               className="w-full h-auto"
               priority
               unoptimized
             />
-          </motion.div>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.6 }}
-            className="text-white/60 text-sm md:text-base tracking-[0.2em] uppercase mt-6"
-          >
-            El Paso, Texas
-          </motion.p>
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, duration: 0.5 }}
-            className="mt-8"
-          >
-            <a
-              href="#events"
-              className="inline-block border border-white px-8 py-3 text-white text-sm tracking-[0.2em] uppercase hover:bg-white hover:text-black transition-colors"
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.8, ease: "easeOut" }}
+              className="text-3xl sm:text-4xl md:text-7xl font-light -mt-8 md:-mt-12 tracking-[0.3em] text-white font-['Digital-7'] uppercase"
             >
-              View events
-            </a>
+              TIME:LESS
+            </motion.div>
           </motion.div>
         </div>
+
+        {/* Decorative line */}
+        <motion.div
+          initial={{ opacity: 0, scaleX: 0 }}
+          animate={{ opacity: 1, scaleX: 1 }}
+          transition={{ delay: 0.8, duration: 1.2, ease: "easeOut" }}
+          className="w-32 h-[2px] bg-white/30 my-4 md:my-4"
+        />
+
+        {/* Navigation Grid - Removed per request */}
+        
       </div>
       
       {/* Scroll indicator — respect safe area on iPhone */}
