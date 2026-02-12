@@ -2,37 +2,28 @@
 
 import React from 'react';
 import Link from 'next/link';
+import SectionHeader from '@/components/ui/SectionHeader';
 
 interface FAQFestivalSectionProps {
-  title?: string;
   className?: string;
-  showYear?: boolean;
   id?: string;
 }
 
 export default function FAQFestivalSection({
-  title = "VENUE RULES",
   className = "",
-  showYear = false,
   id = "faq"
 }: FAQFestivalSectionProps) {
   return (
-    <section id={id} className={`py-12 ${className} bg-black relative overflow-hidden`}>
-      {/* Background pattern using CSS only */}
+    <section id={id} className={`py-16 md:py-24 ${className} bg-black relative overflow-hidden border-t border-white/10`}>
       <div className="absolute inset-0 opacity-10">
-        <div className="absolute w-full h-full bg-[radial-gradient(circle_at_center,_#06b6d4_0,_transparent_8px)] bg-[length:24px_24px]"></div>
+        <div className="absolute w-full h-full bg-[radial-gradient(circle_at_center,_#06b6d4_0,_transparent_8px)] bg-[length:24px_24px]" />
       </div>
-      
+
       <div className="container mx-auto px-4 relative z-10">
-        {/* Festival-style header */}
-        <div className="mb-8">
-          <div className="w-full py-2 bg-white relative mb-1">
-            <div className="absolute inset-0 bg-[linear-gradient(45deg,_transparent_25%,_rgba(0,0,0,0.05)_25%,_rgba(0,0,0,0.05)_50%,_transparent_50%,_transparent_75%,_rgba(0,0,0,0.05)_75%)] bg-[length:10px_10px]"></div>
-            <h1 className="text-3xl md:text-5xl font-bold text-black text-center tracking-wider relative z-10" style={{ fontFamily: 'Digital-7, sans-serif' }}>
-              {title}
-            </h1>
-          </div>
-        </div>
+        <SectionHeader
+          label="venue rules"
+          lines={["THE", "FACTS"]}
+        />
 
         <div className="max-w-4xl mx-auto">
           {/* Rules Header */}
