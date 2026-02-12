@@ -19,6 +19,7 @@ const adminPaths = [
   '/admin/users',
   '/admin/promoters',
   '/admin/analytics',
+  '/staff/hub',
 ];
 
 // Paths that should not be accessible if logged in

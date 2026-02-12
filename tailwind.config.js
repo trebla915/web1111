@@ -50,6 +50,7 @@ module.exports = {
         'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'fadeIn': 'fadeIn 0.5s ease-out',
         'slideIn': 'slideIn 0.3s ease-out',
+        'slideInRight': 'slideInRight 0.25s ease-out',
         'slideOut': 'slideOut 0.3s ease-in',
       },
       keyframes: {
@@ -59,6 +60,10 @@ module.exports = {
         },
         slideIn: {
           '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(0)' },
+        },
+        slideInRight: {
+          '0%': { transform: 'translateX(100%)' },
           '100%': { transform: 'translateX(0)' },
         },
         slideOut: {
