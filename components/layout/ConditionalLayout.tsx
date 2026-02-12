@@ -16,13 +16,13 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
   const isStaffRoute = pathname.startsWith('/staff');
 
   if (isAdminRoute || isStaffRoute) {
-    return <main className="flex-1 min-h-0 overflow-y-auto">{children}</main>;
+    return <main className="flex-1">{children}</main>;
   }
 
   return (
     <>
       <Header />
-      <main className="flex-1 min-h-0 overflow-y-auto">{children}</main>
+      <main className="flex-1">{children}</main>
       <Footer />
       <CookieConsent />
     </>

@@ -52,18 +52,14 @@
   }
 }
 
-/* Ensure full-page layout — iPhone-friendly viewport */
+/* Full-page layout: document scroll only (fixes iOS one-finger scroll) */
 html {
   min-height: 100%;
   -webkit-text-size-adjust: 100%;
-}
-
-html, body {
-  scroll-behavior: smooth;
-  position: relative;
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: none;
 }
 
 body {
@@ -71,15 +67,20 @@ body {
   color: var(--foreground);
   font-family: 'Inter', Arial, Helvetica, sans-serif;
   min-height: 100%;
-  min-height: 100dvh; /* iOS: use dynamic viewport so Safari UI doesn’t shrink content */
+  min-height: 100dvh;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   margin: 0;
   padding: 0;
   width: 100%;
-  overscroll-behavior-y: none;
-  /* Safe area so content isn’t under notch/home indicator when header is hidden */
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: none;
+  /* Lock touch to vertical scroll only — prevents pinch/drag moving the page around */
+  touch-action: pan-y;
+  position: relative;
   padding-left: env(safe-area-inset-left, 0);
   padding-right: env(safe-area-inset-right, 0);
 }
