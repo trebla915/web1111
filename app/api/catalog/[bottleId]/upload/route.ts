@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminFirestore, adminStorage } from '@/lib/firebase/admin';
 
+export const dynamic = 'force-dynamic';
+
+
 // POST /api/catalog/[bottleId]/upload - Upload an image for a bottle in the catalog
 export async function POST(
   request: NextRequest,

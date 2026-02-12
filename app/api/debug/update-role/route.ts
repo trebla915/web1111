@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { forceUpdateUserRole } from '@/lib/services/users';
 import { auth } from '@/lib/firebase/admin';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: Request) {
   try {
     const { userId, role } = await request.json();

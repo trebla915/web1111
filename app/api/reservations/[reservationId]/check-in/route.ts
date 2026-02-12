@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminFirestore } from '@/lib/firebase/admin';
 import { notifyVipCheckin } from '@/lib/utils/dispatcher';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/reservations/[reservationId]/check-in - Get reservation details for check-in
 export async function GET(
   request: NextRequest,

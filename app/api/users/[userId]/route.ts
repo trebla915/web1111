@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth, adminFirestore } from '@/lib/firebase/admin';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/users/[userId] - Get user by ID
 export async function GET(
   request: NextRequest,

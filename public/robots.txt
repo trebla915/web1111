@@ -7,6 +7,5 @@ Disallow: /admin/
 Disallow: /api/
 Disallow: /dashboard/
 
-# Sitemap locations
+# Sitemap (Next.js app/sitemap.ts serves /sitemap.xml with dynamic event URLs)
 Sitemap: https://www.1111eptx.com/sitemap.xml
-Sitemap: https://www.1111eptx.com/api/sitemap 

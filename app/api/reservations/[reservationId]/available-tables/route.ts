@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminFirestore } from '@/lib/firebase/admin';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/reservations/[reservationId]/available-tables
 // Returns available (unreserved) tables for the reservation's event, plus the currently reserved table
 export async function GET(

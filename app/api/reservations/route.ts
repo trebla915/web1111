@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Reservation } from '@/types/reservation';
 import { adminFirestore } from '@/lib/firebase/admin';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/reservations - Fetch reservations grouped by event
 export async function GET() {
   try {

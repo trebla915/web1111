@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminFirestore } from '@/lib/firebase/admin';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/users/[userId]/reservations - Get all reservations for a user
 export async function GET(
   request: NextRequest,

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { adminFirestore } from '@/lib/firebase/admin';
 
+export const dynamic = 'force-dynamic';
+
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.1111eptx.com';
 
 /**

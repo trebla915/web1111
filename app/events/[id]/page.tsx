@@ -27,6 +27,8 @@ export default async function EventPage({ params, searchParams }: Props) {
   }
 }
 
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.1111eptx.com';
+
 export async function generateMetadata(
   { params }: { params: { id: string } },
   parent: ResolvingMetadata
@@ -41,13 +43,31 @@ export async function generateMetadata(
     };
   }
 
+  const eventUrl = `${BASE_URL}/events/${event.id}`;
+  const description = typeof event.description === 'string' && event.description
+    ? event.description
+    : `Join us for ${event.title} at 11:11 EPTX, El Paso's premier music and concert venue.`;
+  const images = event.flyerUrl
+    ? [{ url: event.flyerUrl, width: 1200, height: 630, alt: event.title }]
+    : [{ url: `${BASE_URL}/og-image.jpg`, width: 1200, height: 630, alt: event.title }];
+
   return {
     title: event.title,
-    ...('description' in event && typeof event.description === 'string' && event.description ? { description: event.description } : {}),
+    description,
+    alternates: { canonical: eventUrl },
     openGraph: {
+      type: 'website',
+      url: eventUrl,
       title: event.title,
-      ...('description' in event && typeof event.description === 'string' && event.description ? { description: event.description } : {}),
-      images: event.flyerUrl ? [event.flyerUrl] : [],
+      description,
+      images,
+      siteName: '11:11 EPTX',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: event.title,
+      description,
+      images: [event.flyerUrl || `${BASE_URL}/og-image.jpg`].filter(Boolean),
     },
   };
 } 

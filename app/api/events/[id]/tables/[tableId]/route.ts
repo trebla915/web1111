@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminFirestore } from '@/lib/firebase/admin';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/events/[id]/tables/[tableId] - Fetch a specific table from an event
 export async function GET(
   request: NextRequest,

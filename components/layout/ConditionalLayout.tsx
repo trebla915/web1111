@@ -16,15 +16,13 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
   const isStaffRoute = pathname.startsWith('/staff');
 
   if (isAdminRoute || isStaffRoute) {
-    // Admin and staff routes get clean layout without header/footer/cookies
-    return <main className="flex-1">{children}</main>;
+    return <main className="flex-1 min-h-0 overflow-y-auto">{children}</main>;
   }
 
-  // Regular routes get full layout with header/footer
   return (
     <>
       <Header />
-      <main className="flex-1">{children}</main>
+      <main className="flex-1 min-h-0 overflow-y-auto">{children}</main>
       <Footer />
       <CookieConsent />
     </>

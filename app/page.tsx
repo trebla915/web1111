@@ -31,7 +31,7 @@ export default function Home() {
         "latitude": "31.8982",
         "longitude": "-106.4245"
       },
-      "telephone": "(212) 555-1111",
+      "telephone": "+1 (915) 246-3945",
       "email": "INFO@1111EPTX.COM",
       "openingHoursSpecification": [],
       "priceRange": "$$",

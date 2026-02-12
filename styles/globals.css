@@ -54,7 +54,7 @@
 
 /* Ensure full-page layout — iPhone-friendly viewport */
 html {
-  height: 100%;
+  min-height: 100%;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -667,9 +667,10 @@ h1, h2, h3, .title {
 
 /* Base layer overrides for mobile */
 @layer base {
-  /* Prevent horizontal scroll on mobile */
+  /* Prevent horizontal scroll, ensure vertical scroll works */
   html, body {
     overflow-x: hidden;
+    overflow-y: auto;
   }
   
   /* Smooth scrolling */

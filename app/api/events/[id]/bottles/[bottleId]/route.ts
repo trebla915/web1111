@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminFirestore } from '@/lib/firebase/admin';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/events/[id]/bottles/[bottleId] - Fetch a specific bottle from an event
 export async function GET(
   request: NextRequest,

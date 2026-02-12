@@ -8,9 +8,12 @@ import "../styles/globals.css";
 import ConditionalLayout from "@/components/layout/ConditionalLayout";
 
 export const metadata: Metadata = {
-  title: "11:11 | El Paso Texas Music and Concert Venue",
-  description: "Experience the best live music and events at 11:11, El Paso's premier music and concert venue featuring world-class performances and unforgettable experiences.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://www.1111eptx.com"),
+  title: {
+    default: "11:11 | El Paso Texas Music and Concert Venue",
+    template: "%s | 11:11 EPTX",
+  },
+  description: "Experience the best live music and events at 11:11, El Paso's premier music and concert venue featuring world-class performances and unforgettable experiences.",
   keywords: "music venue, El Paso, 11:11, EPTX, concerts, events, live music, venue, Texas",
   openGraph: {
     type: "website",
@@ -46,9 +49,9 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     }
   },
-  verification: {
-    google: "YOUR_GOOGLE_VERIFICATION_ID" // Replace with your actual verification ID
-  },
+  ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION && {
+    verification: { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION },
+  }),
   alternates: {
     canonical: "https://www.1111eptx.com"
   }
@@ -56,9 +59,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="h-full">
+    <html lang="en" className="min-h-full">
       <head>
-        <link rel="canonical" href="https://www.1111eptx.com" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
         <meta name="theme-color" content="#000000" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -68,7 +70,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <link rel="icon" type="image/png" href="/1111logo.png" />
         <link rel="manifest" href="/site.webmanifest" />
       </head>
-      <body className="bg-black text-white min-h-dvh flex flex-col overflow-x-hidden">
+      <body className="bg-black text-white min-h-dvh flex flex-col overflow-x-hidden overflow-y-auto">
         <AuthProvider>
           <StripeProvider>
             <ReservationProvider>

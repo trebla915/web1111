@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminFirestore } from '@/lib/firebase/admin';
 import Stripe from 'stripe';
+
+export const dynamic = 'force-dynamic';
 import { sendTableChangeNotification, sendTableChangePaymentRequired } from '@/lib/utils/sendEmail';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {

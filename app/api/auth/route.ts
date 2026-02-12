@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { apiClient } from '@/lib/api/client';
 import { adminAuth } from '@/lib/firebase/admin';
 
+export const dynamic = 'force-dynamic';
+
 // POST /auth - Handle authentication
 export async function POST(request: NextRequest) {
   try {

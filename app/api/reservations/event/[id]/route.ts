@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminFirestore } from '@/lib/firebase/admin';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/reservations/event/[id] - Fetch reservations for a specific event
 export async function GET(
   request: NextRequest,

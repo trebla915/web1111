@@ -3,25 +3,52 @@ import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 
-// Initialize Firebase Admin SDK
-if (!getApps().length) {
-  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-  const storageBucket =
-    process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
-    (projectId ? `${projectId}.appspot.com` : undefined);
-  initializeApp({
-    credential: cert({
-      projectId: projectId || '',
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL || '',
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n') || '',
-    }),
-    storageBucket,
-  });
+function ensureApp() {
+  if (!getApps().length) {
+    const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+    const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
+    if (!projectId || !privateKey) return;
+    const storageBucket =
+      process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
+      `${projectId}.appspot.com`;
+    initializeApp({
+      credential: cert({
+        projectId,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL || '',
+        privateKey,
+      }),
+      storageBucket,
+    });
+  }
 }
 
-const adminAuth = getAuth();
-const adminFirestore = getFirestore();
-const adminStorage = getStorage();
+function getAdminAuth() {
+  ensureApp();
+  return getAuth();
+}
+function getAdminFirestore() {
+  ensureApp();
+  return getFirestore();
+}
+function getAdminStorage() {
+  ensureApp();
+  return getStorage();
+}
 
-export { adminAuth, adminFirestore, adminStorage };
+// Lazy proxies so Firebase is only initialized when first used (e.g. at runtime on Vercel, not at build).
+export const adminAuth = new Proxy({} as ReturnType<typeof getAuth>, {
+  get(_, prop) {
+    return (getAdminAuth() as Record<string | symbol, unknown>)[prop];
+  },
+});
+export const adminFirestore = new Proxy({} as ReturnType<typeof getFirestore>, {
+  get(_, prop) {
+    return (getAdminFirestore() as Record<string | symbol, unknown>)[prop];
+  },
+});
+export const adminStorage = new Proxy({} as ReturnType<typeof getStorage>, {
+  get(_, prop) {
+    return (getAdminStorage() as Record<string | symbol, unknown>)[prop];
+  },
+});
 export { adminAuth as auth }; 

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminFirestore } from '@/lib/firebase/admin';
 import { sendReservationConfirmation } from '@/lib/utils/sendEmail';
 
+export const dynamic = 'force-dynamic';
+
 // POST /api/reservations/[reservationId]/send-confirmation
 // Sends a confirmation email with QR code for the reservation
 // Body: { forceResend?: boolean } - set true (e.g. from admin) to resend even if already sent
