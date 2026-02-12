@@ -68,7 +68,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <link rel="icon" type="image/png" href="/1111logo.png" />
         <link rel="manifest" href="/site.webmanifest" />
       </head>
-      <body className="bg-black text-white min-h-screen flex flex-col overflow-x-hidden">
+      <body className="bg-black text-white min-h-dvh flex flex-col overflow-x-hidden">
         <AuthProvider>
           <StripeProvider>
             <ReservationProvider>

@@ -55,10 +55,11 @@ export default function Header() {
       // Update header style based on scroll position
       setScrolled(currentScrollY > 20);
       
-      // Hide header when scrolling down, show when scrolling up
-      if (currentScrollY > lastScrollY.current && currentScrollY > 150 && !menuOpen) {
+      // Hide header when scrolling down, show when scrolling up (slide up out of view)
+      const scrollDelta = currentScrollY - lastScrollY.current;
+      if (scrollDelta > 8 && currentScrollY > 80 && !menuOpen) {
         setHidden(true);
-      } else {
+      } else if (scrollDelta < -8 || currentScrollY <= 80) {
         setHidden(false);
       }
       
@@ -193,7 +194,10 @@ export default function Header() {
 
   return (
     <>
-      <header className="fixed w-full top-0 left-0 bg-black text-white z-[100] h-16 md:h-16 border-b-4 border-white pt-safe pl-safe pr-safe">
+      <header
+        className="fixed w-full top-0 left-0 bg-black text-white z-[100] h-16 md:h-16 border-b-4 border-white pt-safe pl-safe pr-safe transition-transform duration-300 ease-out"
+        style={{ transform: hidden ? "translate3d(0, -100%, 0)" : "translate3d(0, 0, 0)" }}
+      >
         <div className="max-w-screen-xl mx-auto px-4 md:px-6 h-full flex items-center justify-between">
           {/* Background effects */}
           <div className="absolute inset-0 noise opacity-5"></div>
