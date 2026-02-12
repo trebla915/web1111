@@ -193,7 +193,7 @@ export default function Header() {
 
   return (
     <>
-      <header className="fixed w-full top-0 left-0 bg-black text-white z-[100] h-16 md:h-16 border-b-4 border-white">
+      <header className="fixed w-full top-0 left-0 bg-black text-white z-[100] h-16 md:h-16 border-b-4 border-white pt-safe pl-safe pr-safe">
         <div className="max-w-screen-xl mx-auto px-4 md:px-6 h-full flex items-center justify-between">
           {/* Background effects */}
           <div className="absolute inset-0 noise opacity-5"></div>

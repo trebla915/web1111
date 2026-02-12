@@ -3,9 +3,10 @@ import { useEffect, useState, useRef } from "react"
 import { motion } from "framer-motion"
 import Image from "next/image"
 import Link from "next/link"
+import { useScrollParallax } from "@/lib/hooks/useScrollParallax"
 
 export default function HeroSection() {
-  // Only keep the glitch/vibrate effect, remove the flashing/pulsing effect
+  const { style: parallaxStyle } = useScrollParallax({ speed: 0.5, direction: "content" })
   const [glitchActive, setGlitchActive] = useState(false)
   const [videoLoaded, setVideoLoaded] = useState(false)
   const [videoError, setVideoError] = useState(false)
@@ -73,10 +74,12 @@ export default function HeroSection() {
   }, [])
 
   return (
-    <section className="relative w-full h-screen flex items-center justify-center text-center overflow-hidden bg-black border-t border-white">
-      {/* Removed background video and overlays, just a black background now */}
-      {/* Main Content */}
-      <div className="relative z-[60] flex flex-col items-center justify-center flex-grow pb-12 md:pb-16">
+    <section className="relative w-full min-h-dvh flex items-center justify-center text-center overflow-hidden bg-black border-t border-white safe-area-insets">
+      {/* Main Content — parallax: moves slower on scroll (mobile-first) */}
+      <div
+        className="relative z-[60] flex flex-col items-center justify-center flex-grow pb-12 md:pb-16"
+        style={parallaxStyle}
+      >
         {/* Logo container */}
         <div className="relative w-full max-w-xs sm:max-w-sm md:max-w-2xl mx-auto px-4">
           <motion.div
@@ -117,9 +120,9 @@ export default function HeroSection() {
         
       </div>
       
-      {/* Scroll indicator */}
-      <div 
-        className="absolute bottom-4 md:bottom-8 left-1/2 transform -translate-x-1/2 flex flex-col items-center z-[60] cursor-pointer"
+      {/* Scroll indicator — respect safe area on iPhone */}
+      <div
+        className="absolute bottom-4 md:bottom-8 left-1/2 transform -translate-x-1/2 flex flex-col items-center z-[60] cursor-pointer pb-safe pl-safe pr-safe"
         onClick={() => {
           const eventsSection = document.getElementById('events');
           if (eventsSection) {

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { motion } from 'framer-motion';
 import { FiArrowRight } from 'react-icons/fi';
 import { getUpcomingEvents } from '@/lib/services/events';
 import { getDayOfWeek, formatToMMDDYYYY, sortEventsByDate } from '@/lib/utils/dateFormatter';
@@ -135,7 +136,14 @@ export default function EventsFestivalSection({
         ) : (
           <div className="space-y-4">
             {events.map((event, index) => (
-              <Link href={`/events/${event.id}`} key={event.id}>
+              <motion.div
+                key={event.id}
+                initial={{ opacity: 0.92, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-20px 0px' }}
+                transition={{ duration: 0.4, delay: index * 0.06 }}
+              >
+                <Link href={`/events/${event.id}`}>
                 <div className="group flex flex-row items-center border border-white/20 rounded-lg py-4 px-3 hover:bg-white/5 transition-all duration-300 relative overflow-hidden">
                   <div className="absolute inset-0 opacity-0 group-hover:opacity-10 spotlight transition-opacity duration-300"></div>
                   
@@ -191,6 +199,7 @@ export default function EventsFestivalSection({
                   </div>
                 </div>
               </Link>
+              </motion.div>
             ))}
           </div>
         )}

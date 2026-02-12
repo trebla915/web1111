@@ -2,17 +2,24 @@
 "use client"
 
 import React from 'react';
+import { useScrollParallax } from '@/lib/hooks/useScrollParallax';
 
 export default function MapSection() {
+  const { style: mapParallaxStyle, ref: mapParallaxRef } = useScrollParallax({
+    speed: 0.7,
+    direction: 'background',
+    whenInView: true,
+  });
+
   return (
-    <section 
+    <section
       id="location"
       className="py-16 bg-black text-white relative overflow-hidden border-t border-white/20"
     >
       {/* Background effects */}
       <div className="absolute inset-0 noise opacity-5"></div>
       <div className="absolute inset-0 spotlight opacity-10"></div>
-      
+
       <div className="container mx-auto px-4 relative z-10">
         {/* Festival-style header */}
         <div className="mb-8">
@@ -27,10 +34,11 @@ export default function MapSection() {
           </p>
         </div>
 
-        <div className="w-full max-w-5xl mx-auto border border-white/50 overflow-hidden">
-          <div className="w-full h-96 bg-gray-900 flex items-center justify-center relative">
+        <div ref={mapParallaxRef} className="w-full max-w-5xl mx-auto border border-white/50 overflow-hidden">
+          <div className="w-full h-96 bg-gray-900 flex items-center justify-center relative" style={mapParallaxStyle}>
             {/* This would be replaced with an actual map integration */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#06b6d4_0,_transparent_8px)] bg-[length:30px_30px] opacity-5"></div>
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#06b6d4_0,_transparent_8px)] bg-[length:30px_30px] opacity-5" />
+            <div className="absolute inset-0 flex items-center justify-center">
             <div className="relative z-10 text-center">
               <h3 className="text-3xl font-bold text-white mb-4" style={{ fontFamily: 'Impact, sans-serif' }}>11:11 EPTX</h3>
               <p className="text-white text-xl">9740 DYER STREET</p>
@@ -45,6 +53,7 @@ export default function MapSection() {
                   GET DIRECTIONS
                 </a>
               </div>
+            </div>
             </div>
           </div>
         </div>

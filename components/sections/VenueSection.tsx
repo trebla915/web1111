@@ -3,17 +3,24 @@
 
 import React from 'react';
 import Image from 'next/image';
+import { useScrollParallax } from '@/lib/hooks/useScrollParallax';
 
 export default function VenueSection() {
+  const { style: imageParallaxStyle, ref: imageParallaxRef } = useScrollParallax({
+    speed: 0.6,
+    direction: 'background',
+    whenInView: true,
+  });
+
   return (
-    <section 
+    <section
       id="venue"
       className="py-16 bg-black text-white relative overflow-hidden border-t border-white/20"
     >
       {/* Background effects */}
       <div className="absolute inset-0 noise opacity-5"></div>
       <div className="absolute inset-0 spotlight opacity-10"></div>
-      
+
       <div className="container mx-auto px-4 relative z-10">
         {/* Festival-style header */}
         <div className="mb-8">
@@ -29,14 +36,16 @@ export default function VenueSection() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-          <div className="relative h-80 md:h-auto overflow-hidden rounded-lg border border-white/20">
-            <Image 
-              src="/images/venue.jpg" 
-              alt="11:11 Venue" 
-              fill
-              className="object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent"></div>
+          <div ref={imageParallaxRef} className="relative h-80 md:h-auto overflow-hidden rounded-lg border border-white/20">
+            <div className="absolute inset-0 scale-110" style={imageParallaxStyle}>
+              <Image
+                src="/images/venue.jpg"
+                alt="11:11 Venue"
+                fill
+                className="object-cover"
+              />
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent" />
             <div className="absolute bottom-0 left-0 p-4">
               <h3 className="text-2xl font-bold text-white" style={{ fontFamily: 'Impact, sans-serif' }}>MAIN FLOOR</h3>
               <p className="text-white">STATE OF THE ART SOUND SYSTEM</p>

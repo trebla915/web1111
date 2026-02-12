@@ -3,16 +3,23 @@
 
 import React from 'react';
 import { FiMail, FiPhone, FiMapPin } from 'react-icons/fi';
+import { useScrollParallax } from '@/lib/hooks/useScrollParallax';
 
 export default function ContactSection() {
+  const { style: bgParallaxStyle, ref: bgParallaxRef } = useScrollParallax({
+    speed: 0.8,
+    direction: 'background',
+    whenInView: true,
+  });
+
   return (
-    <section 
+    <section
       id="contact"
       className="py-16 bg-black text-white relative overflow-hidden border-t border-white/20"
     >
-      {/* Background effects */}
-      <div className="absolute inset-0 noise opacity-5"></div>
-      <div className="absolute inset-0 spotlight opacity-10"></div>
+      {/* Background effects — parallax depth */}
+      <div className="absolute inset-0 noise opacity-5" />
+      <div ref={bgParallaxRef} className="absolute inset-0 spotlight opacity-10" style={bgParallaxStyle} />
       
       <div className="container mx-auto px-4 relative z-10">
         {/* Festival-style header */}
