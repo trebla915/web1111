@@ -76,7 +76,7 @@ export default function TableSelectionPage() {
       // Format the tables to ensure proper location values
       const formattedTables = fetchedTables.map((table: Table) => ({
         ...table,
-        location: (table.location || 'center') as 'left' | 'right' | 'center',
+        location: (table.location || 'left') as 'left' | 'right' | 'center',
       }));
       
       setTables(formattedTables);

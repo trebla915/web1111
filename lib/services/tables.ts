@@ -39,9 +39,10 @@ const MOCK_TABLES: Table[] = [
     capacity: 4,
     price: 500,
     reserved: false,
-    location: 'center',
+    location: 'left',
+    shape: 'rectangle',
     eventId: undefined,
-    minimumBottles: 2  // Fixed to match backend field name
+    minimumBottles: 2,
   },
   {
     id: 'table2',
@@ -49,20 +50,22 @@ const MOCK_TABLES: Table[] = [
     capacity: 6,
     price: 1000,
     reserved: false,
-    location: 'center',
+    location: 'left',
+    shape: 'rectangle',
     eventId: undefined,
-    minimumBottles: 2  // Fixed to match backend field name
+    minimumBottles: 2,
   },
   {
     id: 'vip1',
-    number: 3,
-    capacity: 8,
-    price: 2000,
+    number: 8,
+    capacity: 4,
+    price: 500,
     reserved: false,
-    location: 'center',
+    location: 'right',
+    shape: 'circle',
     eventId: undefined,
-    minimumBottles: 1  // Fixed to match backend field name
-  }
+    minimumBottles: 1,
+  },
 ];
 
 // Enable mock data in development for testing

@@ -45,6 +45,7 @@ interface HubTable {
   price: number;
   reserved: boolean;
   location: "left" | "right" | "center";
+  shape?: "rectangle" | "circle";
 }
 
 interface CheckInEntry {
@@ -115,6 +116,9 @@ export default function StaffHubPage() {
   const [activeTab, setActiveTab] = useState<
     "all" | "confirmed" | "checked-in" | "pending" | "cancelled"
   >("all");
+
+  // Ref for positioning the event picker dropdown
+  const eventPickerRef = useRef<HTMLDivElement>(null);
 
   // Audio ref for check-in chime
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -358,7 +362,7 @@ export default function StaffHubPage() {
             <div className="h-6 w-px bg-zinc-700" />
 
             {/* Event selector */}
-            <div className="relative">
+            <div ref={eventPickerRef} className="relative">
               <button
                 onClick={() => setShowEventPicker(!showEventPicker)}
                 className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900 border border-zinc-700 rounded-lg text-sm hover:border-zinc-500 transition-colors"
@@ -377,7 +381,17 @@ export default function StaffHubPage() {
                     className="fixed inset-0 z-40"
                     onClick={() => setShowEventPicker(false)}
                   />
-                  <div className="absolute top-full left-0 mt-1 w-72 bg-zinc-900 border border-zinc-700 rounded-lg shadow-2xl z-50 max-h-64 overflow-y-auto">
+                  <div
+                    className="fixed w-72 bg-zinc-900 border border-zinc-700 rounded-lg shadow-2xl z-50 max-h-64 overflow-y-auto"
+                    style={{
+                      top: eventPickerRef.current
+                        ? eventPickerRef.current.getBoundingClientRect().bottom + 4
+                        : 0,
+                      left: eventPickerRef.current
+                        ? eventPickerRef.current.getBoundingClientRect().left
+                        : 0,
+                    }}
+                  >
                     {events.length === 0 && (
                       <p className="p-3 text-sm text-gray-500">
                         No upcoming events
@@ -468,12 +482,14 @@ export default function StaffHubPage() {
             value={`${pendingCount}`}
             color="text-yellow-400"
           />
-          <StatPill
-            icon={<FiDollarSign className="w-3.5 h-3.5" />}
-            label="Revenue"
-            value={formatCurrency(totalRevenue)}
-            color="text-emerald-400"
-          />
+          {user?.role === "admin" && (
+            <StatPill
+              icon={<FiDollarSign className="w-3.5 h-3.5" />}
+              label="Revenue"
+              value={formatCurrency(totalRevenue)}
+              color="text-emerald-400"
+            />
+          )}
         </div>
       </div>
 
@@ -533,6 +549,7 @@ export default function StaffHubPage() {
               <ReservationCard
                 key={r.id}
                 reservation={r}
+                isAdmin={user?.role === "admin"}
                 onSelect={() => setSelectedReservation(r)}
                 onQuickCheckIn={() => handleManualCheckIn(r)}
               />
@@ -637,6 +654,7 @@ export default function StaffHubPage() {
       {selectedReservation && (
         <ReservationDrawer
           reservation={selectedReservation}
+          isAdmin={user?.role === "admin"}
           onClose={() => setSelectedReservation(null)}
           onCheckIn={() => handleManualCheckIn(selectedReservation)}
         />
@@ -673,10 +691,12 @@ function StatPill({
 
 function ReservationCard({
   reservation,
+  isAdmin,
   onSelect,
   onQuickCheckIn,
 }: {
   reservation: Reservation;
+  isAdmin?: boolean;
   onSelect: () => void;
   onQuickCheckIn: () => void;
 }) {
@@ -737,7 +757,7 @@ function ReservationCard({
         <span className="flex items-center gap-1">
           <FiUsers className="w-3 h-3" /> {reservation.guestCount} guests
         </span>
-        {reservation.totalAmount && (
+        {isAdmin && reservation.totalAmount && (
           <span className="flex items-center gap-1">
             <FiDollarSign className="w-3 h-3" />
             {formatCurrency(reservation.totalAmount)}
@@ -799,21 +819,26 @@ function TableMap({
     return res?.userName?.split(" ")[0] || null;
   };
 
-  const renderTable = (table: HubTable) => (
-    <button
-      key={table.id}
-      onClick={() => onTableClick(table.id)}
-      className={`relative flex flex-col items-center justify-center w-16 h-16 rounded-lg border-2 transition-all hover:brightness-125 active:scale-95 ${getTableColor(table)}`}
-    >
-      <span className="text-sm font-bold text-white">{table.number}</span>
-      <span className="text-[9px] text-gray-400">{table.capacity}p</span>
-      {getGuestName(table) && (
-        <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[8px] text-cyan-300 bg-black/80 px-1 rounded truncate max-w-[60px]">
-          {getGuestName(table)}
-        </span>
-      )}
-    </button>
-  );
+  const renderTable = (table: HubTable) => {
+    const isCircle = table.location === "right";
+    return (
+      <button
+        key={table.id}
+        onClick={() => onTableClick(table.id)}
+        className={`relative flex flex-col items-center justify-center w-16 h-16 ${
+          isCircle ? "rounded-full" : "rounded-lg"
+        } border-2 transition-all hover:brightness-125 active:scale-95 ${getTableColor(table)}`}
+      >
+        <span className="text-sm font-bold text-white">{table.number}</span>
+        <span className="text-[9px] text-gray-400">{table.capacity}p</span>
+        {getGuestName(table) && (
+          <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[8px] text-cyan-300 bg-black/80 px-1 rounded truncate max-w-[60px]">
+            {getGuestName(table)}
+          </span>
+        )}
+      </button>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -879,10 +904,12 @@ function TableMap({
 
 function ReservationDrawer({
   reservation,
+  isAdmin,
   onClose,
   onCheckIn,
 }: {
   reservation: Reservation;
+  isAdmin?: boolean;
   onClose: () => void;
   onCheckIn: () => void;
 }) {
@@ -990,7 +1017,7 @@ function ReservationDrawer({
                   <FiUsers className="w-4 h-4" />
                   {reservation.guestCount} guests
                 </div>
-                {reservation.totalAmount && (
+                {isAdmin && reservation.totalAmount && (
                   <div className="flex items-center gap-2 text-sm text-gray-300">
                     <FiDollarSign className="w-4 h-4" />
                     {formatCurrency(reservation.totalAmount)}

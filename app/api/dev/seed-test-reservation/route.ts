@@ -44,7 +44,7 @@ export async function POST(request: Request) {
       capacity: 6,
       price: 250,
       reserved: false,
-      location: 'center',
+      location: 'left',
       minimumBottles: 1,
       createdAt: now,
     });

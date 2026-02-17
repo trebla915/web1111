@@ -5,6 +5,7 @@ export interface Table {
   price: number;
   reserved: boolean;
   location: 'left' | 'right' | 'center';
+  shape?: 'rectangle' | 'circle';
   eventId?: string;
   minimumBottles: number;
 }
