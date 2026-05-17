@@ -1,30 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
-import axios from 'axios';
+import {
+  deleteEventFromFirestore,
+  getEventFromFirestore,
+  updateEventInFirestore,
+} from '@/lib/firebase/eventsStore';
 
-// Get the API base URL from environment variables
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL;
+export const dynamic = 'force-dynamic';
 
-// GET /api/events/[id] - Fetch event by ID
+// GET /api/events/[id] - Fetch event by ID from Firestore
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
     const { id } = params;
-    const response = await axios.get(`${API_BASE_URL}/events/${id}`);
-    return NextResponse.json(response.data);
-  } catch (error: any) {
-    console.error(`Error fetching event ${params.id}:`, error);
-    
-    // Forward the status code from the backend
-    const status = error.response?.status || 500;
-    const message = error.response?.data?.error || 'Failed to fetch event';
-    
-    return NextResponse.json({ error: message }, { status });
+    const event = await getEventFromFirestore(id);
+    if (!event) {
+      return NextResponse.json({ error: 'Event not found' }, { status: 404 });
+    }
+    return NextResponse.json(event);
+  } catch (error) {
+    console.error('Error fetching event:', error);
+    return NextResponse.json({ error: 'Failed to fetch event' }, { status: 500 });
   }
 }
 
-// PUT /api/events/[id] - Update event by ID
+// PUT /api/events/[id] - Update event by ID in Firestore
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -32,35 +33,25 @@ export async function PUT(
   try {
     const { id } = params;
     const data = await request.json();
-    const response = await axios.put(`${API_BASE_URL}/events/${id}`, data);
-    return NextResponse.json(response.data);
-  } catch (error: any) {
-    console.error(`Error updating event ${params.id}:`, error);
-    
-    // Forward the status code from the backend
-    const status = error.response?.status || 500;
-    const message = error.response?.data?.error || 'Failed to update event';
-    
-    return NextResponse.json({ error: message }, { status });
+    const event = await updateEventInFirestore(id, data);
+    return NextResponse.json(event);
+  } catch (error) {
+    console.error('Error updating event:', error);
+    return NextResponse.json({ error: 'Failed to update event' }, { status: 500 });
   }
 }
 
-// DELETE /api/events/[id] - Delete event by ID
+// DELETE /api/events/[id] - Delete event by ID from Firestore
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
     const { id } = params;
-    await axios.delete(`${API_BASE_URL}/events/${id}`);
+    await deleteEventFromFirestore(id);
     return NextResponse.json({ message: 'Event deleted successfully' });
-  } catch (error: any) {
-    console.error(`Error deleting event ${params.id}:`, error);
-    
-    // Forward the status code from the backend
-    const status = error.response?.status || 500;
-    const message = error.response?.data?.error || 'Failed to delete event';
-    
-    return NextResponse.json({ error: message }, { status });
+  } catch (error) {
+    console.error('Error deleting event:', error);
+    return NextResponse.json({ error: 'Failed to delete event' }, { status: 500 });
   }
-} 
+}
