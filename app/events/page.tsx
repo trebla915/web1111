@@ -45,7 +45,6 @@ export default function EventsPage() {
         
         <EventsFestivalSection 
           title="ALL EVENTS" 
-          maxEvents={undefined}
           className="pt-0"
           showYear={true}
         />

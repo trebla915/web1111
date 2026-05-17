@@ -13,7 +13,8 @@ interface EventsFestivalSectionProps {
   title?: string;
   subtitle?: string;
   className?: string;
-  maxEvents?: number;
+  /** Cap how many events render. Omit or pass null to show all upcoming events. */
+  maxEvents?: number | null;
   showYear?: boolean;
   id?: string;
 }
@@ -22,7 +23,7 @@ export default function EventsFestivalSection({
   title = "UPCOMING EVENTS",
   subtitle,
   className = "",
-  maxEvents = 8,
+  maxEvents = null,
   showYear = true,
   id = "events"
 }: EventsFestivalSectionProps) {
@@ -41,7 +42,11 @@ export default function EventsFestivalSection({
         // Sort events by date - closest dates first
         const sortedEvents = sortEventsByDate(fetchedEvents);
         
-        setEvents(maxEvents ? sortedEvents.slice(0, maxEvents) : sortedEvents);
+        const capped =
+          typeof maxEvents === 'number' && maxEvents > 0
+            ? sortedEvents.slice(0, maxEvents)
+            : sortedEvents;
+        setEvents(capped);
       } catch (err: any) {
         console.error('Error loading events:', err);
         setError('Failed to load events');

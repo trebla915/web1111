@@ -55,7 +55,7 @@ export default function Home() {
     <div className="flex flex-col">
       <HeroSection />
       <div className="flex flex-col gap-16">
-        <EventsFestivalSection maxEvents={undefined} />
+        <EventsFestivalSection />
         <VenueSection />
         <FAQFestivalSection />
         <ContactSection />
