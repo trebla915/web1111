@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { fetchAllEvents } from '@/lib/services/events';
+import { fetchAllEvents } from '@/lib/services/events.server';
 
 export async function GET() {
   try {

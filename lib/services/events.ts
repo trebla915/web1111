@@ -1,21 +1,8 @@
 import { Event } from '@/types/event';
 import { sendPushNotification } from './notifications';
-import {
-  createEventInFirestore,
-  deleteEventFromFirestore,
-  getEventFromFirestore,
-  listEventsFromFirestore,
-  updateEventInFirestore,
-} from '@/lib/firebase/eventsStore';
 
 function getEventsApiBase(): string {
-  if (typeof window !== 'undefined') {
-    return '/api';
-  }
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
-  return `${siteUrl}/api`;
+  return '/api';
 }
 
 async function fetchEventsApi<T>(path: string, init?: RequestInit): Promise<T> {
@@ -81,9 +68,6 @@ function normalizeEventsList(data: unknown): Event[] {
 
 export const getAllEvents = async (): Promise<Event[]> => {
   try {
-    if (typeof window === 'undefined') {
-      return normalizeEventsList(await listEventsFromFirestore());
-    }
     const data = await fetchEventsApi<unknown>('/events');
     return normalizeEventsList(data);
   } catch (error) {
@@ -94,9 +78,6 @@ export const getAllEvents = async (): Promise<Event[]> => {
 
 export const getEvent = async (id: string): Promise<Event | null> => {
   try {
-    if (typeof window === 'undefined') {
-      return getEventFromFirestore(id);
-    }
     return await fetchEventsApi<Event>(`/events/${id}`);
   } catch (error: unknown) {
     const status = (error as { response?: { status?: number } })?.response?.status;
@@ -111,13 +92,10 @@ export const getEvent = async (id: string): Promise<Event | null> => {
 
 export const createEvent = async (eventData: Omit<Event, 'id'>): Promise<Event> => {
   try {
-    const event =
-      typeof window === 'undefined'
-        ? await createEventInFirestore(eventData)
-        : await fetchEventsApi<Event>('/events', {
-            method: 'POST',
-            body: JSON.stringify(eventData),
-          });
+    const event = await fetchEventsApi<Event>('/events', {
+      method: 'POST',
+      body: JSON.stringify(eventData),
+    });
 
     try {
       await sendPushNotification({
@@ -143,10 +121,6 @@ export const createEvent = async (eventData: Omit<Event, 'id'>): Promise<Event> 
 
 export const updateEvent = async (id: string, eventData: Partial<Event>): Promise<void> => {
   try {
-    if (typeof window === 'undefined') {
-      await updateEventInFirestore(id, eventData);
-      return;
-    }
     await fetchEventsApi<Event>(`/events/${id}`, {
       method: 'PUT',
       body: JSON.stringify(eventData),
@@ -159,10 +133,6 @@ export const updateEvent = async (id: string, eventData: Partial<Event>): Promis
 
 export const deleteEvent = async (id: string): Promise<void> => {
   try {
-    if (typeof window === 'undefined') {
-      await deleteEventFromFirestore(id);
-      return;
-    }
     await fetchEventsApi(`/events/${id}`, { method: 'DELETE' });
   } catch (error) {
     console.error('Error deleting event:', error);

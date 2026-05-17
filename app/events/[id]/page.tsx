@@ -1,4 +1,4 @@
-import { getEvent } from "@/lib/services/events";
+import { getEvent } from "@/lib/services/events.server";
 import { Metadata, ResolvingMetadata } from "next";
 import EventDetails from "@/components/events/EventDetails";
 import EventNotFound from "@/components/events/EventNotFound";
