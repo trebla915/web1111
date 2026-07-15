@@ -157,10 +157,10 @@ export default function PushNotificationsTab() {
   };
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6 text-cyan-300 digital-glow-soft">Send Push Notification</h2>
-      
-      <div className="max-w-3xl mx-auto bg-zinc-900 border border-cyan-900/30 p-6 rounded-lg mb-8 relative">
+    <div className="p-4 lg:p-6">
+      <h2 className="text-2xl lg:text-3xl font-bold mb-6 text-cyan-300 digital-glow-soft">Send Push Notification</h2>
+
+      <div className="max-w-3xl mx-auto bg-zinc-900 border border-cyan-900/30 p-4 lg:p-6 rounded-lg mb-8 relative">
         <div className="absolute inset-0 noise opacity-5 rounded-lg"></div>
         <div className="relative z-10">
           <div className="mb-4">
@@ -351,7 +351,7 @@ export default function PushNotificationsTab() {
         )}
       </div>
       
-      <div className="mt-8 max-w-3xl mx-auto bg-zinc-900 border border-cyan-900/30 p-6 rounded-lg relative">
+      <div className="mt-8 max-w-3xl mx-auto bg-zinc-900 border border-cyan-900/30 p-4 lg:p-6 rounded-lg relative">
         <div className="absolute inset-0 noise opacity-5 rounded-lg"></div>
         <div className="relative z-10">
           <h3 className="text-xl font-semibold mb-4 flex items-center text-cyan-300">

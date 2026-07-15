@@ -3,6 +3,17 @@ import { adminAuth, adminFirestore } from '@/lib/firebase/admin';
 
 export const dynamic = 'force-dynamic';
 
+// GET /api/users - Get total registered user count
+export async function GET() {
+  try {
+    const snapshot = await adminFirestore.collection('users').count().get();
+    return NextResponse.json({ count: snapshot.data().count });
+  } catch (error) {
+    console.error('Error counting users:', error);
+    return NextResponse.json({ error: 'Failed to count users' }, { status: 500 });
+  }
+}
+
 // POST /api/users - Create a new user
 export async function POST(request: NextRequest) {
   try {

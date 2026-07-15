@@ -194,8 +194,8 @@ export default function AddBottleToCatalogTab() {
   };
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6 text-cyan-300 digital-glow-soft">Add Bottle to Catalog</h2>
+    <div className="p-4 lg:p-6">
+      <h2 className="text-2xl lg:text-3xl font-bold mb-6 text-cyan-300 digital-glow-soft">Add Bottle to Catalog</h2>
       
       {/* Loading Overlay */}
       {loading && (
@@ -205,7 +205,7 @@ export default function AddBottleToCatalogTab() {
       )}
 
       {/* Add New Bottle Form */}
-      <div className="bg-zinc-900 border border-cyan-900/30 p-6 rounded-lg mb-8 relative">
+      <div className="bg-zinc-900 border border-cyan-900/30 p-4 lg:p-6 rounded-lg mb-8 relative">
         <div className="absolute inset-0 noise opacity-5 rounded-lg"></div>
         <div className="relative z-10">
           <h3 className="text-xl font-semibold mb-4 text-cyan-200 flex items-center">

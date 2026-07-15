@@ -5,9 +5,14 @@ import { useAuth } from '@/components/providers/AuthProvider';
 import { getAllEvents, updateEvent, deleteEvent } from '@/lib/services/events';
 import { toast } from 'react-hot-toast';
 import { FiSearch, FiEdit, FiTrash2, FiCalendar, FiLink, FiCheck, FiAlertTriangle, FiRefreshCw, FiEdit2 } from 'react-icons/fi';
+import { BiTable } from 'react-icons/bi';
 import { Event } from '@/types/event';
 
-export default function EditEventsTab() {
+interface EditEventsTabProps {
+  onManageTables?: (eventId: string) => void;
+}
+
+export default function EditEventsTab({ onManageTables }: EditEventsTabProps) {
   const { user } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
@@ -71,13 +76,11 @@ export default function EditEventsTab() {
   const handleEventSelection = (eventId: string) => {
     const selectedEvent = events.find((event) => event.id === eventId);
     if (selectedEvent) {
-      console.log('Selected event:', selectedEvent);
       setSelectedEventId(eventId);
       setEventTitle(selectedEvent.title || '');
       setEventDate(selectedEvent.date ? selectedEvent.date.split('T')[0] : '');
       setDescription(selectedEvent.description || '');
       setTicketLink(selectedEvent.ticketLink || '');
-      console.log('Event reservationsEnabled:', selectedEvent.reservationsEnabled);
       setReservationsEnabled(selectedEvent.reservationsEnabled !== false);
       setConfirmDelete(null);
     }
@@ -91,13 +94,6 @@ export default function EditEventsTab() {
 
     setLoading(true);
     try {
-      console.log('Updating event with data:', {
-        title: eventTitle,
-        date: eventDate,
-        ticketLink,
-        reservationsEnabled
-      });
-      
       const updatedEvent = {
         title: eventTitle,
         date: eventDate ? new Date(eventDate).toISOString() : undefined,
@@ -310,7 +306,19 @@ export default function EditEventsTab() {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex gap-4 pt-6">
+                <div className="flex flex-wrap gap-4 pt-6">
+                  {onManageTables && (
+                    <button
+                      type="button"
+                      onClick={() => onManageTables(selectedEventId)}
+                      className="px-6 py-3 bg-zinc-800 text-white rounded-lg font-medium border border-cyan-900/30
+                        hover:border-cyan-700/50 focus:outline-none focus:ring-2 focus:ring-cyan-500/50
+                        flex items-center justify-center gap-2"
+                    >
+                      <BiTable className="w-5 h-5" />
+                      <span>Manage Tables</span>
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={handleUpdateEvent}

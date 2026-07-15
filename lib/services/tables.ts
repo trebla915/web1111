@@ -2,6 +2,52 @@ import { Table } from '@/types/reservation';
 import { apiClient } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/lib/api/endpoints';
 
+// ── Local Next.js API route helpers (Firestore-backed, used by the admin dashboard) ──
+// These call this app's own /api/events/[id]/tables routes directly, independent of
+// the legacy apiClient/NEXT_PUBLIC_API_URL backend used by the functions below.
+
+async function fetchTablesApi<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(path, {
+    ...init,
+    headers: { 'Content-Type': 'application/json', ...init?.headers },
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `Request failed (${response.status})`);
+  }
+  return response.json() as Promise<T>;
+}
+
+export const getEventTables = async (eventId: string): Promise<Table[]> => {
+  if (!eventId) return [];
+  return fetchTablesApi<Table[]>(`/api/events/${eventId}/tables`);
+};
+
+export const createEventTable = async (
+  eventId: string,
+  table: Omit<Table, 'id' | 'eventId' | 'reserved'>
+): Promise<Table> => {
+  return fetchTablesApi<Table>(`/api/events/${eventId}/tables`, {
+    method: 'POST',
+    body: JSON.stringify({ ...table, reserved: false }),
+  });
+};
+
+export const updateEventTable = async (
+  eventId: string,
+  tableId: string,
+  data: Partial<Table>
+): Promise<void> => {
+  await fetchTablesApi(`/api/events/${eventId}/tables/${tableId}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+};
+
+export const deleteEventTable = async (eventId: string, tableId: string): Promise<void> => {
+  await fetchTablesApi(`/api/events/${eventId}/tables/${tableId}`, { method: 'DELETE' });
+};
+
 export interface TableBottleRequirements {
   minimumBottles: number;
 }

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { FiHome, FiPlus, FiEdit, FiUsers, FiCalendar, FiBookmark, FiDribbble, FiBell, FiLogOut, FiMenu, FiX, FiChevronDown, FiClock } from "react-icons/fi";
+import { BiTable } from "react-icons/bi";
 import CreateEventTab from "../components/CreateEventTab";
 import EditEventsTab from "../components/EditEventsTab";
 import ManageReservationsTab from "../components/ManageReservationsTab";
@@ -12,43 +13,59 @@ import AddBottleToCatalogTab from "../components/AddBottleToCatalogTab";
 import AddBottlesToEventTab from "../components/AddBottlesToEventTab";
 import PushNotificationsTab from "../components/PushNotificationsTab";
 import StaffScheduleTab from "../components/StaffScheduleTab";
+import ManageTablesTab from "../components/ManageTablesTab";
+import { getUpcomingEvents } from "@/lib/services/events";
 
 export default function AdminDashboardPage() {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("Dashboard");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [stats, setStats] = useState<{ events: number | null; users: number | null; reservations: number | null }>({
+    events: null,
+    users: null,
+    reservations: null,
+  });
+  const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
-    console.log('Admin dashboard - Current user:', user);
-    console.log('Admin dashboard - Loading state:', loading);
-    
+    if (!user) return;
+
+    let cancelled = false;
+    const loadStats = async () => {
+      setStatsLoading(true);
+      const [eventsResult, usersResult, reservationsResult] = await Promise.allSettled([
+        getUpcomingEvents(),
+        fetch('/api/users').then((res) => (res.ok ? res.json() : Promise.reject(res))),
+        fetch('/api/reservations').then((res) => (res.ok ? res.json() : Promise.reject(res))),
+      ]);
+
+      if (cancelled) return;
+
+      const events = eventsResult.status === 'fulfilled' ? eventsResult.value.length : null;
+      const users = usersResult.status === 'fulfilled' ? usersResult.value.count : null;
+      const reservations =
+        reservationsResult.status === 'fulfilled'
+          ? Object.values(reservationsResult.value as Record<string, { status?: string }[]>)
+              .flat()
+              .filter((r) => r.status === 'pending').length
+          : null;
+
+      setStats({ events, users, reservations });
+      setStatsLoading(false);
+    };
+
+    loadStats();
+    return () => { cancelled = true; };
+  }, [user]);
+
+  useEffect(() => {
     // Redirect if not authenticated or not an admin/promoter
     if (!loading && (!user || (user.role !== 'admin' && user.role !== 'promoter'))) {
-      console.log('User not authorized for admin dashboard:', { 
-        user: user?.email, 
-        role: user?.role 
-      });
       router.replace("/dashboard");
       return;
     }
-    
-    // Handle responsive sidebar behavior
-    const handleResize = () => {
-      if (window.innerWidth >= 1024) {
-        setSidebarOpen(true);
-        setMobileMenuOpen(false);
-      } else {
-        setSidebarOpen(false);
-      }
-    };
-    
-    window.addEventListener('resize', handleResize);
-    handleResize();
-    
-    return () => window.removeEventListener('resize', handleResize);
   }, [loading, user, router]);
 
   // Tabs configuration with better mobile labels
@@ -56,6 +73,7 @@ export default function AdminDashboardPage() {
     { id: "Dashboard", label: "Dashboard", mobileLabel: "Home", icon: <FiHome size={20} /> },
     { id: "CreateEvent", label: "Create Event", mobileLabel: "Create", icon: <FiPlus size={20} /> },
     { id: "EditEvents", label: "Edit Events", mobileLabel: "Edit", icon: <FiEdit size={20} /> },
+    { id: "ManageTables", label: "Manage Tables", mobileLabel: "Tables", icon: <BiTable size={20} /> },
     { id: "ManageUsers", label: "Manage Users", mobileLabel: "Users", icon: <FiUsers size={20} /> },
     { id: "ManageReservations", label: "Reservations", mobileLabel: "Bookings", icon: <FiCalendar size={20} /> },
     { id: "StaffSchedule", label: "Staff Schedule", mobileLabel: "Schedule", icon: <FiClock size={20} /> },
@@ -84,7 +102,9 @@ export default function AdminDashboardPage() {
                 <div className="absolute inset-0 noise opacity-5"></div>
                 <div className="relative z-10">
                   <h3 className="text-lg lg:text-xl font-semibold mb-2 text-white">Events</h3>
-                  <p className="text-2xl lg:text-3xl font-bold text-white">12</p>
+                  <p className="text-2xl lg:text-3xl font-bold text-white">
+                    {statsLoading ? '—' : stats.events ?? '—'}
+                  </p>
                   <p className="text-gray-400 mt-2 text-sm lg:text-base">Upcoming events</p>
                 </div>
                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-white/0 via-white/40 to-white/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
@@ -94,7 +114,9 @@ export default function AdminDashboardPage() {
                 <div className="absolute inset-0 noise opacity-5"></div>
                 <div className="relative z-10">
                   <h3 className="text-lg lg:text-xl font-semibold mb-2 text-white">Users</h3>
-                  <p className="text-2xl lg:text-3xl font-bold text-white">342</p>
+                  <p className="text-2xl lg:text-3xl font-bold text-white">
+                    {statsLoading ? '—' : stats.users ?? '—'}
+                  </p>
                   <p className="text-gray-400 mt-2 text-sm lg:text-base">Registered users</p>
                 </div>
                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-white/0 via-white/40 to-white/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
@@ -104,7 +126,9 @@ export default function AdminDashboardPage() {
                 <div className="absolute inset-0 noise opacity-5"></div>
                 <div className="relative z-10">
                   <h3 className="text-lg lg:text-xl font-semibold mb-2 text-white">Reservations</h3>
-                  <p className="text-2xl lg:text-3xl font-bold text-white">56</p>
+                  <p className="text-2xl lg:text-3xl font-bold text-white">
+                    {statsLoading ? '—' : stats.reservations ?? '—'}
+                  </p>
                   <p className="text-gray-400 mt-2 text-sm lg:text-base">Pending reservations</p>
                 </div>
                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-white/0 via-white/40 to-white/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
@@ -132,7 +156,16 @@ export default function AdminDashboardPage() {
       case "CreateEvent":
         return <CreateEventTab />;
       case "EditEvents":
-        return <EditEventsTab />;
+        return (
+          <EditEventsTab
+            onManageTables={(eventId) => {
+              setSelectedEventId(eventId);
+              setActiveTab("ManageTables");
+            }}
+          />
+        );
+      case "ManageTables":
+        return <ManageTablesTab initialEventId={selectedEventId || undefined} />;
       case "ManageReservations":
         return <ManageReservationsTab />;
       case "StaffSchedule":
@@ -149,7 +182,7 @@ export default function AdminDashboardPage() {
       case "AddBottleToCatalog":
         return <AddBottleToCatalogTab />;
       case "AddBottlesToEvent":
-        return <AddBottlesToEventTab eventId={selectedEventId || ""} />;
+        return <AddBottlesToEventTab eventId={selectedEventId || undefined} />;
       case "PushNotifications":
         return <PushNotificationsTab />;
       default:
@@ -269,11 +302,7 @@ export default function AdminDashboardPage() {
 
       <div className="flex">
         {/* Desktop Sidebar */}
-        <div className={`
-          hidden lg:flex flex-col w-80 min-h-screen border-r border-gray-700/30 bg-zinc-950 backdrop-blur-lg
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
-          transition-transform duration-300
-        `}>
+        <div className="hidden lg:flex flex-col w-80 min-h-screen border-r border-gray-700/30 bg-zinc-950 backdrop-blur-lg">
           {/* Desktop Header */}
           <div className="py-4 px-6 border-b border-gray-700/30">
           </div>
