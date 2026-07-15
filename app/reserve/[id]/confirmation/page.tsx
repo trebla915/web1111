@@ -18,11 +18,18 @@ export default function ConfirmationPage() {
   const [generatingQR, setGeneratingQR] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   
-  const paymentId = searchParams.get('paymentId');
+  // Accept both ?paymentId= (our own redirect) and ?payment_intent= (Stripe redirect)
+  const paymentId = searchParams.get('paymentId') || searchParams.get('payment_intent');
   const statusParam = searchParams.get('status');
 
   useEffect(() => {
+    let cancelled = false;
+    let pollCount = 0;
+    const MAX_POLLS = 15; // 30 seconds max at 2s intervals
+
     const checkReservationStatus = async () => {
+      if (cancelled) return;
+
       if (!paymentId) {
         setReservationStatus('error');
         return;
@@ -32,18 +39,18 @@ export default function ConfirmationPage() {
       if (statusParam === 'test') {
         try {
           const response = await fetch(`/api/reservations/${paymentId.replace('test_', '')}`);
-          if (response.ok) {
+          if (!cancelled && response.ok) {
             const reservation = await response.json();
             setReservationData(reservation);
             setReservationStatus('confirmed');
             generateQRCodeForReservation(reservation);
             sendConfirmationEmail(reservation);
-          } else {
+          } else if (!cancelled) {
             setReservationStatus('error');
           }
         } catch (error) {
           console.error('Error fetching test reservation:', error);
-          setReservationStatus('error');
+          if (!cancelled) setReservationStatus('error');
         }
         return;
       }
@@ -56,32 +63,34 @@ export default function ConfirmationPage() {
 
       try {
         const response = await fetch(`/api/payments/${paymentId}/status`);
+        if (cancelled) return;
+
         if (response.ok) {
           const paymentData = await response.json();
-          
+
           if (paymentData.reservationCreated && paymentData.reservationId) {
-            // Fetch reservation details
             try {
               const reservationResponse = await fetch(`/api/reservations/${paymentData.reservationId}`);
-              if (reservationResponse.ok) {
+              if (!cancelled && reservationResponse.ok) {
                 const reservation = await reservationResponse.json();
                 setReservationData(reservation);
                 setReservationStatus('confirmed');
-                
-                // Generate QR code for the reservation
                 generateQRCodeForReservation(reservation);
-                // Send confirmation email with QR code
                 sendConfirmationEmail(reservation);
-              } else {
-                setReservationStatus('confirmed'); // Payment succeeded, even if we can't fetch details
+              } else if (!cancelled) {
+                setReservationStatus('confirmed');
               }
             } catch (error) {
               console.error('Error fetching reservation details:', error);
-              setReservationStatus('confirmed'); // Payment succeeded, even if we can't fetch details
+              if (!cancelled) setReservationStatus('confirmed');
             }
-          } else if (paymentData.status === 'succeeded') {
-            // Payment succeeded but reservation not yet created - keep polling
+          } else if (paymentData.status === 'succeeded' && pollCount < MAX_POLLS) {
+            // Payment succeeded but reservation not yet written — keep polling with cap
+            pollCount++;
             setTimeout(checkReservationStatus, 2000);
+          } else if (paymentData.status === 'succeeded') {
+            // Webhook took too long — show pending rather than error
+            setReservationStatus('pending');
           } else {
             setReservationStatus('error');
           }
@@ -90,11 +99,12 @@ export default function ConfirmationPage() {
         }
       } catch (error) {
         console.error('Error checking reservation status:', error);
-        setReservationStatus('error');
+        if (!cancelled) setReservationStatus('error');
       }
     };
 
     checkReservationStatus();
+    return () => { cancelled = true; };
   }, [paymentId, statusParam]);
 
   const generateQRCodeForReservation = async (reservation: any) => {

@@ -58,7 +58,7 @@ function PaymentForm({ clientSecret, onSuccess, user, reservationDetails }: {
       const { error: submitError } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/reserve/${window.location.pathname.split('/')[1]}/confirmation`,
+          return_url: `${window.location.origin}/reserve/${window.location.pathname.split('/')[2]}/confirmation`,
         },
       });
 
