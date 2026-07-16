@@ -10,22 +10,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Rubik+Glitch&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Monoton&display=swap');
 
-@font-face {
-  font-family: 'Digital-7';
-  src: url('/fonts/digital-7.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: block;
-}
-
-@font-face {
-  font-family: 'Digital Dismay';
-  src: url('/fonts/Digital-Dismay.otf') format('opentype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: block;
-}
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

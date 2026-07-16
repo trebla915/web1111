@@ -3,7 +3,6 @@ import axios from 'axios';
 // Create an axios instance with default config
 // Always use the configured API URL 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
-console.log('API Base URL:', apiBaseUrl);
 
 export const apiClient = axios.create({
   baseURL: apiBaseUrl,

@@ -33,17 +33,42 @@
 
   --color-gradient-dot: #06b6d4;
 
-  /* Legacy names (used by existing :root in globals) */
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #ffffff;
+
+  --radius: 0.5rem;
+
+  /*
+   * ─── shadcn/ui compatibility layer ───────────────────────────────────
+   * shadcn components read these standard variable names. They are pure
+   * aliases onto the --color-* tokens above — never give one of these an
+   * independent value. To restyle a shadcn component, edit the --color-*
+   * token it points to, not the alias.
+   */
   --background: var(--color-bg);
-  --foreground: #ededed;
+  --foreground: var(--color-foreground);
+  --card: var(--color-bg-elevated);
+  --card-foreground: var(--color-foreground);
+  --popover: var(--color-bg-elevated);
+  --popover-foreground: var(--color-foreground);
   --primary: var(--color-foreground);
-  --secondary: #0284c7;
-  --accent: #7c3aed;
+  --primary-foreground: var(--color-bg);
+  --secondary: var(--color-bg-hover-strong);
+  --secondary-foreground: var(--color-foreground);
+  --muted: var(--color-bg-muted);
+  --muted-foreground: var(--color-foreground-muted);
+  --accent: var(--color-accent);
+  --accent-foreground: var(--color-bg);
+  --destructive: var(--color-destructive);
+  --destructive-foreground: var(--color-destructive-foreground);
+  --border: var(--color-border);
+  --input: var(--color-border);
+  --ring: var(--color-accent);
 
   /* ─── Typography ─────────────────────────────────────────────────────── */
   --font-sans: 'Inter', Arial, Helvetica, sans-serif;
   --font-heading: 'Anton', 'Anta', sans-serif;
-  --font-display: 'Digital Dismay', 'Digital-7', monospace;
+  --font-display: ui-monospace, 'SF Mono', 'Menlo', 'Consolas', monospace;
   --font-impact: 'Impact', sans-serif;
 
   /* ─── Effects ─────────────────────────────────────────────────────────── */
@@ -57,11 +82,4 @@
   /* ─── Layout ─────────────────────────────────────────────────────────── */
   --touch-target-min: 44px;
   --scrollbar-thumb: var(--color-accent-soft);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: var(--color-bg);
-    --foreground: #ededed;
-  }
 }

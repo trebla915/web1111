@@ -353,10 +353,7 @@ export default function StaffHubPage() {
         <div className="flex items-center justify-between px-4 py-3">
           {/* Left: Branding + event picker */}
           <div className="flex items-center gap-4">
-            <h1
-              className="text-xl font-bold tracking-wider"
-              style={{ fontFamily: "Digital Dismay, sans-serif" }}
-            >
+            <h1 className="text-xl font-bold tracking-wider font-display">
               11:11
             </h1>
             <div className="h-6 w-px bg-zinc-700" />

@@ -82,7 +82,6 @@ export const getEvent = async (id: string): Promise<Event | null> => {
   } catch (error: unknown) {
     const status = (error as { response?: { status?: number } })?.response?.status;
     if (status === 404) {
-      console.log(`Event with ID ${id} not found`);
       return null;
     }
     console.error('Error getting event:', error);
@@ -145,12 +144,6 @@ export const getUpcomingEvents = async (): Promise<Event[]> => {
     const events = await getAllEvents();
     const now = new Date();
     const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const currentDateStr = `${year}-${month}-${day}`;
-
-    console.log('Current date for comparison (local time):', currentDateStr);
-    console.log('All events:', events.map((e: Event) => ({ title: e.title, date: e.date })));
 
     const filteredEvents = events.filter((event: Event) => {
       try {
@@ -172,16 +165,13 @@ export const getUpcomingEvents = async (): Promise<Event[]> => {
         eventDate.setHours(0, 0, 0, 0);
         currentDate.setHours(0, 0, 0, 0);
 
-        const isIncluded = eventDate >= currentDate;
-        console.log(`Event "${event.title}" (${event.date}): ${isIncluded ? 'INCLUDED' : 'EXCLUDED'}`);
-        return isIncluded;
+        return eventDate >= currentDate;
       } catch (err) {
         console.warn(`Error processing event "${event.title}":`, err);
         return false;
       }
     });
 
-    console.log('Filtered events:', filteredEvents.map((e: Event) => ({ title: e.title, date: e.date })));
     return filteredEvents;
   } catch (error) {
     console.error('Error getting upcoming events:', error);

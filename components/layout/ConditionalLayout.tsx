@@ -10,12 +10,27 @@ interface ConditionalLayoutProps {
   children: ReactNode;
 }
 
+// Routes that already have no Header/Footer at all (they build their own chrome).
+const NO_CHROME_PREFIXES = ['/admin', '/staff'];
+
+// Task-focused flows where a marketing footer just adds noise/scroll below the fold.
+// Header stays (nav back home, login, etc.) — only the Footer is dropped.
+const NO_FOOTER_PREFIXES = [
+  '/dashboard',
+  '/reserve',
+  '/reservation',
+  '/auth',
+  '/profile',
+  '/debug',
+  '/dev',
+];
+
 export default function ConditionalLayout({ children }: ConditionalLayoutProps) {
   const pathname = usePathname();
-  const isAdminRoute = pathname.startsWith('/admin');
-  const isStaffRoute = pathname.startsWith('/staff');
+  const hasNoChrome = NO_CHROME_PREFIXES.some((p) => pathname.startsWith(p));
+  const hasNoFooter = NO_FOOTER_PREFIXES.some((p) => pathname.startsWith(p));
 
-  if (isAdminRoute || isStaffRoute) {
+  if (hasNoChrome) {
     return <main className="flex-1">{children}</main>;
   }
 
@@ -23,7 +38,7 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
     <>
       <Header />
       <main className="flex-1">{children}</main>
-      <Footer />
+      {!hasNoFooter && <Footer />}
       <CookieConsent />
     </>
   );

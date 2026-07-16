@@ -1,5 +1,4 @@
 "use client"
-import { useEffect, useState, useRef } from "react"
 import { motion } from "framer-motion"
 import Image from "next/image"
 import Link from "next/link"
@@ -7,71 +6,6 @@ import { useScrollParallax } from "@/lib/hooks/useScrollParallax"
 
 export default function HeroSection() {
   const { style: parallaxStyle } = useScrollParallax({ speed: 0.5, direction: "content" })
-  const [glitchActive, setGlitchActive] = useState(false)
-  const [videoLoaded, setVideoLoaded] = useState(false)
-  const [videoError, setVideoError] = useState(false)
-  const videoRef = useRef<HTMLVideoElement>(null)
-
-  useEffect(() => {
-    // Random glitch effect
-    const glitchInterval = setInterval(() => {
-      // Randomly activate glitch effect
-      if (Math.random() > 0.85) {
-        setGlitchActive(true)
-        
-        // Deactivate after a short duration
-        setTimeout(() => {
-          setGlitchActive(false)
-        }, 200)
-      }
-    }, 2000)
-    
-    // Handle video playback with more robust error handling
-    if (videoRef.current) {
-      videoRef.current.playbackRate = 0.7; // Slow down the video slightly
-      
-      // Add event listeners
-      videoRef.current.addEventListener('loadeddata', () => {
-        setVideoLoaded(true);
-        console.log("Video loaded successfully");
-      });
-      
-      // Try to play the video with proper error handling
-      const playVideo = async () => {
-        try {
-          // Set muted attribute programmatically to further ensure autoplay works
-          videoRef.current!.muted = true;
-          await videoRef.current!.play();
-          console.log("Video playing successfully");
-        } catch (error) {
-          console.error("Video play failed:", error);
-          setVideoError(true);
-        }
-      };
-      
-      playVideo();
-      
-      // Setup a backup attempt to play video on user interaction
-      const attemptPlayOnInteraction = () => {
-        if (videoRef.current && videoRef.current.paused) {
-          videoRef.current.play().catch(e => console.log("Still couldn't play video", e));
-        }
-      };
-      
-      window.addEventListener('click', attemptPlayOnInteraction);
-      window.addEventListener('touchstart', attemptPlayOnInteraction);
-      
-      return () => {
-        clearInterval(glitchInterval);
-        window.removeEventListener('click', attemptPlayOnInteraction);
-        window.removeEventListener('touchstart', attemptPlayOnInteraction);
-      };
-    }
-    
-    return () => {
-      clearInterval(glitchInterval)
-    }
-  }, [])
 
   return (
     <section className="relative w-full min-h-dvh flex items-center justify-center text-center overflow-hidden bg-black border-t border-white safe-area-insets">
@@ -95,13 +29,12 @@ export default function HeroSection() {
               height={400}
               className="w-full h-auto"
               priority
-              unoptimized
             />
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.8, ease: "easeOut" }}
-              className="text-3xl sm:text-4xl md:text-7xl font-light -mt-8 md:-mt-12 tracking-[0.3em] text-white font-['Digital-7'] uppercase"
+              className="text-3xl sm:text-4xl md:text-7xl font-light -mt-8 md:-mt-12 tracking-[0.3em] text-white font-display uppercase"
             >
               TIME:LESS
             </motion.div>

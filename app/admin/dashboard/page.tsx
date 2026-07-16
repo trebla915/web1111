@@ -226,7 +226,7 @@ export default function AdminDashboardPage() {
           </button>
           
           <div className="flex items-center gap-3">
-            <div className="text-lg font-bold text-white" style={{ fontFamily: 'Digital Dismay, sans-serif' }}>
+            <div className="text-lg font-bold text-white font-display">
               11:11
             </div>
             <div className="px-2 py-1 rounded-full bg-gradient-to-r from-red-700/60 to-red-600/40 text-xs font-bold">

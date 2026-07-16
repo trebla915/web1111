@@ -7,7 +7,8 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { FiArrowRight } from 'react-icons/fi';
 import { getUpcomingEvents } from '@/lib/services/events';
-import { getDayOfWeek, formatToMMDDYYYY, sortEventsByDate } from '@/lib/utils/dateFormatter';
+import { sortEventsByDate } from '@/lib/utils/dateFormatter';
+import SectionHeader from './SectionHeader';
 
 interface EventsFestivalSectionProps {
   title?: string;
@@ -15,7 +16,6 @@ interface EventsFestivalSectionProps {
   className?: string;
   /** Cap how many events render. Omit or pass null to show all upcoming events. */
   maxEvents?: number | null;
-  showYear?: boolean;
   id?: string;
 }
 
@@ -24,7 +24,6 @@ export default function EventsFestivalSection({
   subtitle,
   className = "",
   maxEvents = null,
-  showYear = true,
   id = "events"
 }: EventsFestivalSectionProps) {
   const [events, setEvents] = useState<any[]>([]);
@@ -102,22 +101,7 @@ export default function EventsFestivalSection({
       <div className="absolute inset-0 spotlight opacity-10"></div>
       
       <div className="container mx-auto px-4 relative z-10">
-        {/* Festival-style header */}
-        <div className="mb-8">
-          {showYear && (
-            <div className="text-right">
-              <h2 className="text-5xl md:text-7xl font-bold text-white digital-glow-soft" style={{ fontFamily: 'Impact, sans-serif' }}>
-                {new Date().getFullYear()}
-              </h2>
-            </div>
-          )}
-          <div className="w-full py-2 bg-white relative mb-1">
-            <div className="absolute inset-0 bg-[linear-gradient(45deg,_transparent_25%,_rgba(0,0,0,0.05)_25%,_rgba(0,0,0,0.05)_50%,_transparent_50%,_transparent_75%,_rgba(0,0,0,0.05)_75%)] bg-[length:10px_10px]"></div>
-            <h1 className="text-3xl md:text-5xl font-bold text-black text-center tracking-wider relative z-10" style={{ fontFamily: 'Digital-7, sans-serif' }}>
-              {title}
-            </h1>
-          </div>
-        </div>
+        <SectionHeader title={title} subtitle={subtitle} />
 
         {loading ? (
           <div className="flex justify-center py-20">
@@ -158,7 +142,7 @@ export default function EventsFestivalSection({
                     <div className="absolute inset-0 bg-white/5 rounded-lg group-hover:bg-white/10 transition-all duration-300"></div>
                     <div className="absolute -inset-px bg-gradient-to-tr from-white/0 via-white/0 to-white/30 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
                     
-                    <div className="text-5xl md:text-7xl font-bold text-white group-hover:digital-glow-soft transition-all duration-300 relative z-10" style={{ fontFamily: 'Impact, sans-serif' }}>
+                    <div className="text-5xl md:text-7xl font-bold text-white font-display group-hover:digital-glow-soft transition-all duration-300 relative z-10">
                       {event.date ? getEventDay(event.date) : "--"}
                     </div>
                     <div className="text-lg md:text-xl text-white/60 relative z-10">
@@ -168,7 +152,7 @@ export default function EventsFestivalSection({
                   
                   {/* Event name and details */}
                   <div className="w-2/4 md:w-4/6 flex flex-col pl-2 md:pl-4">
-                    <h3 className="text-xl md:text-4xl font-bold text-white tracking-wider group-hover:text-white/90 transition-all duration-300 truncate" style={{ fontFamily: 'Impact, sans-serif' }}>
+                    <h3 className="text-xl md:text-4xl font-bold text-white font-display tracking-wider group-hover:text-white/90 transition-all duration-300 truncate">
                       {event.title.toUpperCase()}
                     </h3>
                     {event.venue && (

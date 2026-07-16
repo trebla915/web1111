@@ -93,18 +93,6 @@ export const PaymentService = {
   },
 
   /**
-   * Confirm a payment
-   */
-  confirmPayment: async (paymentId: string): Promise<void> => {
-    try {
-      await apiClient.post(API_ENDPOINTS.payments.confirm(paymentId));
-    } catch (error) {
-      console.error('Error confirming payment:', error);
-      throw error;
-    }
-  },
-
-  /**
    * Format the cost breakdown for display
    */
   formatCostBreakdown: (tablePrice: number, bottles: any[] = [], mixers: any[] = []): CostBreakdown => {

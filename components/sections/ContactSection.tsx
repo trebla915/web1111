@@ -1,9 +1,11 @@
 // ContactSection.tsx
 "use client"
 
-import React from 'react';
+import React, { useState } from 'react';
 import { FiMail, FiPhone, FiMapPin } from 'react-icons/fi';
+import { toast } from 'react-hot-toast';
 import { useScrollParallax } from '@/lib/hooks/useScrollParallax';
+import SectionHeader from './SectionHeader';
 
 export default function ContactSection() {
   const { style: bgParallaxStyle, ref: bgParallaxRef } = useScrollParallax({
@@ -11,6 +13,36 @@ export default function ContactSection() {
     direction: 'background',
     whenInView: true,
   });
+
+  const [form, setForm] = useState({ name: '', email: '', message: '' });
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
+      toast.error('Please fill out all fields.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to send message');
+      }
+      toast.success("Message sent! We'll get back to you soon.");
+      setForm({ name: '', email: '', message: '' });
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to send message. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <section
@@ -20,26 +52,15 @@ export default function ContactSection() {
       {/* Background effects — parallax depth */}
       <div className="absolute inset-0 noise opacity-5" />
       <div ref={bgParallaxRef} className="absolute inset-0 spotlight opacity-10" style={bgParallaxStyle} />
-      
+
       <div className="container mx-auto px-4 relative z-10">
-        {/* Festival-style header */}
-        <div className="mb-8">
-          <div className="w-full py-2 bg-white relative mb-1">
-            <div className="absolute inset-0 bg-[linear-gradient(45deg,_transparent_25%,_rgba(0,0,0,0.05)_25%,_rgba(0,0,0,0.05)_50%,_transparent_50%,_transparent_75%,_rgba(0,0,0,0.05)_75%)] bg-[length:10px_10px]"></div>
-            <h1 className="text-3xl md:text-5xl font-bold text-black text-center tracking-wider relative z-10" style={{ fontFamily: 'Digital-7, sans-serif' }}>
-              CONTACT US
-            </h1>
-          </div>
-          <p className="text-center max-w-2xl mx-auto text-white/60 tracking-wide">
-            REACH OUT FOR RESERVATIONS OR INQUIRIES
-          </p>
-        </div>
+        <SectionHeader title="CONTACT US" subtitle="REACH OUT FOR RESERVATIONS OR INQUIRIES" />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
           <div className="space-y-6">
             <div className="border border-white/20 p-6 bg-black">
-              <h3 className="text-2xl font-bold mb-6 text-white" style={{ fontFamily: 'Impact, sans-serif' }}>VENUE INFORMATION</h3>
-              
+              <h3 className="text-2xl font-bold mb-6 text-white font-display">VENUE INFORMATION</h3>
+
               <div className="space-y-4">
                 <div className="flex items-start">
                   <FiMapPin className="text-white mt-1 mr-3 flex-shrink-0" size={20} />
@@ -49,7 +70,7 @@ export default function ContactSection() {
                     <p className="text-white">EL PASO, TX 79924</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start">
                   <FiPhone className="text-white mt-1 mr-3 flex-shrink-0" size={20} />
                   <div>
@@ -57,7 +78,7 @@ export default function ContactSection() {
                     <p className="text-white">+1 (915) 246-3945</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start">
                   <FiMail className="text-white mt-1 mr-3 flex-shrink-0" size={20} />
                   <div>
@@ -68,40 +89,50 @@ export default function ContactSection() {
               </div>
             </div>
           </div>
-          
+
           <div className="border border-white/20 p-6 bg-black">
-            <h3 className="text-2xl font-bold mb-6 text-white" style={{ fontFamily: 'Impact, sans-serif' }}>SEND MESSAGE</h3>
-            
-            <form className="space-y-4">
+            <h3 className="text-2xl font-bold mb-6 text-white font-display">SEND MESSAGE</h3>
+
+            <form className="space-y-4" onSubmit={handleSubmit}>
               <div>
                 <input
                   type="text"
                   placeholder="YOUR NAME"
-                  className="w-full px-4 py-3 bg-transparent border border-white focus:border-white text-white placeholder-white outline-none"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  disabled={submitting}
+                  className="w-full px-4 py-3 bg-transparent border border-white focus:border-white text-white placeholder-white outline-none disabled:opacity-50"
                 />
               </div>
-              
+
               <div>
                 <input
                   type="email"
                   placeholder="YOUR EMAIL"
-                  className="w-full px-4 py-3 bg-transparent border border-white focus:border-white text-white placeholder-white outline-none"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  disabled={submitting}
+                  className="w-full px-4 py-3 bg-transparent border border-white focus:border-white text-white placeholder-white outline-none disabled:opacity-50"
                 />
               </div>
-              
+
               <div>
                 <textarea
                   placeholder="YOUR MESSAGE"
                   rows={5}
-                  className="w-full px-4 py-3 bg-transparent border border-white focus:border-white text-white placeholder-white outline-none resize-none"
+                  value={form.message}
+                  onChange={(e) => setForm({ ...form, message: e.target.value })}
+                  disabled={submitting}
+                  className="w-full px-4 py-3 bg-transparent border border-white focus:border-white text-white placeholder-white outline-none resize-none disabled:opacity-50"
                 ></textarea>
               </div>
-              
-              <button 
-                type="submit" 
-                className="w-full bg-white text-black font-bold py-3 transition-colors"
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full bg-white text-black font-bold py-3 transition-colors hover:bg-white/90 disabled:opacity-50"
               >
-                SEND MESSAGE
+                {submitting ? 'SENDING...' : 'SEND MESSAGE'}
               </button>
             </form>
           </div>

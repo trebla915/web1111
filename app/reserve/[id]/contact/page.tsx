@@ -153,7 +153,7 @@ export default function ContactInformationPage() {
         <div className="w-full max-w-2xl mx-auto px-4">
           <div className="h-64 flex items-center justify-center">
             <div className="flex flex-col items-center">
-              <div className="w-12 h-12 border-t-2 border-b-2 border-cyan-500 rounded-full animate-spin"></div>
+              <div className="w-12 h-12 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
               <p className="mt-4 text-white">Loading...</p>
             </div>
           </div>
@@ -168,7 +168,7 @@ export default function ContactInformationPage() {
         <div className="w-full max-w-2xl mx-auto px-4">
           <div className="h-64 flex items-center justify-center">
             <div className="flex flex-col items-center">
-              <div className="w-12 h-12 border-t-2 border-b-2 border-cyan-500 rounded-full animate-spin"></div>
+              <div className="w-12 h-12 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
               <p className="mt-4 text-white">Loading your reservation...</p>
             </div>
           </div>
@@ -178,39 +178,39 @@ export default function ContactInformationPage() {
   }
 
   return (
-    <div className="min-h-screen pt-28 pb-12 flex flex-col">
+    <div className="min-h-screen pt-24 sm:pt-28 pb-12 flex flex-col">
       <div className="w-full max-w-2xl mx-auto px-4">
         {/* Back button */}
         <button
           onClick={handleGoBack}
-          className="mb-6 flex items-center text-cyan-400 hover:text-cyan-300 transition-colors"
+          className="mb-4 sm:mb-6 flex items-center text-white/70 hover:text-white transition-colors"
         >
           <FiArrowLeft className="mr-2" size={20} />
           Back to Details
         </button>
 
         {/* Reservation Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-white mb-2">
+        <div className="mb-6 sm:mb-8 text-center">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
             Contact Information
           </h1>
-          <p className="text-cyan-400">
+          <p className="text-white/70 text-sm sm:text-base">
             {reservationDetails.eventName} - {formatDate(reservationDetails.eventDate)}
           </p>
-          <p className="text-zinc-400 mt-2">
+          <p className="text-zinc-400 mt-2 text-sm sm:text-base">
             Table {reservationDetails.tableNumber} for {reservationDetails.guestCount} {reservationDetails.guestCount === 1 ? 'person' : 'people'}
           </p>
         </div>
-        
+
         {/* Contact Form */}
-        <div className="bg-zinc-900 rounded-lg border border-cyan-900/30 overflow-hidden">
-          <div className="p-6">
-            <h2 className="text-xl font-bold text-white mb-6">Please provide your contact details</h2>
-            <p className="text-zinc-400 mb-6">
+        <div className="bg-zinc-900 rounded-lg border border-white/20 overflow-hidden">
+          <div className="p-4 sm:p-6">
+            <h2 className="text-lg sm:text-xl font-bold text-white mb-4 sm:mb-6">Please provide your contact details</h2>
+            <p className="text-zinc-400 mb-6 text-sm sm:text-base">
               This information will be used for your reservation confirmation and any important updates about your event.
             </p>
-            
-            <div className="space-y-6">
+
+            <div className="space-y-5 sm:space-y-6">
               {/* Full Name */}
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-white mb-2">
@@ -226,7 +226,7 @@ export default function ContactInformationPage() {
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
                     placeholder="Enter your full name"
-                    className={`w-full pl-10 pr-4 py-3 bg-zinc-800 border rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent ${
+                    className={`w-full pl-10 pr-4 py-3 bg-zinc-800 border rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent ${
                       errors.name ? 'border-red-500' : 'border-zinc-600'
                     }`}
                   />
@@ -251,7 +251,7 @@ export default function ContactInformationPage() {
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
                     placeholder="Enter your email address"
-                    className={`w-full pl-10 pr-4 py-3 bg-zinc-800 border rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent ${
+                    className={`w-full pl-10 pr-4 py-3 bg-zinc-800 border rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent ${
                       errors.email ? 'border-red-500' : 'border-zinc-600'
                     }`}
                   />
@@ -276,7 +276,7 @@ export default function ContactInformationPage() {
                     value={formData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
                     placeholder="(555) 123-4567"
-                    className={`w-full pl-10 pr-4 py-3 bg-zinc-800 border rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent ${
+                    className={`w-full pl-10 pr-4 py-3 bg-zinc-800 border rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent ${
                       errors.phone ? 'border-red-500' : 'border-zinc-600'
                     }`}
                   />
@@ -299,11 +299,11 @@ export default function ContactInformationPage() {
           </div>
 
           {/* Actions */}
-          <div className="p-6 border-t border-zinc-700">
+          <div className="p-4 sm:p-6 border-t border-zinc-700">
             <button
               onClick={handleContinueToPayment}
               disabled={isSubmitting}
-              className="w-full py-3 bg-cyan-600 hover:bg-cyan-700 disabled:bg-cyan-900 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors"
+              className="w-full py-3 bg-white hover:bg-white/90 disabled:bg-white/40 disabled:cursor-not-allowed text-black font-bold rounded-lg transition-colors"
             >
               {isSubmitting ? 'Saving...' : 'Continue to Payment'}
             </button>

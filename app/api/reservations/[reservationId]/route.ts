@@ -88,30 +88,61 @@ export async function PATCH(
   }
 }
 
-// DELETE /api/reservations/[reservationId] - Delete a specific reservation
+// DELETE /api/reservations/[reservationId] - Delete a reservation, release its table,
+// and clean up the mirrored doc under users/{userId}/reservations, all in one batch.
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { reservationId: string } }
 ) {
   try {
     const { reservationId } = params;
-    
-    // Verify reservation exists
+
     const reservationRef = adminFirestore
       .collection('reservations')
       .doc(reservationId);
-    
+
     const reservationDoc = await reservationRef.get();
     if (!reservationDoc.exists) {
       return NextResponse.json({ error: 'Reservation not found' }, { status: 404 });
     }
-    
-    // Delete the reservation
-    await reservationRef.delete();
-    
+
+    const reservation = reservationDoc.data()!;
+    const { userId, eventId, tableId } = reservation as {
+      userId?: string;
+      eventId?: string;
+      tableId?: string;
+    };
+
+    const batch = adminFirestore.batch();
+    batch.delete(reservationRef);
+
+    if (userId) {
+      const userReservationRef = adminFirestore
+        .collection('users')
+        .doc(userId)
+        .collection('reservations')
+        .doc(reservationId);
+      batch.delete(userReservationRef);
+    }
+
+    if (eventId && tableId) {
+      const tableRef = adminFirestore
+        .collection('events')
+        .doc(eventId)
+        .collection('tables')
+        .doc(tableId);
+      batch.update(tableRef, {
+        reserved: false,
+        reservationId: null,
+        updatedAt: new Date().toISOString(),
+      });
+    }
+
+    await batch.commit();
+
     return NextResponse.json({ message: 'Reservation deleted successfully' });
   } catch (error) {
     console.error(`Error deleting reservation ${params.reservationId}:`, error);
     return NextResponse.json({ error: 'Failed to delete reservation' }, { status: 500 });
   }
-} 
+}

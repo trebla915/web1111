@@ -4,7 +4,7 @@
  * ClubLayout — Customer-facing VIP table seating map
  *
  * Data flow:
- *   1. Parent page fetches tables via getTablesByEvent() → GET /api/events/[id]/tables
+ *   1. Parent page fetches tables via getEventTables() → GET /api/events/[id]/tables
  *   2. Tables arrive with a `location` field ('left' | 'right') set in Firestore
  *   3. This component groups tables by `location`:
  *        Left column  (tables 1–7)  → rendered as rectangular booths

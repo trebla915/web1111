@@ -73,9 +73,9 @@ function PaymentStep({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <p className="text-zinc-300 text-sm">
-        Pay the price difference of <strong className="text-cyan-400">{formatCurrency(amountDue)}</strong> (including service fee).
+        Pay the price difference of <strong className="text-white">{formatCurrency(amountDue)}</strong> (including service fee).
       </p>
-      <div className="p-4 border border-zinc-700 rounded-lg bg-zinc-900/50">
+      <div className="p-3 sm:p-4 border border-zinc-700 rounded-lg bg-zinc-900/50">
         <PaymentElement
           options={{
             layout: "tabs",
@@ -95,7 +95,7 @@ function PaymentStep({
       <button
         type="submit"
         disabled={!stripe || isProcessing}
-        className="w-full py-3 bg-cyan-600 text-white font-semibold rounded-lg hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full py-3 bg-white text-black font-semibold rounded-lg hover:bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isProcessing ? "Processing…" : `Pay ${formatCurrency(amountDue)} & change table`}
       </button>
@@ -149,9 +149,9 @@ function PendingFixPaymentStep({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <p className="text-zinc-300 text-sm">
-        Pay the outstanding price difference of <strong className="text-cyan-400">{formatCurrency(amountDue)}</strong>.
+        Pay the outstanding price difference of <strong className="text-white">{formatCurrency(amountDue)}</strong>.
       </p>
-      <div className="p-4 border border-zinc-700 rounded-lg bg-zinc-900/50">
+      <div className="p-3 sm:p-4 border border-zinc-700 rounded-lg bg-zinc-900/50">
         <PaymentElement
           options={{
             layout: "tabs",
@@ -171,7 +171,7 @@ function PendingFixPaymentStep({
       <button
         type="submit"
         disabled={!stripe || isProcessing}
-        className="w-full py-3 bg-cyan-600 text-white font-semibold rounded-lg hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full py-3 bg-white text-black font-semibold rounded-lg hover:bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isProcessing ? "Processing…" : `Pay ${formatCurrency(amountDue)}`}
       </button>
@@ -306,14 +306,14 @@ export default function ChangeTablePage() {
     return (
       <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6">
         <p className="text-red-400 mb-4">{error}</p>
-        <Link href="/" className="text-cyan-400 hover:underline">Back to home</Link>
+        <Link href="/" className="text-white hover:underline">Back to home</Link>
       </div>
     );
   }
 
   if (pendingFixPayment) {
     return (
-      <div className="min-h-screen bg-black text-white py-24 px-4">
+      <div className="min-h-screen bg-black text-white pt-24 pb-16 sm:py-24 px-4">
         <div className="max-w-md mx-auto">
           <h1 className="text-2xl font-bold mb-2">Pay price difference</h1>
           <p className="text-zinc-400 mb-6">Your table was updated. Please pay the outstanding amount below.</p>
@@ -341,20 +341,20 @@ export default function ChangeTablePage() {
   if (success) {
     return (
       <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6">
-        <div className="max-w-md w-full bg-zinc-900 rounded-xl p-8 text-center border border-zinc-800">
+        <div className="max-w-md w-full bg-zinc-900 rounded-xl p-6 sm:p-8 text-center border border-zinc-800">
           <div className="w-14 h-14 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-4">
             <FiCheck className="w-7 h-7 text-green-400" />
           </div>
           <h1 className="text-xl font-bold text-white mb-2">Table changed</h1>
           <p className="text-zinc-400 mb-6">{success.message}</p>
           {success.refund && (
-            <p className="text-cyan-400 text-sm mb-6">
+            <p className="text-white text-sm mb-6">
               A refund of {formatCurrency(success.refund.amount)} will be processed to your original payment method.
             </p>
           )}
           <Link
             href="/dashboard/reservations"
-            className="block w-full py-3 bg-cyan-600 text-white font-semibold rounded-lg hover:bg-cyan-700 text-center"
+            className="block w-full py-3 bg-white text-black font-semibold rounded-lg hover:bg-white/90 text-center"
           >
             View my reservations
           </Link>
@@ -368,7 +368,7 @@ export default function ChangeTablePage() {
 
   if (paymentStep) {
     return (
-      <div className="min-h-screen bg-black text-white py-24 px-4">
+      <div className="min-h-screen bg-black text-white pt-24 pb-16 sm:py-24 px-4">
         <div className="max-w-md mx-auto">
           <button
             type="button"
@@ -433,7 +433,7 @@ export default function ChangeTablePage() {
                 onClick={() => setSelectedTableId(table.id)}
                 className={`w-full text-left p-4 rounded-lg border transition-colors ${
                   selectedTableId === table.id
-                    ? "border-cyan-500 bg-cyan-500/10"
+                    ? "border-white bg-white/10"
                     : "border-zinc-700 bg-zinc-900/50 hover:border-zinc-600"
                 } ${isCurrent ? "opacity-50 cursor-not-allowed" : ""}`}
               >
@@ -477,7 +477,7 @@ export default function ChangeTablePage() {
               type="button"
               onClick={handleSelectTable}
               disabled={submitting}
-              className="w-full py-3 bg-cyan-600 text-white font-semibold rounded-lg hover:bg-cyan-700 disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full py-3 bg-white text-black font-semibold rounded-lg hover:bg-white/90 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {submitting ? (
                 "Processing…"

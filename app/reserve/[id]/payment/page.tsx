@@ -76,7 +76,7 @@ function PaymentForm({ clientSecret, onSuccess, user, reservationDetails }: {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="p-6 border border-zinc-700 rounded-lg bg-zinc-900/50">
+      <div className="p-3 sm:p-6 border border-zinc-700 rounded-lg bg-zinc-900/50">
         <PaymentElement
           options={{
             layout: 'tabs',
@@ -196,9 +196,9 @@ function PaymentForm({ clientSecret, onSuccess, user, reservationDetails }: {
         type="submit"
         disabled={!stripe || isProcessing || !bottleRequirement.met}
         className={`w-full py-3 font-bold rounded-lg transition-all ${
-          !bottleRequirement.met 
-            ? 'bg-gray-600 text-gray-300 cursor-not-allowed' 
-            : 'bg-cyan-600 hover:bg-cyan-700 text-white disabled:bg-cyan-900 disabled:cursor-not-allowed'
+          !bottleRequirement.met
+            ? 'bg-gray-600 text-gray-300 cursor-not-allowed'
+            : 'bg-white hover:bg-white/90 text-black disabled:bg-white/40 disabled:cursor-not-allowed'
         }`}
       >
         {isProcessing ? 'Processing...' : bottleRequirement.met ? 'Pay Now' : `Add ${bottleRequirement.required - bottleRequirement.current} More Bottle${(bottleRequirement.required - bottleRequirement.current) > 1 ? 's' : ''}`}
@@ -539,7 +539,7 @@ export default function PaymentPage() {
         <div className="w-full max-w-2xl mx-auto px-4">
           <div className="h-64 flex items-center justify-center">
             <div className="flex flex-col items-center">
-              <div className="w-12 h-12 border-t-2 border-b-2 border-cyan-500 rounded-full animate-spin"></div>
+              <div className="w-12 h-12 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
               <p className="mt-4 text-white">Loading...</p>
             </div>
           </div>
@@ -549,10 +549,7 @@ export default function PaymentPage() {
   }
 
   const costBreakdown = (() => {
-    console.log('Payment page - reservationDetails:', reservationDetails);
-    
     if (!reservationDetails) {
-      console.log('No reservation details available');
       return {
         tablePrice: 0,
         bottlesCost: 0,
@@ -568,15 +565,7 @@ export default function PaymentPage() {
     const tablePrice = Number(reservationDetails.tablePrice) || 0;
     const bottles = reservationDetails.bottles || [];
     const mixers = reservationDetails.mixers || [];
-    
-    console.log('Cost calculation inputs:', {
-      tablePrice,
-      bottlesCount: bottles.length,
-      mixersCount: mixers.length,
-      bottles: bottles.map(b => ({ name: b.name, price: b.price })),
-      mixers: mixers.map(m => ({ name: m.name, price: m.price }))
-    });
-    
+
     // Calculate costs
     const bottlesCost = bottles.reduce((total, bottle) => total + (Number(bottle.price) || 0), 0);
     const mixersCost = mixers.reduce((total, mixer) => total + (Number(mixer.price) || 0), 0);
@@ -599,17 +588,6 @@ export default function PaymentPage() {
     // Calculate final total
     const total = subtotal + stripeFee;
 
-    console.log('Payment page - cost breakdown:', {
-      tablePrice,
-      bottlesCost,
-      mixersCost,
-      salesTax,
-      gratAmount,
-      stripeFee,
-      subtotal,
-      total
-    });
-
     return {
       tablePrice,
       bottlesCost,
@@ -628,25 +606,25 @@ export default function PaymentPage() {
         {/* Back button */}
         <button
           onClick={handleGoBack}
-          className="mb-6 flex items-center text-cyan-400 hover:text-cyan-300 transition-colors"
+          className="mb-6 flex items-center text-white/70 hover:text-white transition-colors"
         >
           <FiArrowLeft className="mr-2" size={20} />
           Back to Contact Info
         </button>
 
         {/* Payment Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-white mb-2">
+        <div className="mb-6 sm:mb-8 text-center">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
             Complete Payment
           </h1>
-          <p className="text-zinc-400">
+          <p className="text-zinc-400 text-sm sm:text-base">
             Table {reservationDetails.tableNumber} • {reservationDetails.guestCount} {reservationDetails.guestCount === 1 ? 'person' : 'people'}
           </p>
         </div>
 
         {/* Order Summary */}
-        <div className="mb-8 p-6 bg-zinc-900/80 border border-zinc-700 rounded-lg">
-          <h2 className="text-xl font-bold text-white mb-4">Order Summary</h2>
+        <div className="mb-6 sm:mb-8 p-4 sm:p-6 bg-black border border-white/20 rounded-lg">
+          <h2 className="text-lg sm:text-xl font-bold text-white mb-4">Order Summary</h2>
           
           <div className="space-y-4">
             <div className="flex justify-between text-white">
@@ -678,8 +656,8 @@ export default function PaymentPage() {
         {/* Payment Actions */}
         <div className="mt-8 flex flex-col gap-6">
           {process.env.NODE_ENV === 'development' && (
-            <div className="p-6 bg-amber-900/30 border border-amber-700/50 rounded-lg">
-              <div className="flex items-center justify-between">
+            <div className="p-4 sm:p-6 bg-amber-900/30 border border-amber-700/50 rounded-lg">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                   <h3 className="text-lg font-semibold text-amber-300">Test Mode</h3>
                   <p className="text-sm text-amber-200/80">Skip payment for testing purposes</p>
@@ -687,7 +665,7 @@ export default function PaymentPage() {
                 <button
                   onClick={handleTestModePayment}
                   disabled={isProcessing}
-                  className="px-6 py-3 bg-amber-600 text-white font-semibold rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
+                  className="w-full sm:w-auto px-6 py-3 bg-amber-600 text-white font-semibold rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
                 >
                   {isProcessing ? 'Processing...' : 'Test Payment'}
                 </button>
@@ -699,7 +677,7 @@ export default function PaymentPage() {
           <button
             onClick={handlePayment}
             disabled={isProcessing}
-            className="w-full py-4 bg-cyan-600 text-white font-bold text-lg rounded-lg hover:bg-cyan-700 transition-colors disabled:opacity-50 shadow-lg"
+            className="w-full py-4 bg-white text-black font-bold text-lg rounded-lg hover:bg-white/90 transition-colors disabled:opacity-50 shadow-lg"
           >
             {isProcessing ? 'Processing...' : `Pay ${formatCurrency(costBreakdown.total || 0)}`}
           </button>

@@ -43,10 +43,9 @@ export default function EventsPage() {
           </div>
         </div>
         
-        <EventsFestivalSection 
-          title="ALL EVENTS" 
+        <EventsFestivalSection
+          title="ALL EVENTS"
           className="pt-0"
-          showYear={true}
         />
       </div>
     </div>

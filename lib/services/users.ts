@@ -43,8 +43,6 @@ export const createUserDocument = async (user: User): Promise<void> => {
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
-    
-    console.log(`Created user document with role: ${role}`);
   } catch (error) {
     console.error('Error creating user document:', error);
     throw error;
@@ -58,13 +56,9 @@ export const getUserById = async (userId: string): Promise<User | null> => {
     const userSnap = await getDoc(userRef);
     
     if (userSnap.exists()) {
-      const userData = userSnap.data() as User;
-      console.log('User data from Firestore (direct ID lookup):', userData);
-      return userData;
+      return userSnap.data() as User;
     }
-    
-    console.log('No user document found for ID:', userId);
-    
+
     // FALLBACK: If no user found by UID, try to find by email
     // This handles the case where user IDs were migrated to email-based format
     try {
@@ -73,11 +67,9 @@ export const getUserById = async (userId: string): Promise<User | null> => {
       const currentUser = auth.currentUser;
       
       if (currentUser?.email) {
-        console.log('Attempting fallback lookup by email:', currentUser.email);
         const userByEmail = await getUserByEmail(currentUser.email);
-        
+
         if (userByEmail) {
-          console.log('Found user via email fallback:', userByEmail);
           return {
             uid: userId, // Keep the original Firebase Auth UID for consistency
             email: userByEmail.email,
@@ -130,8 +122,6 @@ export const deleteUser = async (userId: string): Promise<void> => {
       throw new Error(errorData.error || 'Failed to delete user account');
     }
 
-    const result = await response.json();
-    console.log('User account anonymized:', result.message);
   } catch (error) {
     console.error('Error deleting user:', error);
     throw error;
@@ -167,7 +157,6 @@ export async function getUserByEmail(email: string): Promise<DocumentData | null
 export const checkUserRoleByEmail = async (email: string): Promise<string | null> => {
   try {
     const user = await getUserByEmail(email);
-    console.log('User from Firestore:', user);
     return user?.role || null;
   } catch (error) {
     console.error('Error checking user role:', error);
@@ -184,8 +173,7 @@ export const setUserRole = async (userId: string, role: 'user' | 'admin' | 'prom
       role,
       updatedAt: serverTimestamp()
     });
-    
-    console.log(`User ${userId} role set to ${role}`);
+
     return true;
   } catch (error) {
     console.error(`Error setting role for user ${userId}:`, error);
@@ -255,8 +243,6 @@ export const forceUpdateUserRole = async (userId: string, role: 'user' | 'admin'
       role,
       updatedAt: serverTimestamp()
     }, { merge: true });
-    
-    console.log(`Force updated user ${userId} role to ${role}`);
   } catch (error) {
     console.error(`Error force updating role for user ${userId}:`, error);
     throw error;

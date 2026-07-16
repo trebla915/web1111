@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '@/lib/hooks/useAuth';
 import AgeVerificationModal from '../ui/AgeVerificationModal';
+import { Button } from '@/components/ui/button';
 
 // Proper timezone handling for Mountain Time
 function adjustToMountainTime(dateStr: string): Date {
@@ -86,25 +87,6 @@ function getDayOfWeek(dateStr: string): string {
   }
 }
 
-// Add a debug function to help diagnose the issue
-function debugDateInfo(dateStr: string): string {
-  if (!dateStr) return 'No date provided';
-  
-  try {
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return 'Invalid date';
-    
-    return `
-      Original string: ${dateStr}
-      Date: ${date.toString()}
-      ISO String: ${date.toISOString()}
-      Local String: ${date.toLocaleString()}
-    `;
-  } catch (error) {
-    return `Error: ${error}`;
-  }
-}
-
 interface Event {
   id: string;
   title: string;
@@ -126,13 +108,6 @@ export default function EventDetails({ event }: EventDetailsProps) {
   const { user, isGuest } = useAuth();
   const [showFullImage, setShowFullImage] = useState(false);
   const [showAgeVerification, setShowAgeVerification] = useState(false);
-
-  // Add a debug console log to understand what date we're working with
-  useEffect(() => {
-    if (event?.date) {
-      console.log('Debug date info:', debugDateInfo(event.date));
-    }
-  }, [event]);
 
   // Add JSON-LD structured data for SEO
   useEffect(() => {
@@ -234,7 +209,7 @@ export default function EventDetails({ event }: EventDetailsProps) {
           <div className="flex flex-col md:flex-row">
             {/* Event image */}
             <div className="w-full md:w-2/5 relative">
-              <div className="aspect-square w-full cursor-pointer pt-2 p-1 md:p-2" onClick={() => setShowFullImage(true)}>
+              <div className="aspect-square w-full cursor-pointer pt-2 p-1 md:p-2 relative" onClick={() => setShowFullImage(true)}>
                 <Image
                   src={event.flyerUrl || '/placeholder-event.png'}
                   alt={event.title}
@@ -279,26 +254,24 @@ export default function EventDetails({ event }: EventDetailsProps) {
                 </div>
               </div>
               
-              {/* Action buttons */}
-              <div className="flex flex-col sm:flex-row gap-3 md:gap-4 w-full">
-                <button
-                  onClick={handleTablePress}
-                  className="bg-white hover:bg-white/90 text-black px-5 py-3 transition-colors flex items-center justify-center font-bold touch-target w-full sm:w-auto"
-                >
+              {/* Action buttons — hidden below md; the sticky bottom bar covers mobile so
+                  there's only ever one set of these actions on screen at a time. */}
+              <div className="hidden md:flex md:flex-row gap-4 w-full">
+                <Button onClick={handleTablePress} size="lg" className="font-bold">
                   <FiUsers className="mr-2" />
                   RESERVE A TABLE
-                </button>
-                
-                <button
+                </Button>
+
+                <Button
                   onClick={() => handleTicketPress(event.ticketLink)}
-                  className={`${event.ticketLink 
-                    ? 'bg-white/10 hover:bg-white/20' 
-                    : 'bg-gray-900 cursor-not-allowed'} text-white px-5 py-3 transition-colors flex items-center justify-center font-bold border border-white/20 touch-target w-full sm:w-auto`}
+                  variant="outline"
+                  size="lg"
                   disabled={!event.ticketLink}
+                  className="font-bold"
                 >
                   <FiTag className="mr-2" />
                   {event.ticketLink ? 'BUY TICKETS' : 'NO TICKETS AVAILABLE'}
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -399,39 +372,28 @@ export default function EventDetails({ event }: EventDetailsProps) {
         </div>
       </div>
       
-      {/* Mobile-only sticky action bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-md border-t border-white/20 flex items-center justify-between py-3 px-4 z-50 safe-area-bottom">
-        <div className="flex flex-col justify-center">
-          <h3 className="text-white font-bold text-base truncate max-w-[120px]">{event.title}</h3>
-          <span className="text-white/60 text-xs">{event.date ? formatToMMDDYYYY(event.date) : 'Date TBA'}</span>
-        </div>
-        <div className="flex gap-2 items-center flex-1 justify-end">
-          <button
-            onClick={() => {
-              if (navigator.share) {
-                navigator.share({
-                  title: event.title,
-                  text: `Check out ${event.title} at 11:11 EPTX!`,
-                  url: `https://www.1111eptx.com/events/${event.id}`
-                }).catch(err => console.log('Error sharing', err));
-              }
-            }}
-            className="w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full"
-            aria-label="Share"
-          >
-            <FiShare2 className="text-white text-xl" />
-          </button>
-          <button
+      {/* Mobile-only sticky action bar — two equal-priority CTAs, properly sized touch
+          targets. (Title/date and share are already visible in the page above; keeping
+          this bar to just the two actions avoids cramming it full on a narrow screen.) */}
+      <div className="md:hidden fixed bottom-0 inset-x-0 bg-black/95 backdrop-blur-md border-t border-white/20 px-4 py-3 z-50 safe-area-bottom">
+        <div className="flex items-center gap-3">
+          <Button onClick={handleTablePress} size="lg" className="flex-1 font-bold">
+            <FiUsers className="mr-2" />
+            Reserve
+          </Button>
+          <Button
             onClick={() => handleTicketPress(event.ticketLink)}
-            className={`flex-1 min-w-[100px] px-4 py-2 bg-white hover:bg-white/90 text-black font-bold rounded-full flex items-center justify-center transition-all duration-200 ${event.ticketLink ? '' : 'bg-gray-800 cursor-not-allowed'}`}
+            variant="outline"
+            size="lg"
             disabled={!event.ticketLink}
+            className="flex-1 font-bold"
           >
-            <FiTag className="mr-2" size={18} />
-            <span className="font-bold text-sm whitespace-nowrap">BUY TICKETS</span>
-          </button>
+            <FiTag className="mr-2" />
+            Tickets
+          </Button>
         </div>
       </div>
-      
+
       {/* Full screen image modal for mobile */}
       {showFullImage && (
         <div className="fixed inset-0 bg-black/95 z-[999] flex items-center justify-center" onClick={() => setShowFullImage(false)}>

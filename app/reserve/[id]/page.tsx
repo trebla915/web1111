@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/components/providers/AuthProvider';
 import ClubLayout from '@/components/reservation/ClubLayout';
 import { getEvent } from '@/lib/services/events';
-import { getTablesByEvent } from '@/lib/services/tables';
+import { getEventTables } from '@/lib/services/tables';
 import { useReservation } from '@/components/providers/ReservationProvider';
 import { Table, Event } from '@/types/reservation';
 import { toast } from 'react-hot-toast';
@@ -56,23 +56,17 @@ export default function TableSelectionPage() {
         return;
       }
       
-      // Fetch tables - this matches the Expo app approach
-      console.log(`Fetching tables for event ID: ${eventId}`);
-      
       // Fetch tables using Firebase service
-      const fetchedTables = await getTablesByEvent(eventId);
-      
+      const fetchedTables = await getEventTables(eventId);
+
       // Check if mock data is being used by checking the IDs
       const isMockData = fetchedTables.length > 0 && fetchedTables[0].id.startsWith('mock');
       setUsingMockData(isMockData);
-      
+
       if (isMockData) {
-        console.log('Using mock tables data');
         toast.success('Using test data for development');
       }
-      
-      console.log(`Received ${fetchedTables.length} tables from API`);
-      
+
       // Format the tables to ensure proper location values
       const formattedTables = fetchedTables.map((table: Table) => ({
         ...table,
@@ -98,23 +92,19 @@ export default function TableSelectionPage() {
   }, [eventId, fetchTables]);
   
   const handleTableSelect = (tableId: string, tablePrice: number) => {
-    console.log('handleTableSelect called with:', { tableId, tablePrice });
-    console.log('Available tables:', tables);
-    
     if (authLoading) {
       // Wait for auth state to be determined
       return;
     }
-    
+
     if (!user) {
       toast.error('You need an account to reserve a table');
       router.push('/auth/login');
       return;
     }
-    
+
     const selectedTable = tables.find(table => table.id === tableId);
-    console.log('Selected table:', selectedTable);
-    
+
     if (!selectedTable) {
       toast.error('Unable to select this table');
       return;
@@ -140,7 +130,6 @@ export default function TableSelectionPage() {
       eventDate: eventDetails?.date || new Date().toISOString()
     };
     
-    console.log('Setting reservation details:', reservationDetails);
     setReservationDetails(reservationDetails);
     
     router.push(`/reserve/${eventId}/details`);
@@ -173,7 +162,7 @@ export default function TableSelectionPage() {
         <div className="w-full max-w-2xl mx-auto px-4">
           <div className="h-64 flex items-center justify-center">
             <div className="flex flex-col items-center">
-              <div className="w-12 h-12 border-t-2 border-b-2 border-cyan-500 rounded-full animate-spin"></div>
+              <div className="w-12 h-12 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
               <p className="mt-4 text-white">Loading...</p>
             </div>
           </div>
@@ -188,7 +177,7 @@ export default function TableSelectionPage() {
         <div className="w-full max-w-7xl mx-auto px-4">
           <div className="h-64 flex items-center justify-center">
             <div className="flex flex-col items-center">
-              <div className="w-12 h-12 border-t-2 border-b-2 border-cyan-500 rounded-full animate-spin"></div>
+              <div className="w-12 h-12 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
               <p className="mt-4 text-white">Loading tables...</p>
             </div>
           </div>
@@ -206,7 +195,7 @@ export default function TableSelectionPage() {
               <p className="text-red-500 mb-4">{error}</p>
               <button
                 onClick={() => router.push('/events')}
-                className="px-4 py-2 bg-cyan-600 text-white rounded-md hover:bg-cyan-700 transition-colors"
+                className="px-4 py-2 bg-white text-black rounded-md hover:bg-white/90 transition-colors font-medium"
               >
                 Back to Events
               </button>
@@ -218,15 +207,15 @@ export default function TableSelectionPage() {
   }
   
   return (
-    <div className="min-h-screen pt-28 pb-12 flex flex-col">
+    <div className="min-h-screen pt-24 sm:pt-28 pb-12 flex flex-col">
       <div className="w-full max-w-7xl mx-auto px-4">
-        <div className="mb-12 text-center">
+        <div className="mb-8 sm:mb-12 text-center">
           {eventDetails && (
             <div className="mb-4">
-              <h1 className="text-4xl md:text-5xl font-bold text-white">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white">
                 {eventDetails.title}
               </h1>
-              <p className="text-cyan-400 mt-3 text-lg">
+              <p className="text-white/70 mt-2 sm:mt-3 text-base sm:text-lg">
                 {formatDate(eventDetails.date)}
               </p>
             </div>
@@ -243,12 +232,12 @@ export default function TableSelectionPage() {
         </div>
         
         {tables.length === 0 ? (
-          <div className="bg-black text-white p-8 rounded-lg border border-cyan-900/30 text-center">
-            <h2 className="text-2xl font-bold mb-4">No Available Tables</h2>
+          <div className="bg-black text-white p-6 sm:p-8 rounded-lg border border-white/20 text-center">
+            <h2 className="text-xl sm:text-2xl font-bold mb-4">No Available Tables</h2>
             <p className="text-gray-400 mb-6">There are no tables available for this event right now.</p>
             <button
               onClick={() => router.push('/events')}
-              className="px-4 py-2 bg-cyan-600 text-white rounded-md hover:bg-cyan-700 transition-colors"
+              className="w-full sm:w-auto px-4 py-3 sm:py-2 bg-white text-black rounded-md hover:bg-white/90 transition-colors font-medium"
             >
               Browse Other Events
             </button>

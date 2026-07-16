@@ -156,11 +156,11 @@ export default function ConfirmationPage() {
     switch (reservationStatus) {
       case 'loading':
         return {
-          icon: <FiClock className="w-16 h-16 text-cyan-500 animate-pulse" />,
+          icon: <FiClock className="w-16 h-16 text-white animate-pulse" />,
           title: 'Processing Your Reservation',
           message: 'Please wait while we confirm your table booking...',
-          bgColor: 'bg-cyan-900/20',
-          borderColor: 'border-cyan-900/30'
+          bgColor: 'bg-white/5',
+          borderColor: 'border-white/20'
         };
       
       case 'confirmed':
@@ -196,18 +196,18 @@ export default function ConfirmationPage() {
   const statusDisplay = getStatusDisplay();
 
   return (
-    <div className="min-h-screen pt-28 pb-12 flex flex-col items-center justify-center">
+    <div className="min-h-screen pt-24 sm:pt-28 pb-12 flex flex-col items-center justify-center">
       <div className="w-full max-w-2xl mx-auto px-4">
-        <div className={`${statusDisplay.bgColor} ${statusDisplay.borderColor} border rounded-lg p-8 text-center`}>
+        <div className={`${statusDisplay.bgColor} ${statusDisplay.borderColor} border rounded-lg p-5 sm:p-8 text-center`}>
           <div className="mb-6 flex justify-center">
             {statusDisplay.icon}
           </div>
-          
-          <h1 className="text-3xl font-bold text-white mb-4">
+
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-4">
             {statusDisplay.title}
           </h1>
-          
-          <p className="text-lg text-zinc-300 mb-4">
+
+          <p className="text-base sm:text-lg text-zinc-300 mb-4">
             {statusDisplay.message}
           </p>
 
@@ -218,8 +218,8 @@ export default function ConfirmationPage() {
           )}
 
           {reservationData && (
-            <div className="mb-8 text-left bg-zinc-800 rounded-lg p-6">
-              <h3 className="text-xl font-semibold text-white mb-4">Reservation Details</h3>
+            <div className="mb-8 text-left bg-zinc-800 rounded-lg p-4 sm:p-6">
+              <h3 className="text-lg sm:text-xl font-semibold text-white mb-4">Reservation Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="text-zinc-400 block">Table Number</span>
@@ -243,15 +243,15 @@ export default function ConfirmationPage() {
 
           {/* QR Code Section */}
           {reservationStatus === 'confirmed' && (
-            <div className="mb-8 bg-zinc-800 rounded-lg p-6">
+            <div className="mb-8 bg-zinc-800 rounded-lg p-4 sm:p-6">
               <div className="flex items-center justify-center gap-2 mb-4">
-                <BiQrScan className="w-5 h-5 text-cyan-400" />
+                <BiQrScan className="w-5 h-5 text-white" />
                 <h3 className="text-lg font-semibold text-white">Check-in QR Code</h3>
               </div>
               
               {generatingQR ? (
                 <div className="flex flex-col items-center py-8">
-                  <div className="w-8 h-8 border-t-2 border-b-2 border-cyan-500 rounded-full animate-spin mb-3"></div>
+                  <div className="w-8 h-8 border-t-2 border-b-2 border-white rounded-full animate-spin mb-3"></div>
                   <p className="text-zinc-400 text-sm">Generating your QR code...</p>
                 </div>
               ) : qrCodeUrl ? (
@@ -268,7 +268,7 @@ export default function ConfirmationPage() {
                   </p>
                   <button
                     onClick={downloadQRCode}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors text-sm"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-white text-black rounded-lg hover:bg-white/90 transition-colors text-sm font-medium"
                   >
                     <FiDownload className="w-4 h-4" />
                     Download QR Code
@@ -300,7 +300,7 @@ export default function ConfirmationPage() {
             )}
             <button
               onClick={() => window.location.href = '/dashboard/reservations'}
-              className="w-full py-3 bg-cyan-600 text-white rounded-lg font-bold transition-all hover:bg-cyan-700"
+              className="w-full py-3 bg-white text-black rounded-lg font-bold transition-all hover:bg-white/90"
             >
               View My Reservations
             </button>

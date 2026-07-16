@@ -71,7 +71,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'strict'
         });
-        console.log('Token refreshed successfully');
       }
     } catch (error) {
       console.error('Error refreshing token:', error);
@@ -81,7 +80,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        console.log('Auth state changed - User:', user.email);
         // Clear guest mode if it exists
         localStorage.removeItem('guestMode');
         
@@ -96,36 +94,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         // Get user data from Firestore
         const userDoc = await getUserById(user.uid);
-        console.log('User document from Firestore:', userDoc);
-        
+
         // Check if user should be admin based on email
         let userRole = userDoc?.role || 'user';
-        console.log('Initial user role:', userRole);
-        
+
         if (user.email) {
-          const isAdmin = user.email.includes('admin') || 
+          const isAdmin = user.email.includes('admin') ||
                         user.email === 'albert@1111eptx.com' ||
                         user.email === 'admin@1111eptx.com';
-          
-          console.log('Checking admin status:', { email: user.email, isAdmin });
-          
+
           if (isAdmin) {
             userRole = 'admin';
             await setUserRole(user.uid, 'admin');
-            console.log('Set user role to admin');
           } else if (user.email.includes('promoter')) {
             userRole = 'promoter';
             await setUserRole(user.uid, 'promoter');
-            console.log('Set user role to promoter');
           }
         }
-        
+
         // Set user with role
         const userWithRole = {
           ...user,
           role: userRole
         };
-        console.log('Setting user state with role:', userWithRole);
         setUser(userWithRole);
 
         // Set userInfo cookie for middleware
@@ -140,22 +131,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'strict'
         });
-        console.log('Set userInfo cookie:', userInfo);
-        
+
         // Only redirect if we're on the login page
         const currentPath = window.location.pathname;
-        console.log('Current path:', currentPath);
         if (currentPath === '/auth/login') {
           if (userRole === 'admin' || userRole === 'promoter') {
-            console.log('Redirecting to admin dashboard');
             router.replace("/admin/dashboard");
           } else {
-            console.log('Redirecting to member dashboard');
             router.replace("/dashboard");
           }
         }
       } else {
-        console.log('User logged out');
         Cookies.remove('authToken');
         Cookies.remove('userInfo');
         setUser(null);
@@ -214,8 +200,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict'
       });
-      console.log('Set userInfo cookie:', userInfo);
-      
+
       toast.success("Logged in successfully");
       
       // Route based on user role
