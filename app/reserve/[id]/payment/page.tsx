@@ -15,11 +15,22 @@ import { Button } from "@/components/ui/button";
 import { RouteLoading } from "@/components/ui/page-state";
 import { ReservationStepHeader } from "@/components/reservation/ReservationSteps";
 
-function PaymentForm({ clientSecret, onSuccess, user, reservationDetails }: { 
-  clientSecret: string; 
+/**
+ * The one payment submission control on this page.
+ *
+ * There used to be two. Above the Stripe fields sat a `Pay $X` button whose
+ * only job was to create the PaymentIntent and reveal the form below it — it
+ * charged nothing, and a `useEffect` on the page was already doing that work on
+ * mount, so it was redundant as well as mislabelled. Two controls both reading
+ * "Pay" on a checkout is the kind of ambiguity that gets a card entered twice.
+ */
+function PaymentForm({ clientSecret, onSuccess, user, reservationDetails, totalLabel }: {
+  clientSecret: string;
   onSuccess: () => void;
   user: AuthUser | null;
   reservationDetails: any;
+  /** Pre-formatted total, so the submit names the exact amount being charged. */
+  totalLabel: string;
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -78,9 +89,13 @@ function PaymentForm({ clientSecret, onSuccess, user, reservationDetails }: {
     }
   };
 
+  const shortfall = bottleRequirement.required - bottleRequirement.current;
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="p-3 sm:p-6 border border-line rounded-lg bg-surface/50">
+    /* A real <form> with a real type="submit": Enter from inside the Stripe
+       fields submits the payment, which a click-only handler would not. */
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="rounded-lg border border-line bg-surface/50 p-4 sm:p-6">
         <PaymentElement
           options={{
             layout: 'tabs',
@@ -96,8 +111,7 @@ function PaymentForm({ clientSecret, onSuccess, user, reservationDetails }: {
           }}
         />
       </div>
-      {/* A ⚠️ emoji was standing in for an icon in a file that imports an icon
-          set, and the submit button re-declared its own disabled colours. */}
+
       {!bottleRequirement.met && (
         <div role="alert" className="flex items-start gap-2 rounded-lg border border-warning-line/40 bg-warning-950/40 p-3 text-sm text-warning-200">
           <FiAlertTriangle aria-hidden="true" className="mt-0.5 shrink-0" size={15} />
@@ -108,25 +122,43 @@ function PaymentForm({ clientSecret, onSuccess, user, reservationDetails }: {
           </span>
         </div>
       )}
+
+      {/* Stripe's own validation and decline messages. Kept directly above the
+          submit, where the eye already is when the press fails. */}
       {error && (
-        <p role="alert" className="text-sm text-danger-bright">{error}</p>
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="flex items-start gap-2 rounded-lg border border-danger-line/40 bg-danger-950/40 p-3 text-sm text-danger-200"
+          data-testid="payment-error"
+        >
+          <FiAlertTriangle aria-hidden="true" className="mt-0.5 shrink-0" size={15} />
+          <span>{error}</span>
+        </div>
       )}
-      <Button
-        type="submit"
-        variant="primary"
-        size="lg"
-        full
-        loading={isProcessing}
-        disabled={!stripe || isProcessing || !bottleRequirement.met}
-      >
-        {isProcessing
-          ? 'Processing'
-          : bottleRequirement.met
-            ? 'Pay now'
-            : `Add ${bottleRequirement.required - bottleRequirement.current} more bottle${
-                bottleRequirement.required - bottleRequirement.current > 1 ? 's' : ''
-              }`}
-      </Button>
+
+      <div className="space-y-2">
+        <Button
+          type="submit"
+          variant="primary"
+          size="lg"
+          full
+          loading={isProcessing}
+          disabled={!stripe || isProcessing || !bottleRequirement.met}
+          data-testid="pay-submit"
+        >
+          {isProcessing
+            ? 'Processing…'
+            : bottleRequirement.met
+              ? `Pay ${totalLabel}`
+              : `Add ${shortfall} more bottle${shortfall > 1 ? 's' : ''} to pay`}
+        </Button>
+
+        <p className="flex items-center justify-center gap-2 text-xs text-fg-subtle">
+          <FiLock aria-hidden="true" size={12} />
+          Card details are handled by Stripe. We never see or store them.
+        </p>
+      </div>
     </form>
   );
 }
@@ -148,6 +180,8 @@ export default function PaymentPage() {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  /** Bumped by "Try again" to re-create the PaymentIntent after a failed init. */
+  const [initRetryKey, setInitRetryKey] = useState<number>(0);
 
   useEffect(() => {
     if (authLoading) return;
@@ -172,7 +206,7 @@ export default function PaymentPage() {
       }
 
       try {
-        setLoading(true);
+        setError(null);
         const total = costBreakdown.total;
 
         // Prepare comprehensive metadata for the payment
@@ -238,13 +272,11 @@ export default function PaymentPage() {
         const errorMessage = err instanceof Error ? err.message : 'Failed to initialize payment';
         setError(errorMessage);
         toast.error(errorMessage);
-      } finally {
-        setLoading(false);
       }
     };
 
     initializePayment();
-  }, [reservationDetails, user, params.id]);
+  }, [reservationDetails, user, params.id, initRetryKey]);
 
   const calculateTotal = () => {
     if (!reservationDetails) return 0;
@@ -337,72 +369,6 @@ export default function PaymentPage() {
     } catch (err) {
       console.error('Error handling payment success:', err);
       toast.error('Payment succeeded but reservation processing failed. Please contact support.');
-    }
-  };
-
-  const handlePayment = async () => {
-    if (!reservationDetails) {
-      toast.error('Reservation details not found');
-      return;
-    }
-
-    setIsProcessing(true);
-    try {
-      // Initialize payment if not already done
-      if (!clientSecret) {
-        const total = costBreakdown.total;
-        
-        const metadata = {
-          name: reservationDetails.userName || user?.displayName || 'Guest',
-          email: reservationDetails.userEmail || user?.email || '',
-          phone: reservationDetails.userPhone || '',
-          eventName: reservationDetails.eventName,
-          eventId: params.id as string,
-          eventDate: reservationDetails.eventDate || '',
-          tableNumber: reservationDetails.tableNumber.toString(),
-          tableId: reservationDetails.tableId,
-          tablePrice: reservationDetails.tablePrice?.toString() || '0',
-          guests: reservationDetails.guestCount.toString(),
-          reservationTime: reservationDetails.reservationTime || new Date().toISOString(),
-          bottleCount: (reservationDetails.bottles?.length || 0).toString(),
-          bottlesOrdered: reservationDetails.bottles?.map(bottle => `${bottle.name} ($${bottle.price})`).join(', ') || 'None',
-          bottlesCost: (reservationDetails.bottles || []).reduce((total, bottle) => total + (bottle.price || 0), 0).toString(),
-          mixerCount: (reservationDetails.mixers?.length || 0).toString(),
-          mixersOrdered: reservationDetails.mixers?.map(mixer => `${mixer.name} ($${mixer.price})`).join(', ') || 'None',
-          mixersCost: (reservationDetails.mixers || []).reduce((total, mixer) => total + (mixer.price || 0), 0).toString(),
-          subtotal: (reservationDetails.tablePrice + 
-                    (reservationDetails.bottles || []).reduce((total, bottle) => total + (bottle.price || 0), 0) +
-                    (reservationDetails.mixers || []).reduce((total, mixer) => total + (mixer.price || 0), 0)).toString(),
-          totalAmount: total.toString(),
-          userId: user?.uid || '',
-          platform: 'web',
-          source: '1111web'
-        };
-
-        const { clientSecret: newClientSecret, paymentId } = await PaymentService.createPaymentIntent(
-          Math.round(total * 100), // Convert to cents
-          metadata,
-          {
-            userId: user?.uid || '',
-            eventId: params.id as string,
-            tableId: reservationDetails.tableId,
-          }
-        );
-
-        setClientSecret(newClientSecret);
-      }
-
-      // Show payment form
-      if (clientSecret) {
-        // The payment form will be rendered below
-      } else {
-        toast.error('Failed to initialize payment');
-      }
-    } catch (error) {
-      console.error('Error processing payment:', error);
-      toast.error('Failed to process payment');
-    } finally {
-      setIsProcessing(false);
     }
   };
 
@@ -629,34 +595,45 @@ export default function PaymentPage() {
             </div>
           )}
 
-          {/* Regular payment button */}
-          <Button
-            onClick={handlePayment}
-            disabled={isProcessing}
-            loading={isProcessing}
-            variant="primary"
-            size="lg"
-            full
-          >
-            {isProcessing ? 'Processing' : `Pay ${formatCurrency(costBreakdown.total || 0)}`}
-          </Button>
-
-          <p className="flex items-center justify-center gap-2 text-xs text-fg-subtle">
-            <FiLock aria-hidden="true" size={12} />
-            Card details are handled by Stripe. We never see or store them.
-          </p>
-
-          {/* Payment Form */}
-          {clientSecret && (
-            <div>
-              <StripeProvider clientSecret={clientSecret}>
-                <PaymentForm
-                  clientSecret={clientSecret}
-                  onSuccess={handlePaymentSuccess}
-                  user={user}
-                  reservationDetails={reservationDetails}
-                />
-              </StripeProvider>
+          {/* Payment.
+              The PaymentIntent is created by the effect above on mount, so the
+              card fields are simply here. The button that used to sit above
+              them saying "Pay $X" only triggered that same initialisation —
+              it never charged anything — and is gone. One submit, below the
+              fields, naming the amount. */}
+          {error ? (
+            <div
+              role="alert"
+              className="flex flex-col items-center gap-3 rounded-lg border border-danger-line/40 bg-danger-950/40 px-4 py-10 text-center"
+              data-testid="payment-init-error"
+            >
+              <FiAlertTriangle aria-hidden="true" size={22} className="text-danger-bright" />
+              <p className="text-sm text-danger-200">
+                We couldn&apos;t start a secure payment. No card has been charged.
+              </p>
+              <Button variant="outline" size="md" onClick={() => setInitRetryKey((n) => n + 1)}>
+                Try again
+              </Button>
+            </div>
+          ) : clientSecret ? (
+            <StripeProvider clientSecret={clientSecret}>
+              <PaymentForm
+                clientSecret={clientSecret}
+                onSuccess={handlePaymentSuccess}
+                user={user}
+                reservationDetails={reservationDetails}
+                totalLabel={formatCurrency(costBreakdown.total || 0)}
+              />
+            </StripeProvider>
+          ) : (
+            <div
+              role="status"
+              aria-live="polite"
+              className="flex items-center justify-center gap-3 rounded-lg border border-line bg-surface/50 px-4 py-12 text-sm text-fg-muted"
+              data-testid="payment-initializing"
+            >
+              <Spinner size="sm" label={null} />
+              Preparing secure payment…
             </div>
           )}
         </div>
