@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/components/providers/AuthProvider';
+import { useAgeConfirmationGuard } from '@/lib/compliance/useAgeConfirmationGuard';
 import ClubLayout from '@/components/reservation/ClubLayout';
 import { getEvent } from '@/lib/services/events';
 import { getEventTables } from '@/lib/services/tables';
@@ -34,6 +35,10 @@ export default function TableSelectionPage() {
   const [usingMockData, setUsingMockData] = useState(false);
   
   const eventId = params.id as string;
+
+  // Same single 21+ gate as the rest of the flow: this page is only reachable
+  // through the Reserve popup, so an unconfirmed arrival goes back to it.
+  const ageGate = useAgeConfirmationGuard(eventId, user?.uid, !authLoading);
   
   // Define fetchTables function using useCallback like in the Expo app
   const fetchTables = useCallback(async () => {
@@ -165,6 +170,8 @@ export default function TableSelectionPage() {
   };
 
   if (authLoading) return <RouteLoading message="Checking your account…" />;
+
+  if (ageGate === 'redirecting') return <RouteLoading message="Taking you back to the event…" />;
 
   if (loading) return <RouteLoading message="Loading the floor plan…" />;
 

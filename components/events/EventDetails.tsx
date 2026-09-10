@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '@/lib/hooks/useAuth';
 import AgeVerificationModal from '../ui/AgeVerificationModal';
+import { recordAgeConfirmation } from '@/lib/compliance/age-confirmation';
 import { Button } from '@/components/ui/button';
 
 // Proper timezone handling for Mountain Time
@@ -175,10 +176,46 @@ export default function EventDetails({ event }: EventDetailsProps) {
       return;
     }
 
+    // The confirmation is stored per account, so there has to be an account to
+    // store it against. Asking first and discovering the sign-in requirement
+    // afterwards would throw the answer away.
+    if (!user?.uid) {
+      toast.error('Sign in to reserve a table.');
+      router.push(`/auth/login?from=${encodeURIComponent(`/events/${event.id}`)}`);
+      return;
+    }
+
     setShowAgeVerification(true);
   };
 
+  /**
+   * The single 21+ gate for the whole reservation flow.
+   *
+   * This used to navigate straight to `/reserve/[id]` without recording
+   * anything, so the confirmation the customer had just given was discarded on
+   * the way out of the modal. The reservation flow then had no idea it had
+   * happened: the bottle step re-asked with different wording, and its fetch —
+   * gated on the same unrecorded flag — never ran, which is why "Add bottles"
+   * came up empty.
+   */
   const handleAgeVerified = () => {
+    if (!user?.uid) {
+      toast.error('Sign in to reserve a table.');
+      return;
+    }
+
+    // Do not proceed on a confirmation we could not save. A private window or
+    // blocked site data would otherwise send the customer into a flow that
+    // immediately bounces them back here, with nothing explaining why.
+    if (!recordAgeConfirmation(user.uid)) {
+      toast.error(
+        "We couldn't save your confirmation — your browser is blocking site data. " +
+          'Turn it on for this site, or try a normal (non-private) window.',
+        { duration: 8000 }
+      );
+      return;
+    }
+
     setShowAgeVerification(false);
     router.push(`/reserve/${event.id}`);
   };

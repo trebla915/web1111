@@ -51,13 +51,25 @@ export function hasConfirmedAge(uid: string | null | undefined): boolean {
   }
 }
 
-/** Records the attestation. A storage failure is non-fatal: the customer is simply asked again. */
-export function recordAgeConfirmation(uid: string | null | undefined): void {
-  if (!uid) return;
+/**
+ * Records the attestation.
+ *
+ * Returns whether it was actually persisted. The caller must check: a silent
+ * failure here used to mean the customer confirmed, was sent onward, and then
+ * found the next step still asking — or worse, quietly gated. When this
+ * returns false the caller has to say so rather than proceed on a confirmation
+ * that was never saved.
+ */
+export function recordAgeConfirmation(uid: string | null | undefined): boolean {
+  if (!uid) return false;
   try {
     window.localStorage.setItem(ageConfirmationKey(uid), "true");
+    // Read back: some browsers accept the write and discard it (Safari private
+    // mode has historically done exactly this), which a bare setItem cannot
+    // detect.
+    return window.localStorage.getItem(ageConfirmationKey(uid)) === "true";
   } catch {
-    /* ignore — hasConfirmedAge will return false and re-prompt */
+    return false;
   }
 }
 

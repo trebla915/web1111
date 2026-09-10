@@ -3,16 +3,16 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { AgeConfirmationGate } from '@/components/reserve/AgeConfirmationGate';
-import { hasConfirmedAge } from '@/lib/compliance/age-confirmation';
+import { useAgeConfirmationGuard } from '@/lib/compliance/useAgeConfirmationGuard';
 import { useReservation } from '@/components/providers/ReservationProvider';
 import { PaymentService } from '@/lib/services/payment';
 import { BottleService } from '@/lib/services/bottles';
 import { toast } from 'react-hot-toast';
-import { FiPlus, FiMinus, FiShoppingCart, FiX, FiCheck, FiAlertCircle } from 'react-icons/fi';
+import { FiPlus, FiMinus, FiShoppingCart, FiX, FiCheck, FiAlertCircle, FiAlertTriangle } from 'react-icons/fi';
 import { Bottle } from '@/types/reservation';
 import { Button } from "@/components/ui/button";
 import { RouteLoading } from "@/components/ui/page-state";
+import { Spinner } from "@/components/ui/spinner";
 import { ReservationStepHeader } from "@/components/reservation/ReservationSteps";
 
 /** Same Intl formatting the payment step uses, so a figure never changes shape
@@ -31,53 +31,87 @@ export default function ReservationDetailsPage() {
   const [showBottleSelection, setShowBottleSelection] = useState(false);
   const [availableBottles, setAvailableBottles] = useState<Bottle[]>([]);
   const [error, setError] = useState<string | null>(null);
-  
+
+  /**
+   * Bottle loading is its own state.
+   *
+   * It used to share the page-wide `loading`, so opening the bottle menu blanked
+   * the entire reservation — party size, cost breakdown and all — and replaced
+   * it with the route-level spinner.
+   */
+  const [bottlesLoading, setBottlesLoading] = useState(false);
+  const [bottlesError, setBottlesError] = useState<string | null>(null);
+  /** Bumped to force a retry of the same event. */
+  const [bottlesReloadKey, setBottlesReloadKey] = useState(0);
+
   const eventId = params.id as string;
-  
+
+  // Single 21+ gate: anyone who reaches this URL without having confirmed
+  // through the Reserve popup is sent back to the event page to do so.
+  const ageGate = useAgeConfirmationGuard(eventId, user?.uid, !authLoading);
+
   useEffect(() => {
     if (authLoading) {
       return; // Wait for auth state to be determined
     }
-    
+
     if (!user) {
       toast.error('You need an account to reserve a table');
       router.push('/auth/login');
       return;
     }
-    
+
     if (!reservationDetails) {
       router.push(`/reserve/${eventId}`);
       return;
     }
-    
+
     setGuestCount(reservationDetails.guestCount);
     setLoading(false);
   }, [eventId, reservationDetails, router, user, authLoading]);
-  
+
+  /**
+   * Bottles are fetched only once the menu is actually opened, by a signed-in
+   * customer who has cleared the age gate.
+   *
+   * The previous version keyed off `showBottleSelection` but ran its guard
+   * against a confirmation flag the Reserve popup never wrote, so it never
+   * fetched at all; and because the inline gate lived in a child, confirming
+   * there could not re-run this effect. Hence a menu that opened empty and only
+   * sometimes filled in on a second try.
+   */
   useEffect(() => {
+    if (!showBottleSelection) return;
+    if (!eventId || !user || ageGate !== 'allowed') return;
+
+    // Guards against a stale response landing in a different event's menu, or
+    // in a menu the customer has already closed.
+    const controller = new AbortController();
+    let active = true;
+
     const fetchBottles = async () => {
+      setBottlesLoading(true);
+      setBottlesError(null);
       try {
-        setLoading(true);
-        const bottles = await BottleService.getByEvent(eventId);
+        const bottles = await BottleService.getByEvent(eventId, controller.signal);
+        if (!active) return;
         setAvailableBottles(bottles);
-        setError(null);
       } catch (err) {
+        if (!active || (err as Error)?.name === 'AbortError') return;
         console.error('Failed to fetch bottles:', err);
-        setError('Unable to load bottles. Please try again later.');
-        toast.error('Failed to load bottles');
+        setBottlesError("We couldn't load the bottle menu.");
       } finally {
-        setLoading(false);
+        if (active) setBottlesLoading(false);
       }
     };
-    
-    // Deliberately gated: bottles are not fetched until the customer is signed
-    // in AND has confirmed 21+. Fetching first and hiding the result would put
-    // the whole catalogue in the page for anyone to read, which would make the
-    // gate cosmetic.
-    if (eventId && user && hasConfirmedAge(user.uid)) {
-      fetchBottles();
-    }
-  }, [eventId, user, showBottleSelection]);
+
+    fetchBottles();
+
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, [eventId, user, showBottleSelection, ageGate, bottlesReloadKey]);
   
   const handleUpdateGuestCount = (increment: boolean, e?: React.MouseEvent) => {
     if (e) {
@@ -338,9 +372,12 @@ export default function ReservationDetailsPage() {
               </Button>
             </div>
             
+            {/* The second, inline age prompt that used to wrap this panel is
+                gone. The 21+ confirmation now happens once, in the Reserve
+                popup on the event page, and `useAgeConfirmationGuard` sends
+                anyone who skipped it back there. */}
             {showBottleSelection && (
-              <AgeConfirmationGate onDecline={() => setShowBottleSelection(false)}>
-              <div className="mb-4 rounded-lg bg-surface-raised p-4">
+              <div className="mb-4 rounded-lg bg-surface-raised p-4" data-testid="bottle-menu">
                 <div className="mb-4 flex items-start justify-between gap-3">
                   <div>
                     <h3 className="font-heading text-base tracking-wide text-fg">Bottle menu</h3>
@@ -364,27 +401,62 @@ export default function ReservationDetailsPage() {
                   </Button>
                 </div>
 
-                {/* `unstyled` because these are left-aligned two-line tiles, not
-                    the primitive's centred single-line button geometry — the
-                    variant's fixed height was squashing the price onto the name. */}
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  {availableBottles.map((bottle) => (
+                {bottlesLoading ? (
+                  <div
+                    role="status"
+                    aria-live="polite"
+                    className="flex items-center justify-center gap-3 py-10 text-sm text-fg-muted"
+                    data-testid="bottle-menu-loading"
+                  >
+                    <Spinner size="sm" label={null} />
+                    Loading the bottle menu…
+                  </div>
+                ) : bottlesError ? (
+                  <div
+                    role="alert"
+                    className="flex flex-col items-center gap-3 rounded-lg border border-danger-line/40 bg-danger-950/40 px-4 py-8 text-center"
+                    data-testid="bottle-menu-error"
+                  >
+                    <FiAlertTriangle aria-hidden="true" size={22} className="text-danger-bright" />
+                    <p className="text-sm text-danger-200">{bottlesError}</p>
                     <Button
-                      unstyled
-                      key={bottle.id}
-                      onClick={() => handleBottleSelect(bottle)}
-                      aria-label={`Add ${bottle.name}, ${money(bottle.price)}`}
-                      className="flex w-full items-baseline justify-between gap-3 rounded-lg border border-line bg-surface-hover px-4 py-3 text-left hover:border-line-strong hover:bg-surface-lifted"
+                      variant="outline"
+                      size="md"
+                      onClick={() => setBottlesReloadKey((n) => n + 1)}
                     >
-                      <span className="min-w-0 truncate font-medium text-fg">{bottle.name}</span>
-                      <span className="tabular shrink-0 text-sm text-accent-bright">
-                        {money(bottle.price)}
-                      </span>
+                      Retry
                     </Button>
-                  ))}
-                </div>
+                  </div>
+                ) : availableBottles.length === 0 ? (
+                  <p
+                    className="rounded-lg border border-dashed border-line py-8 text-center text-sm text-fg-muted"
+                    data-testid="bottle-menu-empty"
+                  >
+                    No bottles are listed for this event yet. Ask us at the door, or continue
+                    without bottle service.
+                  </p>
+                ) : (
+                  /* `unstyled` because these are left-aligned two-line tiles, not
+                     the primitive's centred single-line button geometry — the
+                     variant's fixed height was squashing the price onto the name. */
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    {availableBottles.map((bottle) => (
+                      <Button
+                        unstyled
+                        key={bottle.id}
+                        onClick={() => handleBottleSelect(bottle)}
+                        aria-label={`Add ${bottle.name}, ${money(bottle.price)}`}
+                        className="flex w-full items-baseline justify-between gap-3 rounded-lg border border-line bg-surface-hover px-4 py-3 text-left hover:border-line-strong hover:bg-surface-lifted"
+                      >
+                        <span className="min-w-0 truncate font-medium text-fg">{bottle.name}</span>
+                        <span className="tabular shrink-0 text-sm text-accent-bright">
+                          {money(bottle.price)}
+                        </span>
+                      </Button>
+                    ))}
+                  </div>
+                )}
               </div>
-              </AgeConfirmationGate>
             )}
             
             {reservationDetails.bottles && reservationDetails.bottles.length > 0 ? (
