@@ -1,11 +1,14 @@
+import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { sendPushNotification, sendPushNotificationToUsers } from '@/lib/services/notifications';
-import { getSession } from '@/lib/auth-utils';
+import { ADMIN_ROLES, authErrorResponse, requireRole } from '@/lib/auth/server';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     // Authenticate the request
-    const session = await getSession();
+    // Sending to customers is an administrative action.
+    await requireRole(request, ADMIN_ROLES, { checkRevoked: true });
+    const session = { user: { uid: 'verified' } };
     if (!session || !session.user) {
       return NextResponse.json(
         { success: false, error: 'Authentication required' },
@@ -62,6 +65,8 @@ export async function POST(request: Request) {
       notificationId: result.id
     });
   } catch (error: any) {
+    const __authed = authErrorResponse(error);
+    if (__authed) return __authed;
     console.error('Error processing push notification request:', error);
     return NextResponse.json(
       { 

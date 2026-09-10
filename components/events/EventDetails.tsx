@@ -198,13 +198,13 @@ export default function EventDetails({ event }: EventDetailsProps) {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-canvas text-fg">
       <div className="container mx-auto py-6 md:py-8 px-4 pb-24 md:pb-8">
-        <Link href="/events" className="inline-flex items-center text-white hover:text-white/80 mb-6 md:mb-8 py-2 touch-target">
+        <Link href="/events" className="inline-flex items-center text-fg hover:text-fg/80 mb-6 md:mb-8 py-2 touch-target">
           <FiArrowLeft className="mr-2" /> BACK TO EVENTS
         </Link>
         
-        <div className="border border-white/20 overflow-hidden rounded-sm">
+        <div className="border border-fg/20 overflow-hidden rounded-sm">
           {/* Event Header */}
           <div className="flex flex-col md:flex-row">
             {/* Event image */}
@@ -219,28 +219,28 @@ export default function EventDetails({ event }: EventDetailsProps) {
                   priority
                   unoptimized={event.flyerUrl?.includes('firebasestorage.googleapis.com') || event.flyerUrl?.includes('storage.googleapis.com')}
                 />
-                <div className="absolute inset-0 bg-black/30 md:bg-transparent md:hover:bg-black/30 flex items-center justify-center opacity-0 md:hover:opacity-100 transition-opacity touch-target">
-                  <FiShare2 className="text-white text-2xl" />
+                <div className="absolute inset-0 bg-canvas/30 md:bg-transparent md:hover:bg-canvas/30 flex items-center justify-center opacity-0 md:hover:opacity-100 transition-opacity touch-target">
+                  <FiShare2 className="text-fg text-2xl" />
                 </div>
               </div>
             </div>
 
             {/* Event title and info */}
-            <div className="w-full md:w-3/5 p-5 md:p-8 flex flex-col justify-center border-t md:border-t-0 md:border-l border-white/20">
+            <div className="w-full md:w-3/5 p-5 md:p-8 flex flex-col justify-center border-t md:border-t-0 md:border-l border-fg/20">
               <div className="relative z-10">
                 {/* Date and Title */}
                 <div className="mb-4">
-                  <div className="text-responsive-sm text-white/60 mb-0">
+                  <div className="text-sm sm:text-base text-fg/60 mb-0">
                     {formatDate(event.date || '')}
                   </div>
-                  <h1 className="text-responsive-2xl font-bold text-white digital-glow-soft">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-fg digital-glow-soft">
                     {event.title}
                   </h1>
                 </div>
 
                 {/* Location - only show if exists */}
                 {event.location && (
-                  <div className="flex items-center gap-2 text-white/60 text-responsive-sm mb-4">
+                  <div className="flex items-center gap-2 text-fg/60 text-sm sm:text-base mb-4">
                     <FiMapPin className="w-4 h-4 md:w-5 md:h-5" />
                     <span>{event.location}</span>
                   </div>
@@ -248,7 +248,7 @@ export default function EventDetails({ event }: EventDetailsProps) {
 
                 {/* Description */}
                 <div className="prose prose-invert max-w-none mb-6">
-                  <p className="text-white/80 text-responsive-sm leading-relaxed">
+                  <p className="text-fg/80 text-sm sm:text-base leading-relaxed">
                     {event.description}
                   </p>
                 </div>
@@ -277,30 +277,30 @@ export default function EventDetails({ event }: EventDetailsProps) {
           </div>
           
           {/* Event Details */}
-          <div className="p-5 md:p-8 border-t border-white/20">
+          <div className="p-5 md:p-8 border-t border-fg/20">
             <div className="flex flex-col md:flex-row gap-6 md:gap-8">
               <div className="w-full md:w-2/3">
-                <h2 className="text-responsive-xl font-bold mb-4 md:mb-6 tracking-wider" style={{ fontFamily: 'Impact, sans-serif' }}>EVENT DETAILS</h2>
+                <h2 className="font-heading text-xl sm:text-2xl mb-4 md:mb-6 tracking-wider">EVENT DETAILS</h2>
                 {event.description ? (
-                  <p className="text-white mb-6 md:mb-8 whitespace-pre-line leading-relaxed text-responsive-sm">
+                  <p className="text-fg mb-6 md:mb-8 whitespace-pre-line leading-relaxed text-sm sm:text-base">
                     {event.description}
                   </p>
                 ) : (
-                  <p className="text-white/60 italic mb-6 md:mb-8 text-responsive-sm">No description available for this event.</p>
+                  <p className="text-fg/60 italic mb-6 md:mb-8 text-sm sm:text-base">No description available for this event.</p>
                 )}
               </div>
               
-              <div className="w-full md:w-1/3 bg-white/5 p-4 md:p-6 border border-white/20">
-                <h3 className="text-responsive-lg font-bold mb-4 md:mb-6" style={{ fontFamily: 'Impact, sans-serif' }}>EVENT INFORMATION</h3>
+              <div className="w-full md:w-1/3 bg-fg/5 p-4 md:p-6 border border-fg/20">
+                <h3 className="font-heading text-lg sm:text-xl mb-4 md:mb-6">EVENT INFORMATION</h3>
                 
                 <div className="mb-4 md:mb-6">
-                  <h4 className="font-semibold mb-1 md:mb-2 text-white uppercase text-responsive-sm">When</h4>
-                  <p className="text-white text-responsive-base">
+                  <h4 className="font-semibold mb-1 md:mb-2 text-fg uppercase text-sm sm:text-base">When</h4>
+                  <p className="text-fg text-base sm:text-lg">
                     {event.date ? formatToMMDDYYYY(event.date) : 'Date TBA'}
                   </p>
                   
                   {event.date && (
-                    <p className="text-white/60 text-responsive-xs mt-1">
+                    <p className="text-fg/60 text-xs sm:text-sm mt-1">
                       {getDayOfWeek(event.date).toUpperCase()}
                     </p>
                   )}
@@ -308,13 +308,13 @@ export default function EventDetails({ event }: EventDetailsProps) {
                 
                 {event.location && (
                   <div className="mb-4 md:mb-6">
-                    <h4 className="font-semibold mb-1 md:mb-2 text-white uppercase text-responsive-sm">Where</h4>
-                    <p className="text-white text-responsive-base">{event.location}</p>
+                    <h4 className="font-semibold mb-1 md:mb-2 text-fg uppercase text-sm sm:text-base">Where</h4>
+                    <p className="text-fg text-base sm:text-lg">{event.location}</p>
                   </div>
                 )}
                 
-                <div className="pt-3 md:pt-4 border-t border-white/20">
-                  <p className="text-white/60 text-responsive-xs uppercase tracking-wide mb-3">
+                <div className="pt-3 md:pt-4 border-t border-fg/20">
+                  <p className="text-fg/60 text-xs sm:text-sm uppercase tracking-wide mb-3">
                     Share this event with your friends!
                   </p>
                   <div className="flex gap-3 mt-2">
@@ -322,30 +322,30 @@ export default function EventDetails({ event }: EventDetailsProps) {
                       href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://www.1111eptx.com/events/${event.id}`)}`} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="w-10 h-10 flex items-center justify-center bg-blue-600 hover:bg-blue-700 rounded-full transition-colors"
+                      className="w-10 h-10 flex items-center justify-center bg-social-facebook hover:bg-social-facebook-hover rounded-full transition-colors"
                       aria-label="Share on Facebook"
                     >
-                      <FaFacebook className="text-white text-xl" />
+                      <FaFacebook className="text-fg text-xl" />
                     </a>
                     <a 
                       href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out ${event.title} at 11:11 EPTX!`)}&url=${encodeURIComponent(`https://www.1111eptx.com/events/${event.id}`)}`} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="w-10 h-10 flex items-center justify-center bg-sky-500 hover:bg-sky-600 rounded-full transition-colors"
+                      className="w-10 h-10 flex items-center justify-center bg-social-twitter hover:bg-social-twitter-hover rounded-full transition-colors"
                       aria-label="Share on Twitter"
                     >
-                      <FaTwitter className="text-white text-xl" />
+                      <FaTwitter className="text-fg text-xl" />
                     </a>
                     <a 
                       href={`https://wa.me/?text=${encodeURIComponent(`Check out ${event.title} at 11:11 EPTX! https://www.1111eptx.com/events/${event.id}`)}`} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="w-10 h-10 flex items-center justify-center bg-green-600 hover:bg-green-700 rounded-full transition-colors sm:hidden"
+                      className="w-10 h-10 flex items-center justify-center bg-social-whatsapp hover:bg-social-whatsapp-hover rounded-full transition-colors sm:hidden"
                       aria-label="Share on WhatsApp"
                     >
-                      <FaWhatsapp className="text-white text-xl" />
+                      <FaWhatsapp className="text-fg text-xl" />
                     </a>
-                    <button 
+                    <Button 
                       onClick={() => {
                         if (navigator.share) {
                           navigator.share({
@@ -359,11 +359,11 @@ export default function EventDetails({ event }: EventDetailsProps) {
                           toast.success('Link copied to clipboard!');
                         }
                       }}
-                      className="w-10 h-10 flex items-center justify-center bg-white/20 hover:bg-white/30 rounded-full transition-colors"
+                      variant="ghost" size="md" className="w-10 h-10 flex items-center justify-center bg-fg/20 hover:bg-fg/30 rounded-full"
                       aria-label="Share"
                     >
-                      <FiShare2 className="text-white text-xl" />
-                    </button>
+                      <FiShare2 className="text-fg text-xl" />
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -375,7 +375,7 @@ export default function EventDetails({ event }: EventDetailsProps) {
       {/* Mobile-only sticky action bar — two equal-priority CTAs, properly sized touch
           targets. (Title/date and share are already visible in the page above; keeping
           this bar to just the two actions avoids cramming it full on a narrow screen.) */}
-      <div className="md:hidden fixed bottom-0 inset-x-0 bg-black/95 backdrop-blur-md border-t border-white/20 px-4 py-3 z-50 safe-area-bottom">
+      <div className="md:hidden fixed bottom-0 inset-x-0 bg-canvas/95 backdrop-blur-md border-t border-fg/20 px-4 py-3 z-50 safe-area-bottom">
         <div className="flex items-center gap-3">
           <Button onClick={handleTablePress} size="lg" className="flex-1 font-bold">
             <FiUsers className="mr-2" />
@@ -396,9 +396,9 @@ export default function EventDetails({ event }: EventDetailsProps) {
 
       {/* Full screen image modal for mobile */}
       {showFullImage && (
-        <div className="fixed inset-0 bg-black/95 z-[999] flex items-center justify-center" onClick={() => setShowFullImage(false)}>
-          <button 
-            className="absolute top-4 right-4 p-3 bg-black/50 rounded-full text-white"
+        <div className="fixed inset-0 bg-canvas/95 z-[999] flex items-center justify-center" onClick={() => setShowFullImage(false)}>
+          <Button 
+            variant="ghost" size="md" className="absolute top-4 right-4 p-3 bg-canvas/50 rounded-full"
             onClick={(e) => {
               e.stopPropagation();
               setShowFullImage(false);
@@ -407,7 +407,7 @@ export default function EventDetails({ event }: EventDetailsProps) {
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
-          </button>
+          </Button>
           <div className="w-full h-full p-8 relative flex items-center justify-center">
             <Image
               src={event.flyerUrl || '/placeholder-event.png'}

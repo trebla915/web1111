@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminFirestore } from '@/lib/firebase/admin';
+import { ADMIN_ROLES, STAFF_ROLES, authErrorResponse, requireRole, requireUser } from '@/lib/auth/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,6 +27,8 @@ export async function GET(
       ...bottleDoc.data()
     });
   } catch (error) {
+    const __authed = authErrorResponse(error);
+    if (__authed) return __authed;
     console.error(`Error fetching bottle ${params.bottleId} from catalog:`, error);
     return NextResponse.json({ error: 'Failed to fetch bottle from catalog' }, { status: 500 });
   }
@@ -37,6 +40,7 @@ export async function PUT(
   { params }: { params: { bottleId: string } }
 ) {
   try {
+    await requireRole(request, ADMIN_ROLES, { checkRevoked: true });
     const { bottleId } = params;
     const data = await request.json();
     
@@ -62,6 +66,8 @@ export async function PUT(
       updatedAt: new Date().toISOString()
     });
   } catch (error) {
+    const __authed = authErrorResponse(error);
+    if (__authed) return __authed;
     console.error(`Error updating bottle ${params.bottleId} in catalog:`, error);
     return NextResponse.json({ error: 'Failed to update bottle in catalog' }, { status: 500 });
   }
@@ -73,6 +79,7 @@ export async function DELETE(
   { params }: { params: { bottleId: string } }
 ) {
   try {
+    await requireRole(request, ADMIN_ROLES, { checkRevoked: true });
     const { bottleId } = params;
     
     const bottleRef = adminFirestore
@@ -90,6 +97,8 @@ export async function DELETE(
     
     return NextResponse.json({ message: 'Bottle deleted successfully from catalog' });
   } catch (error) {
+    const __authed = authErrorResponse(error);
+    if (__authed) return __authed;
     console.error(`Error deleting bottle ${params.bottleId} from catalog:`, error);
     return NextResponse.json({ error: 'Failed to delete bottle from catalog' }, { status: 500 });
   }

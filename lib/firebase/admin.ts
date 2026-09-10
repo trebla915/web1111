@@ -38,17 +38,17 @@ function getAdminStorage() {
 // Lazy proxies so Firebase is only initialized when first used (e.g. at runtime on Vercel, not at build).
 export const adminAuth = new Proxy({} as ReturnType<typeof getAuth>, {
   get(_, prop) {
-    return (getAdminAuth() as Record<string | symbol, unknown>)[prop];
+    return Reflect.get(getAdminAuth(), prop);
   },
 });
 export const adminFirestore = new Proxy({} as ReturnType<typeof getFirestore>, {
   get(_, prop) {
-    return (getAdminFirestore() as Record<string | symbol, unknown>)[prop];
+    return Reflect.get(getAdminFirestore(), prop);
   },
 });
 export const adminStorage = new Proxy({} as ReturnType<typeof getStorage>, {
   get(_, prop) {
-    return (getAdminStorage() as Record<string | symbol, unknown>)[prop];
+    return Reflect.get(getAdminStorage(), prop);
   },
 });
 export { adminAuth as auth }; 

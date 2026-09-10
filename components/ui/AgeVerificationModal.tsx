@@ -1,4 +1,5 @@
 import React from 'react';
+import { Button } from "@/components/ui/button";
 
 interface AgeVerificationModalProps {
   isOpen: boolean;
@@ -11,36 +12,36 @@ export default function AgeVerificationModal({ isOpen, onClose, onVerify, onDeny
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-zinc-900 border border-white/10 rounded-lg max-w-md w-full p-6 shadow-xl">
-        <h2 className="text-2xl font-bold text-white mb-4 text-center">Age Verification Required</h2>
+    <div className="fixed inset-0 bg-canvas/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-surface border border-fg/10 rounded-lg max-w-md w-full p-6 shadow-xl">
+        <h2 className="text-2xl font-bold text-fg mb-4 text-center">Age Verification Required</h2>
         
-        <p className="text-gray-300 text-center mb-6">
+        <p className="text-fg-dim text-center mb-6">
           VIP tables are reserved for guests 21 years of age or older.
           Please confirm your age to proceed with the reservation.
         </p>
 
         <div className="flex flex-col gap-3">
-          <button
+          <Button
             onClick={onVerify}
-            className="w-full py-3 bg-white hover:bg-white/90 text-black font-bold rounded-md transition-colors"
+            variant="primary" size="lg" full className="py-3 font-bold"
           >
             Yes, I am 21 or older
-          </button>
+          </Button>
           
-          <button
+          <Button
             onClick={onDeny}
-            className="w-full py-3 bg-red-600/20 hover:bg-red-600/30 text-red-400 font-bold rounded-md transition-colors"
+            variant="ghost" size="lg" full className="py-3 bg-danger-600/20 hover:bg-danger-600/30 text-danger-400 font-bold"
           >
             No, I am under 21
-          </button>
+          </Button>
           
-          <button
+          <Button
             onClick={onClose}
-            className="w-full py-2 text-gray-400 hover:text-white transition-colors text-sm"
+            variant="ghost" size="md" full className="py-2 text-sm"
           >
             Cancel
-          </button>
+          </Button>
         </div>
       </div>
     </div>

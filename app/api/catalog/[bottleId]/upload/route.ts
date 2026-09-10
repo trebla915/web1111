@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminFirestore, adminStorage } from '@/lib/firebase/admin';
+import { ADMIN_ROLES, STAFF_ROLES, authErrorResponse, requireRole, requireUser } from '@/lib/auth/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +11,7 @@ export async function POST(
   { params }: { params: { bottleId: string } }
 ) {
   try {
+    await requireRole(request, ADMIN_ROLES, { checkRevoked: true });
     const { bottleId } = params;
     
     // Verify bottle exists
@@ -70,6 +72,8 @@ export async function POST(
       imageUrl: url 
     });
   } catch (error) {
+    const __authed = authErrorResponse(error);
+    if (__authed) return __authed;
     console.error(`Error uploading image for bottle ${params.bottleId}:`, error);
     return NextResponse.json({ error: 'Failed to upload image' }, { status: 500 });
   }

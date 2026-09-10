@@ -4,6 +4,7 @@ import {
   getEventFromFirestore,
   updateEventInFirestore,
 } from '@/lib/firebase/eventsStore';
+import { ADMIN_ROLES, STAFF_ROLES, authErrorResponse, requireRole, requireUser } from '@/lib/auth/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,6 +21,8 @@ export async function GET(
     }
     return NextResponse.json(event);
   } catch (error) {
+    const __authed = authErrorResponse(error);
+    if (__authed) return __authed;
     console.error('Error fetching event:', error);
     return NextResponse.json({ error: 'Failed to fetch event' }, { status: 500 });
   }
@@ -31,11 +34,14 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    await requireRole(request, ADMIN_ROLES, { checkRevoked: true });
     const { id } = params;
     const data = await request.json();
     const event = await updateEventInFirestore(id, data);
     return NextResponse.json(event);
   } catch (error) {
+    const __authed = authErrorResponse(error);
+    if (__authed) return __authed;
     console.error('Error updating event:', error);
     return NextResponse.json({ error: 'Failed to update event' }, { status: 500 });
   }
@@ -43,14 +49,17 @@ export async function PUT(
 
 // DELETE /api/events/[id] - Delete event by ID from Firestore
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    await requireRole(request, ADMIN_ROLES, { checkRevoked: true });
     const { id } = params;
     await deleteEventFromFirestore(id);
     return NextResponse.json({ message: 'Event deleted successfully' });
   } catch (error) {
+    const __authed = authErrorResponse(error);
+    if (__authed) return __authed;
     console.error('Error deleting event:', error);
     return NextResponse.json({ error: 'Failed to delete event' }, { status: 500 });
   }

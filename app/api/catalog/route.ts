@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminFirestore } from '@/lib/firebase/admin';
+import { ADMIN_ROLES, STAFF_ROLES, authErrorResponse, requireRole, requireUser } from '@/lib/auth/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,6 +18,8 @@ export async function GET() {
     
     return NextResponse.json(catalog);
   } catch (error) {
+    const __authed = authErrorResponse(error);
+    if (__authed) return __authed;
     console.error('Error fetching catalog:', error);
     return NextResponse.json({ error: 'Failed to fetch catalog' }, { status: 500 });
   }
@@ -25,6 +28,8 @@ export async function GET() {
 // POST /api/catalog - Add a bottle to catalog
 export async function POST(request: NextRequest) {
   try {
+    // Catalogue writes are administrative.
+    await requireRole(request, ADMIN_ROLES, { checkRevoked: true });
     const data = await request.json();
     
     // Validate required fields
@@ -47,6 +52,8 @@ export async function POST(request: NextRequest) {
       createdAt: new Date().toISOString()
     }, { status: 201 });
   } catch (error) {
+    const __authed = authErrorResponse(error);
+    if (__authed) return __authed;
     console.error('Error adding bottle to catalog:', error);
     return NextResponse.json({ error: 'Failed to add bottle to catalog' }, { status: 500 });
   }

@@ -1,199 +1,101 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { jwtVerify } from 'jose';
 
-// Paths that require authentication
-const protectedPaths = [
-  '/dashboard',
-  '/dashboard/reservations',
-  '/dashboard/events',
-  '/profile',
-];
+import { verifyIdTokenEdge } from '@/lib/auth/edge';
 
-// Paths that require admin or promoter role
-const adminPaths = [
-  '/admin',
-  '/admin/dashboard',
-  '/admin/events',
-  '/admin/reservations',
-  '/admin/users',
-  '/admin/promoters',
-  '/admin/analytics',
-  '/staff/hub',
-];
+/**
+ * Navigation guard.
+ *
+ * This is UX routing, not a security boundary: it decides where to send a
+ * browser, and every API route re-verifies independently
+ * (`lib/auth/server.ts`). It matters anyway, because the previous version was
+ * the *only* admin check and it trusted a cookie the client could write:
+ *
+ *   document.cookie = 'authToken=x'
+ *   document.cookie = 'userInfo={"role":"admin"}'   ->  full admin UI
+ *
+ * The role now comes from a cryptographically verified Firebase ID token. The
+ * `userInfo` cookie is no longer consulted for any decision, and the raw token
+ * is never logged.
+ */
 
-// Paths that should not be accessible if logged in
-const authPaths = [
-  '/auth/login',
-  '/auth/register',
-];
+const protectedPaths = ['/dashboard', '/profile'];
+
+/** Operational surfaces: staff, promoters and admins. */
+const staffPaths = ['/staff/hub', '/staff/scanner', '/staff/check-in'];
+
+/** Administrative surfaces: admins only. */
+const adminPaths = ['/admin'];
+
+const authPaths = ['/auth/login', '/auth/register'];
+
+const matches = (pathname: string, paths: string[]) =>
+  paths.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
-  // Get authentication token from cookies
-  const authToken = request.cookies.get('authToken')?.value;
-  const isAuthenticated = !!authToken;
-  
-  // For admin routes, check user role
-  const isAdminPath = adminPaths.some(path => 
-    pathname === path || pathname.startsWith(`${path}/`)
-  );
-  
-  if (isAdminPath) {
-    if (!isAuthenticated) {
-      const url = new URL('/auth/login', request.url);
-      url.searchParams.set('from', pathname);
-      return NextResponse.redirect(url);
-    }
-    
-    try {
-      // First check for the userInfo cookie which contains the role
-      const userInfoCookie = request.cookies.get('userInfo')?.value;
-      let userInfo = null;
-      
-      if (userInfoCookie) {
-        try {
-          userInfo = JSON.parse(userInfoCookie);
-          console.log('User info from cookie:', userInfo);
-        } catch (e) {
-          console.error('Error parsing userInfo cookie:', e);
-        }
-      }
-      
-      // If userInfo cookie is valid and has role
-      if (userInfo && userInfo.role) {
-        if (userInfo.role === 'admin' || userInfo.role === 'promoter') {
-          // For admin-only routes, check if user is admin
-          if (pathname.includes('/admin/promoters') || pathname.includes('/admin/analytics')) {
-            if (userInfo.role !== 'admin') {
-              // Redirect promoters away from admin-only routes
-              return NextResponse.redirect(new URL('/admin/dashboard', request.url));
-            }
-          }
-          return NextResponse.next();
-        }
-        
-        // User has a role but not admin/promoter
-        return NextResponse.redirect(new URL('/dashboard', request.url));
-      }
-      
-      // Fallback to token decoding if userInfo cookie isn't available
-      if (authToken) {
-        const payload = await decodeToken(authToken);
-        
-        if (payload && (payload.role === 'admin' || payload.role === 'promoter')) {
-          if (pathname.includes('/admin/promoters') || pathname.includes('/admin/analytics')) {
-            if (payload.role !== 'admin') {
-              return NextResponse.redirect(new URL('/admin/dashboard', request.url));
-            }
-          }
-          return NextResponse.next();
-        }
-      }
-      
-      // If no valid role info found, redirect to dashboard
-      return NextResponse.redirect(new URL('/dashboard', request.url));
-    } catch (error) {
-      console.error('Error in admin path middleware:', error);
-      const url = new URL('/auth/login', request.url);
-      return NextResponse.redirect(url);
-    }
+
+  const isAdminPath = matches(pathname, adminPaths);
+  const isStaffPath = matches(pathname, staffPaths);
+  const isProtectedPath = matches(pathname, protectedPaths);
+  const isAuthPath = authPaths.some((p) => pathname === p);
+
+  if (!isAdminPath && !isStaffPath && !isProtectedPath && !isAuthPath) {
+    return NextResponse.next();
   }
-  
-  // Check if the path is protected and user is not authenticated
-  const isProtectedPath = protectedPaths.some(path => 
-    pathname === path || pathname.startsWith(`${path}/`)
-  );
-  
-  if (isProtectedPath && !isAuthenticated) {
+
+  // A token is only *verified* here, never decoded-and-trusted.
+  const identity = await verifyIdTokenEdge(request.cookies.get('authToken')?.value);
+
+  const redirectToLogin = () => {
     const url = new URL('/auth/login', request.url);
     url.searchParams.set('from', pathname);
     return NextResponse.redirect(url);
+  };
+
+  if (isAdminPath) {
+    if (!identity) return redirectToLogin();
+    if (identity.role !== 'admin') return NextResponse.redirect(new URL('/dashboard', request.url));
+    return NextResponse.next();
   }
-  
-  // Redirect authenticated users away from auth pages
-  const isAuthPath = authPaths.some(path => pathname === path);
-  if (isAuthPath && isAuthenticated) {
-    // If there's a "from" parameter, redirect back there if it's safe
-    const fromPath = request.nextUrl.searchParams.get('from');
-    const safeFromPath = fromPath && !fromPath.includes('/auth/');
-    
-    const redirectTo = safeFromPath 
-      ? fromPath 
-      : '/dashboard';
-      
-    return NextResponse.redirect(new URL(redirectTo, request.url));
+
+  if (isStaffPath) {
+    if (!identity) return redirectToLogin();
+    if (!['admin', 'promoter', 'staff'].includes(identity.role)) {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
+    return NextResponse.next();
   }
-  
+
+  if (isProtectedPath) {
+    if (!identity) return redirectToLogin();
+    return NextResponse.next();
+  }
+
+  if (isAuthPath && identity) {
+    const from = request.nextUrl.searchParams.get('from');
+    // Only same-origin relative paths, so `?from=https://evil.example` cannot
+    // turn the login page into an open redirect.
+    const safe = from && from.startsWith('/') && !from.startsWith('//') && !from.startsWith('/auth/');
+    return NextResponse.redirect(new URL(safe ? from : '/dashboard', request.url));
+  }
+
   return NextResponse.next();
 }
 
-// A simplified function to decode JWT token
-async function decodeToken(token: string) {
-  try {
-    // Try to extract user info from the token, but don't rely on it for security
-    // In a real app, you would verify the token with your secret key
-    
-    // For debugging
-    console.log('Raw token:', token);
-    
-    // Option 1: Try to parse as Firebase JWT
-    if (token.includes('.')) {
-      try {
-        const base64Url = token.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
-        
-        const payload = JSON.parse(jsonPayload);
-        console.log('JWT Payload:', payload);
-        
-        // Look for Firebase claims format
-        if (payload.firebase && payload.firebase.sign_in_attributes) {
-          return payload.firebase.sign_in_attributes;
-        }
-        
-        // Look for custom claims
-        if (payload.role) {
-          return payload;
-        }
-        
-        return null;
-      } catch (e) {
-        console.error('JWT parsing error:', e);
-      }
-    }
-    
-    // Option 2: If JWT parsing fails, try to get the user from a dedicated endpoint
-    const response = await fetch('https://api-23psv7suga-uc.a.run.app/api/auth/me', {
-      headers: {
-        'Cookie': `authToken=${token}`
-      }
-    });
-    
-    if (response.ok) {
-      return await response.json();
-    }
-    
-    return null;
-  } catch (error) {
-    console.error('Error decoding token:', error);
-    return null;
-  }
-}
-
-// Configure which paths the middleware runs on
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public (static files)
+     * Page routes only. `/api/*` is deliberately excluded: API authorization is
+     * enforced inside each handler with the Admin SDK, and running an Edge JWKS
+     * verification in front of every API call would add latency without adding
+     * a guarantee.
      */
-    '/((?!_next/static|_next/image|favicon.ico|public).*)',
+    '/dashboard/:path*',
+    '/profile/:path*',
+    '/admin/:path*',
+    '/staff/:path*',
+    '/auth/login',
+    '/auth/register',
   ],
-}; 
+};

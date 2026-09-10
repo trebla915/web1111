@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { stripe } from '@/lib/stripe';
 import { adminFirestore } from '@/lib/firebase/admin';
-import Stripe from 'stripe';
 
 export const dynamic = 'force-dynamic';
 import { sendTableChangeNotification, sendTableChangePaymentRequired } from '@/lib/utils/sendEmail';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-06-20',
-});
+import { ADMIN_ROLES, STAFF_ROLES, authErrorResponse, requireRole, requireUser } from '@/lib/auth/server';
 
 const SERVICE_FEE_RATE = 0.1;
 
@@ -27,6 +24,8 @@ export async function POST(
   { params }: { params: { reservationId: string } }
 ) {
   try {
+    // Adjusts money on an existing booking: admin only.
+    await requireRole(request, ADMIN_ROLES, { checkRevoked: true });
     const { reservationId } = params;
 
     const reservationRef = adminFirestore.collection('reservations').doc(reservationId);

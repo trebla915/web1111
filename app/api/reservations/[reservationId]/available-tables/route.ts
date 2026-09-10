@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminFirestore } from '@/lib/firebase/admin';
+import { ADMIN_ROLES, STAFF_ROLES, authErrorResponse } from '@/lib/auth/server';
+import { loadAuthorizedReservation, NotFoundError } from '@/lib/auth/reservation';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +12,8 @@ export async function GET(
   { params }: { params: { reservationId: string } }
 ) {
   try {
+    // Customer changing their own table, or staff assisting.
+    await loadAuthorizedReservation(request, params.reservationId, STAFF_ROLES);
     const { reservationId } = params;
 
     const reservationDoc = await adminFirestore
@@ -69,6 +73,9 @@ export async function GET(
       },
     });
   } catch (error) {
+    if (error instanceof NotFoundError) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    const __authed = authErrorResponse(error);
+    if (__authed) return __authed;
     console.error(`Error fetching available tables for reservation ${params.reservationId}:`, error);
     return NextResponse.json({ error: 'Failed to fetch available tables' }, { status: 500 });
   }

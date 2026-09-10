@@ -53,3 +53,19 @@ ENV_VARS.md
 *firebase-adminsdk*.json
 club-1111-firebase-adminsdk-43fx3-c9a39031bf.json
 .env*.local
+
+# compiled output (was committed by mistake)
+/dist
+audit-report/verification-links.local.txt
+claims-backup-*.json
+
+# Local design-review screenshots (not shipped)
+.impeccable/review-*
+
+# Security audit working material — contains real account/UID mappings and raw
+# emulator logs. Kept local deliberately; this repo is public.
+audit-report/
+
+# Platform-specific tool binary (12 MB, macOS-arm64 only). Regenerated on
+# first run by the skill launcher; no reason to carry it in git history.
+.claude/skills/*/scripts/bin/

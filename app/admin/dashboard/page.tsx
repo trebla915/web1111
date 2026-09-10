@@ -15,6 +15,10 @@ import PushNotificationsTab from "../components/PushNotificationsTab";
 import StaffScheduleTab from "../components/StaffScheduleTab";
 import ManageTablesTab from "../components/ManageTablesTab";
 import { getUpcomingEvents } from "@/lib/services/events";
+import { Button } from "@/components/ui/button";
+import { RouteLoading } from "@/components/ui/page-state";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export default function AdminDashboardPage() {
   const { user, loading, logout } = useAuth();
@@ -27,6 +31,7 @@ export default function AdminDashboardPage() {
     users: null,
     reservations: null,
   });
+  const [nextEvent, setNextEvent] = useState<{ id: string; title: string; date?: string } | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
@@ -45,12 +50,30 @@ export default function AdminDashboardPage() {
 
       const events = eventsResult.status === 'fulfilled' ? eventsResult.value.length : null;
       const users = usersResult.status === 'fulfilled' ? usersResult.value.count : null;
+
+      /**
+       * `/api/reservations` answers `{ reservations: { [eventId]: [...] }, count,
+       * limit, truncated, viewerRole }`. This counted `Object.values(response)`,
+       * which is `[groupedObject, count, limit, truncated, viewerRole]` — a list
+       * with no reservation in it — so the filter never matched and the admin's
+       * "Pending reservations" tile read 0 no matter how many were waiting.
+       */
       const reservations =
         reservationsResult.status === 'fulfilled'
-          ? Object.values(reservationsResult.value as Record<string, { status?: string }[]>)
+          ? Object.values(
+              (reservationsResult.value as { reservations?: Record<string, { status?: string }[]> })
+                .reservations ?? {}
+            )
               .flat()
-              .filter((r) => r.status === 'pending').length
+              .filter((r) => r?.status === 'pending').length
           : null;
+
+      if (eventsResult.status === 'fulfilled') {
+        const soonest = [...eventsResult.value]
+          .filter((e) => e?.date)
+          .sort((a, b) => String(a.date).localeCompare(String(b.date)))[0];
+        setNextEvent(soonest ? { id: soonest.id, title: soonest.title, date: soonest.date } : null);
+      }
 
       setStats({ events, users, reservations });
       setStatsLoading(false);
@@ -85,72 +108,156 @@ export default function AdminDashboardPage() {
   // Get current tab info
   const currentTab = tabs.find(tab => tab.id === activeTab);
 
+  const formatEventDate = (dateStr: string) => {
+    try {
+      const [datePart] = dateStr.split('T');
+      const [y, m, d] = datePart.split('-').map(Number);
+      const date = new Date(y, m - 1, d);
+      if (isNaN(date.getTime())) return 'Date TBA';
+      return date.toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      });
+    } catch {
+      return 'Date TBA';
+    }
+  };
+
+  /** The three figures the dashboard actually reports, described once. */
+  const STAT_CARDS = [
+    { key: 'events' as const, label: 'Upcoming events', hint: 'Published and still to come', icon: <FiCalendar size={18} /> },
+    { key: 'users' as const, label: 'Registered users', hint: 'Accounts created', icon: <FiUsers size={18} /> },
+    { key: 'reservations' as const, label: 'Pending reservations', hint: 'Awaiting confirmation', icon: <FiBookmark size={18} /> },
+  ];
+
   // Tab content components
   const TabContent = ({ tab }: { tab: string }) => {
     switch (tab) {
       case "Dashboard":
         return (
-          <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <h2 className="text-2xl lg:text-3xl font-bold text-white">Dashboard Overview</h2>
-              <div className="text-sm text-gray-400">Welcome back, {user?.email?.split('@')[0]}</div>
-            </div>
-            
-            {/* Mobile-first stats grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
-              <div className="bg-zinc-900 p-4 lg:p-6 rounded-lg border border-gray-700/30 relative overflow-hidden group hover:border-gray-600/50 transition-all duration-300">
-                <div className="absolute inset-0 noise opacity-5"></div>
-                <div className="relative z-10">
-                  <h3 className="text-lg lg:text-xl font-semibold mb-2 text-white">Events</h3>
-                  <p className="text-2xl lg:text-3xl font-bold text-white">
-                    {statsLoading ? '—' : stats.events ?? '—'}
-                  </p>
-                  <p className="text-gray-400 mt-2 text-sm lg:text-base">Upcoming events</p>
-                </div>
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-white/0 via-white/40 to-white/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+          <div className="space-y-8">
+            {/* Stats.
+                Both "still loading" and "this request failed" used to render the
+                same em dash, so a broken stat was indistinguishable from a slow
+                one. Loading is a skeleton bar; an unavailable figure says so. */}
+            <section aria-labelledby="stats-heading">
+              <h2 id="stats-heading" className="sr-only">Tonight at a glance</h2>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                {STAT_CARDS.map((card) => {
+                  const value = stats[card.key];
+                  return (
+                    <div
+                      key={card.key}
+                      className="relative overflow-hidden rounded-lg border border-line-accent/30 bg-surface p-5"
+                    >
+                      <div aria-hidden="true" className="noise pointer-events-none absolute inset-0 opacity-5" />
+                      <div className="relative flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-fg-muted">{card.label}</p>
+                          {statsLoading ? (
+                            <div
+                              role="status"
+                              aria-label={`Loading ${card.label.toLowerCase()}`}
+                              className="mt-2 h-8 w-16 animate-pulse rounded bg-surface-raised"
+                            />
+                          ) : value === null ? (
+                            <p className="mt-2 text-sm text-warning-bright">Unavailable</p>
+                          ) : (
+                            <p className="tabular mt-1 font-heading text-3xl tracking-wide text-fg">
+                              {value.toLocaleString('en-US')}
+                            </p>
+                          )}
+                          <p className="mt-1 text-xs text-fg-subtle">{card.hint}</p>
+                        </div>
+                        <span aria-hidden="true" className="shrink-0 rounded-lg bg-surface-raised p-2 text-fg-muted">
+                          {card.icon}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-              
-              <div className="bg-zinc-900 p-4 lg:p-6 rounded-lg border border-gray-700/30 relative overflow-hidden group hover:border-gray-600/50 transition-all duration-300">
-                <div className="absolute inset-0 noise opacity-5"></div>
-                <div className="relative z-10">
-                  <h3 className="text-lg lg:text-xl font-semibold mb-2 text-white">Users</h3>
-                  <p className="text-2xl lg:text-3xl font-bold text-white">
-                    {statsLoading ? '—' : stats.users ?? '—'}
-                  </p>
-                  <p className="text-gray-400 mt-2 text-sm lg:text-base">Registered users</p>
-                </div>
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-white/0 via-white/40 to-white/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-              </div>
-              
-              <div className="bg-zinc-900 p-4 lg:p-6 rounded-lg border border-gray-700/30 relative overflow-hidden group hover:border-gray-600/50 transition-all duration-300 sm:col-span-2 lg:col-span-1">
-                <div className="absolute inset-0 noise opacity-5"></div>
-                <div className="relative z-10">
-                  <h3 className="text-lg lg:text-xl font-semibold mb-2 text-white">Reservations</h3>
-                  <p className="text-2xl lg:text-3xl font-bold text-white">
-                    {statsLoading ? '—' : stats.reservations ?? '—'}
-                  </p>
-                  <p className="text-gray-400 mt-2 text-sm lg:text-base">Pending reservations</p>
-                </div>
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-white/0 via-white/40 to-white/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-              </div>
-            </div>
+            </section>
 
-            {/* Quick Actions - Mobile Optimized */}
-            <div className="bg-zinc-900 p-4 lg:p-6 rounded-lg border border-gray-700/30">
-              <h3 className="text-lg lg:text-xl font-semibold mb-4 text-white">Quick Actions</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {/* Quick Actions.
+                These were `size="md"` buttons — a fixed 44px height — wrapping a
+                stacked icon and label that needs about 72px, so the primitive
+                clamped them and the icon sat flush against the top border.
+                `unstyled` is the primitive's own escape hatch for controls that
+                bring their own geometry. */}
+            <section aria-labelledby="quick-actions-heading">
+              <h2 id="quick-actions-heading" className="mb-3 font-heading text-lg tracking-wide text-fg">
+                Quick actions
+              </h2>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {tabs.slice(1, 5).map((tab) => (
-                  <button
+                  <Button
+                    unstyled
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className="flex flex-col items-center gap-2 p-3 lg:p-4 bg-zinc-800 rounded-lg border border-gray-700/30 hover:border-gray-600/50 transition-all duration-200 hover:bg-zinc-700"
+                    className="flex flex-col items-center justify-center gap-2 rounded-lg border border-line-accent/30 bg-surface px-3 py-5 hover:border-accent-deep/50 hover:bg-surface-raised"
                   >
-                    <span className="text-white">{tab.icon}</span>
-                    <span className="text-xs lg:text-sm text-gray-300 text-center">{tab.mobileLabel}</span>
-                  </button>
+                    <span aria-hidden="true" className="text-fg-muted">{tab.icon}</span>
+                    <span className="text-center text-sm font-medium text-fg">{tab.label}</span>
+                  </Button>
                 ))}
               </div>
-            </div>
+            </section>
+
+            {/* Next event.
+                The dashboard landed on three counters and four shortcuts, then
+                600px of empty canvas. The nearest event is already in the data
+                fetched above and is the thing a manager opens this screen to
+                act on, so it belongs here rather than two clicks away. */}
+            <section aria-labelledby="next-event-heading">
+              <h2 id="next-event-heading" className="mb-3 font-heading text-lg tracking-wide text-fg">
+                Next event
+              </h2>
+              {statsLoading ? (
+                <div className="h-24 animate-pulse rounded-lg border border-line-accent/30 bg-surface" />
+              ) : nextEvent ? (
+                <div className="flex flex-col gap-4 rounded-lg border border-line-accent/30 bg-surface p-5 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="truncate font-heading text-xl tracking-wide text-fg">
+                      {nextEvent.title}
+                    </p>
+                    {nextEvent.date && (
+                      <p className="tabular mt-1 text-sm text-fg-muted">
+                        {formatEventDate(nextEvent.date)}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex shrink-0 flex-wrap gap-2">
+                    <Button
+                      variant="outline"
+                      size="md"
+                      onClick={() => {
+                        setSelectedEventId(nextEvent.id);
+                        setActiveTab('ManageTables');
+                      }}
+                    >
+                      Tables
+                    </Button>
+                    <Button variant="primary" size="md" onClick={() => setActiveTab('ManageReservations')}>
+                      Reservations
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <EmptyState
+                  icon={<FiCalendar size={32} aria-hidden="true" />}
+                  title="Nothing scheduled"
+                  description="There are no upcoming events. Create one to start taking reservations."
+                  action={
+                    <Button variant="primary" size="md" onClick={() => setActiveTab('CreateEvent')}>
+                      Create an event
+                    </Button>
+                  }
+                />
+              )}
+            </section>
           </div>
         );
       case "CreateEvent":
@@ -173,9 +280,9 @@ export default function AdminDashboardPage() {
       case "ManageUsers":
         return (
           <div className="space-y-6">
-            <h2 className="text-2xl lg:text-3xl font-bold text-white">Manage Users</h2>
-            <div className="bg-zinc-900 p-4 lg:p-6 rounded-lg border border-gray-700/30">
-              <p className="text-gray-400">User management interface will be implemented here.</p>
+            <h2 className="text-2xl lg:text-3xl font-bold text-fg">Manage Users</h2>
+            <div className="bg-surface p-4 lg:p-6 rounded-lg border border-line/30">
+              <p className="text-fg-muted">User management interface will be implemented here.</p>
             </div>
           </div>
         );
@@ -190,190 +297,184 @@ export default function AdminDashboardPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-black text-white px-4">
-        <div className="flex flex-col items-center">
-          <div className="w-12 h-12 border-t-2 border-b-2 border-white rounded-full animate-spin mb-4"></div>
-          <p className="text-white text-center">Loading dashboard...</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <RouteLoading message="Loading dashboard…" />;
 
   // Don't render anything if no user or wrong role (will redirect in useEffect)
   if (!user || (user.role !== 'admin' && user.role !== 'promoter')) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-black text-white px-4">
-        <div className="flex flex-col items-center">
-          <div className="w-12 h-12 border-t-2 border-b-2 border-white rounded-full animate-spin mb-4"></div>
-          <p className="text-white text-center">Redirecting...</p>
-        </div>
-      </div>
-    );
+    return <RouteLoading message="Taking you to your dashboard…" />;
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-canvas">
       {/* Mobile Header - Always visible on mobile */}
-      <div className="lg:hidden sticky top-0 z-50 bg-zinc-950 border-b border-gray-700/30 backdrop-blur-lg">
-        <div className="flex items-center justify-between p-4">
-          <button
+      <div className="sticky top-0 z-50 border-b border-line/30 bg-surface-sunken/95 backdrop-blur-lg lg:hidden">
+        <div className="flex items-center justify-between gap-3 px-4 py-3">
+          <Button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-lg bg-zinc-900 border border-gray-600/40 hover:border-gray-500 transition-colors"
+            variant="outline"
+            size="icon"
+            aria-label={mobileMenuOpen ? 'Close admin menu' : 'Open admin menu'}
+            aria-expanded={mobileMenuOpen}
           >
-            {mobileMenuOpen ? <FiX className="text-white" size={20} /> : <FiMenu className="text-white" size={20} />}
-          </button>
-          
-          <div className="flex items-center gap-3">
-            <div className="text-lg font-bold text-white font-display">
-              11:11
-            </div>
-            <div className="px-2 py-1 rounded-full bg-gradient-to-r from-red-700/60 to-red-600/40 text-xs font-bold">
-              {user.role.toUpperCase()}
-            </div>
-          </div>
-          
-          <button
-            onClick={logout}
-            className="p-2 rounded-lg bg-red-900/20 border border-red-700/40 hover:border-red-600 transition-colors"
-          >
-            <FiLogOut className="text-red-400" size={18} />
-          </button>
-        </div>
+            {mobileMenuOpen ? <FiX aria-hidden="true" size={20} /> : <FiMenu aria-hidden="true" size={20} />}
+          </Button>
 
-        {/* Mobile Current Tab Indicator */}
-        <div className="px-4 pb-3">
-          <div className="text-sm text-white font-medium">{currentTab?.label}</div>
+          {/* The section name is what the admin needs here; it was previously a
+              second line below a logo that repeats on every screen. */}
+          <div className="min-w-0 text-center">
+            <p className="truncate font-heading text-base tracking-wide text-fg">{currentTab?.label}</p>
+            <p className="text-[0.6875rem] uppercase tracking-wider text-fg-subtle">{user.role}</p>
+          </div>
+
+          <Button
+            onClick={logout}
+            variant="ghost"
+            size="icon"
+            aria-label="Sign out"
+            className="text-fg-muted hover:text-danger-bright"
+          >
+            <FiLogOut aria-hidden="true" size={18} />
+          </Button>
         </div>
       </div>
 
-      {/* Mobile Menu Overlay */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-40 bg-black/80 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)}>
-          <div className="absolute top-0 left-0 w-80 max-w-[85vw] h-full bg-zinc-950 border-r border-gray-700/30 overflow-y-auto animate-slideIn">
-            {/* Mobile Menu Header */}
-            <div className="p-6 border-b border-gray-700/30">
-              {/* User Profile - Mobile */}
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full border-2 border-gray-600 overflow-hidden flex items-center justify-center bg-zinc-900">
-                  <div className="text-2xl text-white">
-                    {user.email ? user.email.charAt(0).toUpperCase() : 'A'}
-                  </div>
-                </div>
-                <div>
-                  <div className="font-bold text-white text-sm">{user.email?.split('@')[0]}</div>
-                  <div className="px-2 py-1 bg-gradient-to-r from-red-700/60 to-red-600/40 rounded-full text-xs inline-block">
-                    {user.role.toUpperCase()}
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Mobile Navigation */}
-            <div className="p-4">
-              <ul className="space-y-2">
-                {tabs.map((tab) => (
-                  <li key={tab.id}>
-                    <button
-                      onClick={() => {
-                        setActiveTab(tab.id);
-                        setMobileMenuOpen(false);
-                      }}
-                      className={`
-                        flex items-center gap-3 w-full px-4 py-3 rounded-lg transition-all duration-200
-                        ${activeTab === tab.id 
-                          ? 'text-white bg-gray-800/50 border border-gray-600/50 digital-glow-soft' 
-                          : 'text-gray-400 hover:text-white hover:bg-gray-800/20 border border-transparent'}
-                      `}
-                    >
-                      <span className={`${activeTab === tab.id ? 'text-white' : 'text-gray-500'}`}>
-                        {tab.icon}
-                      </span>
-                      <span className="font-medium">{tab.label}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="flex">
-        {/* Desktop Sidebar */}
-        <div className="hidden lg:flex flex-col w-80 min-h-screen border-r border-gray-700/30 bg-zinc-950 backdrop-blur-lg">
-          {/* Desktop Header */}
-          <div className="py-4 px-6 border-b border-gray-700/30">
-          </div>
-          
-          {/* Desktop User Profile */}
-          <div className="p-6 border-b border-gray-700/30 flex flex-col items-center">
-            <div className="w-20 h-20 rounded-full border-2 border-gray-600 overflow-hidden mb-4 flex items-center justify-center bg-zinc-900">
-              <div className="text-4xl text-white">
+      {/* Mobile menu.
+          This was a hand-rolled overlay: a backdrop `div` with an onClick, and
+          nothing else — no Escape key, no focus trap, no scroll lock, and a
+          click target that a keyboard could not reach. The marketing header
+          already uses the project's Sheet primitive for the same job, which
+          brings all four. */}
+      <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+        <SheetContent side="left" className="flex w-72 max-w-[85vw] flex-col p-0">
+          <SheetHeader className="border-b border-line/30 p-5">
+            <SheetTitle className="sr-only">Admin sections</SheetTitle>
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line-strong bg-surface font-heading text-lg text-fg">
                 {user.email ? user.email.charAt(0).toUpperCase() : 'A'}
               </div>
-            </div>
-            <div className="text-center">
-              <div className="font-bold text-white mb-2">{user.email?.split('@')[0]}</div>
-              <div className="px-3 py-1 bg-gradient-to-r from-red-700/60 to-red-600/40 rounded-full text-sm inline-block">
-                {user.role.toUpperCase()}
+              <div className="min-w-0 text-left">
+                <div className="truncate text-sm font-medium text-fg">{user.email?.split('@')[0]}</div>
+                <span className="mt-0.5 inline-block rounded-full border border-line bg-surface-raised px-2 py-0.5 text-[0.6875rem] font-medium uppercase tracking-wider text-fg-dim">
+                  {user.role}
+                </span>
               </div>
             </div>
-          </div>
-          
-          {/* Desktop Navigation */}
-          <div className="flex-1 py-6 overflow-y-auto">
-            <ul className="px-4 space-y-2">
+          </SheetHeader>
+
+          <nav aria-label="Admin sections" className="flex-1 overflow-y-auto p-3">
+            <ul className="space-y-1">
               {tabs.map((tab) => (
                 <li key={tab.id}>
-                  <button
-                    onClick={() => setActiveTab(tab.id)}
+                  <Button unstyled
+                    onClick={() => {
+                      setActiveTab(tab.id);
+                      setMobileMenuOpen(false);
+                    }}
+                    aria-current={activeTab === tab.id ? 'page' : undefined}
                     className={`
-                      flex items-center gap-4 w-full px-6 py-4 rounded-lg transition-all duration-200 relative
-                      ${activeTab === tab.id 
-                        ? 'text-white bg-gray-800/30 border border-gray-600/50 digital-glow-soft' 
-                        : 'text-gray-400 hover:text-white hover:bg-gray-800/20 border border-transparent'}
+                      flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm transition-colors duration-fast
+                      ${activeTab === tab.id
+                        ? 'bg-surface-raised font-medium text-fg'
+                        : 'text-fg-muted hover:bg-surface-raised/40 hover:text-fg'}
                     `}
                   >
-                    <span className={`${activeTab === tab.id ? 'text-white' : 'text-gray-500'}`}>
+                    <span aria-hidden="true" className={activeTab === tab.id ? 'text-fg' : 'text-fg-subtle'}>
                       {tab.icon}
                     </span>
-                    <span className="font-medium">{tab.label}</span>
-                  </button>
+                    <span className="truncate">{tab.label}</span>
+                  </Button>
                 </li>
               ))}
             </ul>
-            
-            {/* Desktop Logout */}
-            <div className="px-4 mt-8">
-              <button
-                onClick={logout}
-                className="flex items-center gap-4 w-full px-6 py-4 text-red-400 hover:bg-red-900/10 rounded-lg transition-colors border border-transparent hover:border-red-700/40"
-              >
-                <FiLogOut size={20} />
-                <span className="font-medium">Logout</span>
-              </button>
+          </nav>
+        </SheetContent>
+      </Sheet>
+
+      <div className="flex">
+        {/* Desktop Sidebar.
+            Was `w-80` (320px) carrying ten short labels at `px-6 py-4`, above an
+            empty bordered `div` that drew a rule with nothing on either side of
+            it. Narrower, denser, and the stray rule is gone. */}
+        <div className="hidden min-h-screen w-64 flex-col border-r border-line/30 bg-surface-sunken lg:flex xl:w-72">
+          {/* Desktop User Profile */}
+          <div className="flex items-center gap-3 border-b border-line/30 p-5">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line-strong bg-surface font-heading text-lg text-fg">
+              {user.email ? user.email.charAt(0).toUpperCase() : 'A'}
             </div>
+            <div className="min-w-0">
+              <div className="truncate text-sm font-medium text-fg">{user.email?.split('@')[0]}</div>
+              {/* The role is a fact, not a hazard. It was a red gradient — the
+                  colour this system reserves for destructive actions. */}
+              <span className="mt-0.5 inline-block rounded-full border border-line bg-surface-raised px-2 py-0.5 text-[0.6875rem] font-medium uppercase tracking-wider text-fg-dim">
+                {user.role}
+              </span>
+            </div>
+          </div>
+
+          {/* Desktop Navigation */}
+          <nav aria-label="Admin sections" className="flex-1 overflow-y-auto py-4">
+            <ul className="space-y-1 px-3">
+              {tabs.map((tab) => (
+                <li key={tab.id}>
+                  <Button unstyled
+                    onClick={() => setActiveTab(tab.id)}
+                    aria-current={activeTab === tab.id ? 'page' : undefined}
+                    className={`
+                      relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors duration-fast
+                      ${activeTab === tab.id
+                        ? 'bg-surface-raised font-medium text-fg'
+                        : 'text-fg-muted hover:bg-surface-raised/40 hover:text-fg'}
+                    `}
+                  >
+                    {/* Active marker: a rule the eye can find without relying on
+                        the fill alone. */}
+                    <span
+                      aria-hidden="true"
+                      className={`absolute inset-y-1.5 left-0 w-0.5 rounded-full ${
+                        activeTab === tab.id ? 'bg-accent-bright' : 'bg-transparent'
+                      }`}
+                    />
+                    <span aria-hidden="true" className={activeTab === tab.id ? 'text-fg' : 'text-fg-subtle'}>
+                      {tab.icon}
+                    </span>
+                    <span className="truncate">{tab.label}</span>
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          {/* Desktop Logout */}
+          <div className="border-t border-line/30 p-3">
+            <Button unstyled
+              onClick={logout}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-fg-muted transition-colors duration-fast hover:bg-danger-950/40 hover:text-danger-bright"
+            >
+              <FiLogOut aria-hidden="true" size={18} />
+              <span>Sign out</span>
+            </Button>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 min-h-screen">
-          {/* Desktop Header */}
-          <div className="hidden lg:block h-20 border-b border-gray-700/30 bg-zinc-900/50 backdrop-blur-sm">
-            <div className="flex items-center justify-between h-full px-8">
-              <h1 className="text-2xl font-bold text-white">
+        <div className="min-h-screen min-w-0 flex-1">
+          {/* Desktop Header. Sticky, because the admin scrolls long reservation
+              lists and otherwise loses track of which section is open. */}
+          <div className="sticky top-0 z-30 hidden h-16 border-b border-line/30 bg-canvas/80 backdrop-blur-md lg:block">
+            <div className="flex h-full items-center justify-between gap-4 px-6 xl:px-8">
+              <h1 className="font-heading text-xl tracking-wide text-fg">
                 {currentTab?.label || "Dashboard"}
               </h1>
-              <div className="text-gray-400">
-                Welcome back, {user.email?.split('@')[0]}
-              </div>
+              <p className="truncate text-sm text-fg-muted">
+                Signed in as {user.email}
+              </p>
             </div>
           </div>
 
-          {/* Content Area */}
-          <div className="p-4 lg:p-8 pb-safe">
+          {/* Content Area. Capped so a three-card row and a form do not stretch
+              across a 1920px display with the eye travelling half a metre
+              between a label and its value. */}
+          <div className="mx-auto max-w-6xl p-4 pb-safe lg:p-8">
             <TabContent tab={activeTab} />
           </div>
         </div>

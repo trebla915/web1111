@@ -1,20 +1,21 @@
 /* ─── Single source of truth: styles/theme/tokens.css ─────────────────────── */
 @import './theme/tokens.css';
 
-/* Google Fonts Import */
-@import url('https://fonts.googleapis.com/css2?family=Anta&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
-@import url('https://api.fontshare.com/v2/css?f[]=excon@600&display=swap');
+/* Typeface loading.
+   Only the three faces the design actually uses. Excon, Bungee Shade,
+   Rubik Glitch and Monoton were imported here but referenced nowhere — four
+   render-blocking font downloads for glyphs that never painted. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Bungee+Shade&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Rubik+Glitch&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Monoton&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anta&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Single scroll container: only #__scroll-root scrolls (no double scrollbar) */
+/* ─── Scroll architecture ───────────────────────────────────────────────────
+   Only #__scroll-root scrolls, so the page never shows a double scrollbar and
+   the fixed header stays put on iOS. html/body are locked deliberately. */
 html {
   height: 100%;
   -webkit-text-size-adjust: 100%;
@@ -23,13 +24,11 @@ html {
   -ms-overflow-style: none;
 }
 
-html::-webkit-scrollbar {
-  display: none;
-}
+html::-webkit-scrollbar { display: none; }
 
 body {
-  background-color: var(--color-bg);
-  color: var(--foreground);
+  background-color: rgb(var(--canvas));
+  color: rgb(var(--fg));
   font-family: var(--font-sans);
   margin: 0;
   padding: 0;
@@ -43,17 +42,11 @@ body {
   -ms-overflow-style: none;
 }
 
-body::-webkit-scrollbar {
-  display: none;
-}
+body::-webkit-scrollbar { display: none; }
 
-/* Only this element scrolls; one scrollbar on the page */
 #__scroll-root {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -63,41 +56,29 @@ body::-webkit-scrollbar {
 }
 
 /* Cleaner tap on iOS */
-a, button {
-  -webkit-tap-highlight-color: transparent;
-}
+a, button { -webkit-tap-highlight-color: transparent; }
 
-/* Safe area insets for full-screen mobile (notch, home indicator) */
-.pt-safe {
-  padding-top: env(safe-area-inset-top, 0px);
-}
-.pb-safe {
-  padding-bottom: env(safe-area-inset-bottom, 1rem);
-}
-.pl-safe {
-  padding-left: env(safe-area-inset-left, 0px);
-}
-.pr-safe {
-  padding-right: env(safe-area-inset-right, 0px);
-}
+/* ─── Safe-area utilities ─────────────────────────────────────────────────── */
+.pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+.pb-safe { padding-bottom: env(safe-area-inset-bottom, 1rem); }
+.pl-safe { padding-left: env(safe-area-inset-left, 0px); }
+.pr-safe { padding-right: env(safe-area-inset-right, 0px); }
 .safe-area-insets {
   padding-top: env(safe-area-inset-top, 0px);
   padding-right: env(safe-area-inset-right, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
   padding-left: env(safe-area-inset-left, 0px);
 }
+.safe-area-bottom { padding-bottom: env(safe-area-inset-bottom, 1rem); }
+.safe-area-top { padding-top: env(safe-area-inset-top, 0); }
 
-/* Full viewport height on mobile (dynamic for browser UI show/hide) */
-.min-h-dvh {
-  min-height: 100dvh;
-  min-height: 100vh;
-}
-.h-dvh {
-  height: 100dvh;
-  height: 100vh;
-}
+/* Dynamic viewport height, with a static fallback for older browsers. */
+.min-h-dvh { min-height: 100vh; min-height: 100dvh; }
+.h-dvh { height: 100vh; height: 100dvh; }
 
-/* Titles and Headings Styling */
+/* ─── Headings ──────────────────────────────────────────────────────────────
+   The condensed display face, uppercase, applied once here rather than
+   re-declared per page. */
 h1, h2, h3, .title {
   font-family: var(--font-heading);
   font-weight: 600;
@@ -105,7 +86,45 @@ h1, h2, h3, .title {
   text-transform: uppercase;
 }
 
-/* Background Video Styling */
+/* ─── Ambient effects ───────────────────────────────────────────────────────
+   The venue's signature texture. Both are decorative and pointer-transparent. */
+.noise {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 250 250' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.1;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* The sweep is drawn on a pseudo-element inside a clipped box. Rotating the
+   gradient layer directly made it a rotating *rectangle*: on a wide, short
+   section its corners swung far outside the parent, so every page reported a
+   viewport-wide element it never painted. Same look, contained. */
+.spotlight {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.spotlight::before {
+  content: '';
+  position: absolute;
+  /* Oversized so the rotating square always covers the clipped box's corners. */
+  inset: -45%;
+  background: radial-gradient(circle at center, rgb(var(--fg) / 0.1) 0%, transparent 70%);
+  animation: rotate 20s linear infinite;
+  transform-origin: center;
+  will-change: transform;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .video-background {
   position: absolute;
   top: 0;
@@ -116,230 +135,92 @@ h1, h2, h3, .title {
   z-index: -1;
 }
 
-/* Remove Any Gradient Effects */
-.hero-bg-gradient {
-  background: none; /* Removed !important */
-}
-
-/* Noise Texture Effect */
-.noise {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 250 250' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-  opacity: 0.1;
-  pointer-events: none;
-  z-index: 1;
-}
-
-/* Spotlight animation */
-@keyframes rotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.spotlight {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-  animation: rotate 20s linear infinite;
-  transform-origin: center;
-  z-index: 0;
-}
-
-/* Neon glow effect */
+/* ─── Glow treatments ───────────────────────────────────────────────────────
+   Three intensities, all sourced from tokens so the signature can be retuned
+   in one place. */
 .neon-text {
-  color: var(--color-foreground);
+  color: rgb(var(--fg));
   text-shadow: var(--shadow-glow-white);
 }
 
-/* Flashing animation */
-@keyframes flash {
-  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
-    opacity: 1;
-  }
-  20%, 22%, 24%, 55% {
-    opacity: 0.5;
-  }
-}
-
-.flash {
-  animation: flash 7s infinite;
-}
-
-/* Glitch effect */
-@keyframes glitch {
-  0% {
-    text-shadow: 
-      0.05em 0 0 rgba(255, 0, 0, 0.75),
-      -0.05em -0.025em 0 rgba(0, 255, 0, 0.75),
-      -0.025em 0.05em 0 rgba(0, 0, 255, 0.75);
-  }
-  14% {
-    text-shadow: 
-      0.05em 0 0 rgba(255, 0, 0, 0.75),
-      -0.05em -0.025em 0 rgba(0, 255, 0, 0.75),
-      -0.025em 0.05em 0 rgba(0, 0, 255, 0.75);
-  }
-  15% {
-    text-shadow: 
-      -0.05em -0.025em 0 rgba(255, 0, 0, 0.75),
-      0.025em 0.025em 0 rgba(0, 255, 0, 0.75),
-      -0.05em -0.05em 0 rgba(0, 0, 255, 0.75);
-  }
-  49% {
-    text-shadow: 
-      -0.05em -0.025em 0 rgba(255, 0, 0, 0.75),
-      0.025em 0.025em 0 rgba(0, 255, 0, 0.75),
-      -0.05em -0.05em 0 rgba(0, 0, 255, 0.75);
-  }
-  50% {
-    text-shadow: 
-      0.025em 0.05em 0 rgba(255, 0, 0, 0.75),
-      0.05em 0 0 rgba(0, 255, 0, 0.75),
-      0 -0.05em 0 rgba(0, 0, 255, 0.75);
-  }
-  99% {
-    text-shadow: 
-      0.025em 0.05em 0 rgba(255, 0, 0, 0.75),
-      0.05em 0 0 rgba(0, 255, 0, 0.75),
-      0 -0.05em 0 rgba(0, 0, 255, 0.75);
-  }
-  100% {
-    text-shadow: 
-      -0.025em 0 0 rgba(255, 0, 0, 0.75),
-      -0.025em -0.025em 0 rgba(0, 255, 0, 0.75),
-      -0.025em -0.05em 0 rgba(0, 0, 255, 0.75);
-  }
-}
-
-.glitch {
-  animation: glitch 2s infinite;
-  position: relative;
-}
-
-/* Vibrate animation for club effect */
-@keyframes vibrate {
-  0% { transform: translate(0); }
-  20% { transform: translate(-2px, 2px); }
-  40% { transform: translate(-2px, -2px); }
-  60% { transform: translate(2px, 2px); }
-  80% { transform: translate(2px, -2px); }
-  100% { transform: translate(0); }
-}
-
-.vibrate {
-  animation: vibrate 2s infinite;
-  position: relative;
-}
-
-/* Club text effects */
 .digital-glow {
   text-shadow:
-    0 0 2px #fff,
-    0 0 4px #fff,
-    0 0 8px #ffffff,
-    0 0 12px #ffffff,
-    0 0 16px #ffffff,
-    0 0 22px #ffffff,
-    0 0 30px #ffffff;
+    0 0 2px  rgb(var(--fg)),
+    0 0 4px  rgb(var(--fg)),
+    0 0 8px  rgb(var(--fg)),
+    0 0 12px rgb(var(--fg)),
+    0 0 16px rgb(var(--fg)),
+    0 0 22px rgb(var(--fg)),
+    0 0 30px rgb(var(--fg));
 }
 
-.digital-glow-soft {
-  text-shadow: var(--shadow-glow-soft);
-}
+.digital-glow-soft { text-shadow: var(--shadow-glow-soft); }
+.digital-glow-soft-right { box-shadow: 2px 0 10px rgb(var(--accent) / 0.3); }
+.shadow-glow { box-shadow: 0 0 8px 1px rgb(var(--fg) / 0.7); }
 
-.digital-glow-soft-right {
-  box-shadow: var(--shadow-glow-accent-soft);
+/* ─── Animation ─────────────────────────────────────────────────────────── */
+@keyframes flash {
+  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
+  20%, 22%, 24%, 55% { opacity: 0.5; }
 }
+.flash { animation: flash 7s infinite; }
 
-/* Header Navigation */
-.active-nav {
-  position: relative;
-}
-
-.active-nav span {
-  animation: glow 2s ease-in-out infinite;
-}
-
-@keyframes glow {
-  0%, 100% {
-    box-shadow: 0 0 5px 0 rgba(255, 255, 255, 0.7);
+/* Chromatic-aberration text glitch. The pure red/green/blue offsets are the
+   effect itself — channel separation — not palette colours, so they are
+   intentionally not tokenised. */
+@keyframes glitch {
+  0%, 14% {
+    text-shadow: 0.05em 0 0 rgb(255 0 0 / 0.75), -0.05em -0.025em 0 rgb(0 255 0 / 0.75), -0.025em 0.05em 0 rgb(0 0 255 / 0.75);
   }
-  50% {
-    box-shadow: 0 0 10px 0 rgba(255, 255, 255, 0.9);
+  15%, 49% {
+    text-shadow: -0.05em -0.025em 0 rgb(255 0 0 / 0.75), 0.025em 0.025em 0 rgb(0 255 0 / 0.75), -0.05em -0.05em 0 rgb(0 0 255 / 0.75);
   }
-}
-
-/* EDM-inspired nav effects */
-@keyframes bass-pulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.03);
-  }
-}
-
-/* Beat animation for hover */
-@keyframes beat-hover {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-2px);
-  }
-}
-
-/* Equalizer glow animation for active menu */
-@keyframes eq-glow {
-  0% {
-    box-shadow: 0 0 5px 1px rgba(255, 255, 255, 0.7),
-                0 0 15px 2px rgba(255, 255, 255, 0.4);
-    height: 2px;
-  }
-  25% {
-    box-shadow: 0 0 8px 2px rgba(255, 255, 255, 0.8),
-                0 0 20px 3px rgba(255, 255, 255, 0.5);
-    height: 3px;
-  }
-  50% {
-    box-shadow: 0 0 12px 3px rgba(255, 255, 255, 1),
-                0 0 25px 5px rgba(255, 255, 255, 0.6);
-    height: 4px;
-  }
-  75% {
-    box-shadow: 0 0 8px 2px rgba(255, 255, 255, 0.8),
-                0 0 20px 3px rgba(255, 255, 255, 0.5);
-    height: 3px;
+  50%, 99% {
+    text-shadow: 0.025em 0.05em 0 rgb(255 0 0 / 0.75), 0.05em 0 0 rgb(0 255 0 / 0.75), 0 -0.05em 0 rgb(0 0 255 / 0.75);
   }
   100% {
-    box-shadow: 0 0 5px 1px rgba(255, 255, 255, 0.7),
-                0 0 15px 2px rgba(255, 255, 255, 0.4);
-    height: 2px;
+    text-shadow: -0.025em 0 0 rgb(255 0 0 / 0.75), -0.025em -0.025em 0 rgb(0 255 0 / 0.75), -0.025em -0.05em 0 rgb(0 0 255 / 0.75);
   }
 }
+.glitch { animation: glitch 2s infinite; position: relative; }
 
-/* Active Link - Simpler Club Style */
+@keyframes vibrate {
+  0%   { transform: translate(0); }
+  20%  { transform: translate(-2px, 2px); }
+  40%  { transform: translate(-2px, -2px); }
+  60%  { transform: translate(2px, 2px); }
+  80%  { transform: translate(2px, -2px); }
+  100% { transform: translate(0); }
+}
+.vibrate { animation: vibrate 2s infinite; position: relative; }
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 5px 0 rgb(var(--fg) / 0.7); }
+  50%      { box-shadow: 0 0 10px 0 rgb(var(--fg) / 0.9); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.animate-fadeIn { animation: fadeIn var(--duration-fast) var(--ease-out) forwards; }
+
+@keyframes scan-line {
+  0%   { top: 0; }
+  50%  { top: calc(100% - 2px); }
+  100% { top: 0; }
+}
+.animate-scan-line { animation: scan-line 2.5s var(--ease-in-out) infinite; }
+
+/* ─── Header navigation ─────────────────────────────────────────────────── */
+.active-nav { position: relative; }
+.active-nav span { animation: glow 2s var(--ease-in-out) infinite; }
+
 .active-link {
   position: relative;
-  color: var(--color-foreground);
+  color: rgb(var(--fg));
 }
-
-.active-link span {
-  box-shadow: 0 0 10px 1px rgba(255, 255, 255, 0.6);
-}
-
-/* Optional subtle glow for active menu items */
+.active-link span { box-shadow: 0 0 10px 1px rgb(var(--fg) / 0.6); }
 .active-link::before {
   content: '';
   position: absolute;
@@ -347,214 +228,65 @@ h1, h2, h3, .title {
   left: 0;
   width: 100%;
   height: 10px;
-  background: linear-gradient(to top, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(to top, rgb(var(--fg) / 0.2), transparent);
   opacity: 0.6;
   pointer-events: none;
 }
 
-/* Equalizer bar animation */
-@keyframes eq-bar {
-  0% {
-    height: 2px;
-    opacity: 0.4;
-  }
-  50% {
-    height: 15px;
-    opacity: 0.8;
-  }
-  100% {
-    height: 2px;
-    opacity: 0.4;
-  }
+/* ─── Browser surfaces ──────────────────────────────────────────────────────
+   The parts of the page the app does not draw: selection, caret, the default
+   scrollbar and the focus ring. Left alone they ship the platform's own blue,
+   which belongs to no design system on a black-and-cyan page. */
+::selection {
+  background-color: rgb(var(--accent) / 0.35);
+  color: rgb(var(--fg));
 }
 
-/* Shadow glow for active links */
-.shadow-glow {
-  box-shadow: 0 0 8px 1px rgba(255, 255, 255, 0.7);
+:root {
+  caret-color: rgb(var(--accent-bright));
+  accent-color: rgb(var(--accent));
+  color-scheme: dark;
 }
 
-/* Modal animations */
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+/* The page's own scroller. `.custom-scrollbar` below still overrides this for
+   inner panes that want the thinner treatment. */
+#__scroll-root::-webkit-scrollbar { width: 10px; }
+#__scroll-root::-webkit-scrollbar-track { background: rgb(var(--surface-sunken)); }
+#__scroll-root::-webkit-scrollbar-thumb {
+  background-color: rgb(var(--line));
+  border: 2px solid rgb(var(--surface-sunken));
+  border-radius: 999px;
 }
+#__scroll-root::-webkit-scrollbar-thumb:hover { background-color: rgb(var(--line-strong)); }
 
-.animate-fadeIn {
-  animation: fadeIn 0.2s ease-out forwards;
-}
+/* Underlines that clear descenders instead of striking through them. */
+a { text-underline-offset: 0.2em; text-decoration-thickness: from-font; }
 
-/* Mobile-optimized responsive typography */
-.text-responsive-xs {
-  font-size: 0.75rem; /* 12px */
-  line-height: 1rem; /* 16px */
-}
-
-@media (min-width: 640px) {
-  .text-responsive-xs {
-    font-size: 0.875rem; /* 14px */
-    line-height: 1.25rem; /* 20px */
-  }
-}
-
-.text-responsive-sm {
-  font-size: 0.875rem; /* 14px */
-  line-height: 1.25rem; /* 20px */
-}
-
-@media (min-width: 640px) {
-  .text-responsive-sm {
-    font-size: 1rem; /* 16px */
-    line-height: 1.5rem; /* 24px */
-  }
-}
-
-.text-responsive-base {
-  font-size: 1rem; /* 16px */
-  line-height: 1.5rem; /* 24px */
-}
-
-@media (min-width: 640px) {
-  .text-responsive-base {
-    font-size: 1.125rem; /* 18px */
-    line-height: 1.75rem; /* 28px */
-  }
-}
-
-.text-responsive-lg {
-  font-size: 1.125rem; /* 18px */
-  line-height: 1.75rem; /* 28px */
-}
-
-@media (min-width: 640px) {
-  .text-responsive-lg {
-    font-size: 1.25rem; /* 20px */
-    line-height: 1.75rem; /* 28px */
-  }
-}
-
-.text-responsive-xl {
-  font-size: 1.25rem; /* 20px */
-  line-height: 1.75rem; /* 28px */
-}
-
-@media (min-width: 640px) {
-  .text-responsive-xl {
-    font-size: 1.5rem; /* 24px */
-    line-height: 2rem; /* 32px */
-  }
-}
-
-.text-responsive-2xl {
-  font-size: 1.5rem; /* 24px */
-  line-height: 2rem; /* 32px */
-}
-
-@media (min-width: 640px) {
-  .text-responsive-2xl {
-    font-size: 1.875rem; /* 30px */
-    line-height: 2.25rem; /* 36px */
-  }
-}
-
-.text-responsive-3xl {
-  font-size: 1.875rem; /* 30px */
-  line-height: 2.25rem; /* 36px */
-}
-
-@media (min-width: 640px) {
-  .text-responsive-3xl {
-    font-size: 2.25rem; /* 36px */
-    line-height: 2.5rem; /* 40px */
-  }
-}
-
-/* Mobile-optimized touch targets */
-.touch-target {
-  min-height: 44px;
-  min-width: 44px;
-}
-
-/* Improved tap highlight for mobile */
-.tap-highlight {
-  -webkit-tap-highlight-color: rgba(255, 255, 255, 0.2);
-}
-
-.tap-highlight-none {
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* Mobile safe area padding utility */
-.safe-area-bottom {
-  padding-bottom: env(safe-area-inset-bottom, 1rem);
-}
-
-.safe-area-top {
-  padding-top: env(safe-area-inset-top, 0);
-}
-
-/* Mobile-specific admin dashboard enhancements */
+/* ─── Utilities ─────────────────────────────────────────────────────────── */
 @layer utilities {
-  /* Safe area for mobile devices */
-  .pb-safe {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-  
-  .pt-safe {
-    padding-top: env(safe-area-inset-top);
-  }
+  /* Money, counts, times and codes: fixed-width digits so figures in a column
+     line up on the decimal instead of drifting with the glyph widths. */
+  .tabular { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1; }
 
-  /* Enhanced touch targets for mobile */
-  @media (max-width: 768px) {
-    .touch-target {
-      min-height: 44px;
-      min-width: 44px;
-    }
-    
-    /* Larger form inputs on mobile */
-    input[type="text"],
-    input[type="email"], 
-    input[type="url"],
-    input[type="datetime-local"],
-    textarea,
-    select {
-      @apply text-base; /* Prevents zoom on iOS */
-    }
-    
-    /* Enhanced button sizes for mobile */
-    button {
-      min-height: 44px;
-    }
+  .touch-target { min-height: var(--touch-target-min); min-width: var(--touch-target-min); }
+  .tap-highlight { -webkit-tap-highlight-color: rgb(var(--fg) / 0.2); }
+  .tap-highlight-none { -webkit-tap-highlight-color: transparent; }
+
+  .no-select {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
   }
 
   .custom-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: var(--scrollbar-thumb) transparent;
   }
-
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 4px;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
+  .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
   .custom-scrollbar::-webkit-scrollbar-thumb {
     background-color: var(--scrollbar-thumb);
     border-radius: 2px;
-  }
-
-  .animate-slideIn {
-    animation: slideIn 0.3s ease-out forwards;
-  }
-
-  .digital-glow-soft {
-    text-shadow: var(--shadow-glow-accent);
-  }
-
-  .focus-visible:focus {
-    outline: 2px solid var(--color-accent-focus);
-    outline-offset: 2px;
   }
 
   @media (hover: hover) {
@@ -563,35 +295,19 @@ h1, h2, h3, .title {
       box-shadow: var(--shadow-card-hover);
     }
   }
-
-  /* Prevent text selection on UI elements */
-  .no-select {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-  }
 }
 
-/* QR Scanner scan-line animation */
-@keyframes scan-line {
-  0% { top: 0; }
-  50% { top: calc(100% - 2px); }
-  100% { top: 0; }
-}
-
-.animate-scan-line {
-  animation: scan-line 2.5s ease-in-out infinite;
-}
-
-/* html5-qrcode: force camera preview to fill the entire container */
+/* ─── QR scanner ────────────────────────────────────────────────────────────
+   html5-qrcode injects its own chrome; these rules make the camera preview
+   fill our container and hide the library UI in favour of the app's overlay.
+   !important is required — the library sets these inline. */
 #qr-reader {
   border: none !important;
   width: 100% !important;
   height: 100% !important;
   position: relative !important;
   overflow: hidden !important;
-  background: var(--color-bg) !important;
+  background: rgb(var(--canvas)) !important;
 }
 
 #qr-reader video {
@@ -606,8 +322,7 @@ h1, h2, h3, .title {
 
 #qr-reader__scan_region {
   position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
+  inset: 0 !important;
   width: 100% !important;
   height: 100% !important;
   min-height: 100% !important;
@@ -615,16 +330,8 @@ h1, h2, h3, .title {
 }
 
 #qr-reader__scan_region > br,
-#qr-reader__scan_region > img {
-  display: none !important;
-}
-
-/* Hide the library's built-in shaded region borders (we have our own overlay) */
-#qr-shaded-region {
-  display: none !important;
-}
-
-/* Hide all library UI controls — we use our own */
+#qr-reader__scan_region > img,
+#qr-shaded-region,
 #qr-reader__dashboard,
 #qr-reader__dashboard_section,
 #qr-reader__dashboard_section_csr,
@@ -636,25 +343,42 @@ h1, h2, h3, .title {
   display: none !important;
 }
 
-/* Base layer overrides for mobile */
+/* ─── Base layer ────────────────────────────────────────────────────────── */
 @layer base {
-  /* Scroll is on #__scroll-root; keep html/body non-scrolling */
-  html, body {
-    overflow: hidden;
-  }
+  html, body { overflow: hidden; }
 
-  #__scroll-root {
-    scroll-behavior: smooth;
-  }
+  #__scroll-root { scroll-behavior: smooth; }
 
-  * {
-    -webkit-tap-highlight-color: var(--color-accent-tap);
-  }
+  * { -webkit-tap-highlight-color: rgb(var(--accent) / 0.1); }
 
-  /* Font size adjustments for mobile readability */
+  /* 16px minimum keeps iOS Safari from zooming the viewport on focus. */
   @media (max-width: 640px) {
-    html {
-      font-size: 16px; /* Prevents iOS zoom */
+    html { font-size: 16px; }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="url"],
+    input[type="number"],
+    input[type="password"],
+    input[type="datetime-local"],
+    textarea,
+    select {
+      font-size: 16px;
     }
+
+    button { min-height: var(--touch-target-min); }
+  }
+
+  /* Respect users who ask for reduced motion: keep meaning, drop movement. */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+
+    .spotlight::before, .flash, .glitch, .vibrate { animation: none !important; }
   }
 }

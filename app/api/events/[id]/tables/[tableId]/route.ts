@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminFirestore } from '@/lib/firebase/admin';
+import { ADMIN_ROLES, STAFF_ROLES, authErrorResponse, requireRole, requireUser } from '@/lib/auth/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,6 +35,8 @@ export async function GET(
       ...tableDoc.data()
     });
   } catch (error) {
+    const __authed = authErrorResponse(error);
+    if (__authed) return __authed;
     console.error(`Error fetching table ${params.tableId} for event ${params.id}:`, error);
     return NextResponse.json({ error: 'Failed to fetch table' }, { status: 500 });
   }
@@ -45,6 +48,8 @@ export async function PUT(
   { params }: { params: { id: string; tableId: string } }
 ) {
   try {
+    // Table pricing/availability is administrative.
+    await requireRole(request, ADMIN_ROLES, { checkRevoked: true });
     const { id, tableId } = params;
     const data = await request.json();
 
@@ -63,6 +68,8 @@ export async function PUT(
 
     return NextResponse.json({ message: 'Table updated successfully' });
   } catch (error) {
+    const __authed = authErrorResponse(error);
+    if (__authed) return __authed;
     console.error(`Error updating table ${params.tableId} for event ${params.id}:`, error);
     return NextResponse.json({ error: 'Failed to update table' }, { status: 500 });
   }
@@ -74,6 +81,7 @@ export async function DELETE(
   { params }: { params: { id: string; tableId: string } }
 ) {
   try {
+    await requireRole(request, ADMIN_ROLES, { checkRevoked: true });
     const { id, tableId } = params;
     
     // Verify event exists
@@ -99,6 +107,8 @@ export async function DELETE(
     
     return NextResponse.json({ message: 'Table removed successfully' });
   } catch (error) {
+    const __authed = authErrorResponse(error);
+    if (__authed) return __authed;
     console.error(`Error removing table ${params.tableId} for event ${params.id}:`, error);
     return NextResponse.json({ error: 'Failed to remove table' }, { status: 500 });
   }

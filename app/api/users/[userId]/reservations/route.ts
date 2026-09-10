@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminFirestore } from '@/lib/firebase/admin';
+import { ADMIN_ROLES, authErrorResponse, requireSelfOrRole } from '@/lib/auth/server';
+import { withId } from '@/lib/firebase/docs';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,6 +11,8 @@ export async function GET(
   { params }: { params: { userId: string } }
 ) {
   try {
+    // A user's own bookings, or an admin acting on their behalf.
+    await requireSelfOrRole(request, params.userId, ADMIN_ROLES);
     const { userId } = params;
     
     // Verify user exists
@@ -23,10 +27,9 @@ export async function GET(
       .where('userId', '==', userId)
       .get();
     
-    const reservations = reservationsSnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    const reservations = reservationsSnapshot.docs.map((doc) =>
+      withId<{ eventId: string }>(doc)
+    );
     
     // Get event details for each reservation
     const eventIds = [...new Set(reservations.map(res => res.eventId))];
@@ -54,6 +57,8 @@ export async function GET(
     
     return NextResponse.json(reservationsWithEventDetails);
   } catch (error) {
+    const __authed = authErrorResponse(error);
+    if (__authed) return __authed;
     console.error(`Error fetching reservations for user ${params.userId}:`, error);
     return NextResponse.json({ error: 'Failed to fetch user reservations' }, { status: 500 });
   }

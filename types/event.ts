@@ -6,6 +6,8 @@ export interface Event {
   ticketLink: string;
   flyerUrl: string;
   flyerBase64?: string;
+  /** Alternative artwork; some records carry this instead of flyerUrl. */
+  imageUrl?: string;
   createdBy: string;
   createdAt: string;
   updatedAt?: string;

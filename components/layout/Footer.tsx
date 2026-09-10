@@ -5,6 +5,16 @@ import Link from "next/link";
 import Image from "next/image";
 import { FiInstagram, FiFacebook, FiTwitter } from "react-icons/fi";
 import { toast } from "react-hot-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/field";
+
+/** Mirrors the header's list; both point at the venue's real accounts. */
+const FOOTER_SOCIAL = [
+  { href: "https://www.instagram.com/1111eptx/", label: "11:11 on Instagram", Icon: FiInstagram },
+  { href: "https://www.facebook.com/1111eptx/", label: "11:11 on Facebook", Icon: FiFacebook },
+  { href: "https://twitter.com", label: "11:11 on Twitter", Icon: FiTwitter },
+] as const;
 
 export default function Footer() {
   const [email, setEmail] = useState("");
@@ -35,104 +45,95 @@ export default function Footer() {
   };
 
   return (
-    <footer className="w-full bg-black text-white py-12 border-t border-white/30 relative safe-area-bottom">
+    <footer className="safe-area-bottom relative w-full overflow-hidden border-t border-fg/30 bg-canvas py-12 text-fg">
       {/* Background effects */}
-      <div className="absolute inset-0 noise opacity-5"></div>
-      <div className="absolute inset-0 spotlight opacity-10"></div>
+      <div aria-hidden="true" className="noise pointer-events-none absolute inset-0 opacity-5" />
+      <div aria-hidden="true" className="spotlight opacity-10" />
 
-      <div className="max-w-6xl mx-auto px-6 relative z-10">
-        {/* Grid Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Left Column: Logo & Copyright */}
-          <div className="flex flex-col items-center md:items-start space-y-4">
-            <div className="relative w-32 h-32">
+      <div className="relative z-10 mx-auto max-w-6xl px-6">
+        {/* Three columns whose contents started at three different heights — a
+            128px logo, a heading, another heading — so nothing lined up across
+            them. The newsletter now leads the row as the footer's actual job,
+            with identity and links flanking it and every column's first line on
+            the same baseline. */}
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-[auto_1fr_auto] md:gap-12">
+          {/* Left: identity */}
+          <div className="flex flex-col items-center gap-3 md:items-start">
+            <div className="relative h-20 w-20">
               <Image
                 src="/1111logo.png"
-                alt="1111 Logo"
+                alt=""
                 fill
                 className="object-contain"
-                priority
-                sizes="(max-width: 768px) 100px, 150px"
+                sizes="80px"
               />
             </div>
-            <div className="text-sm font-light tracking-widest text-white font-display">
+            <p className="font-display text-sm font-light tracking-widest text-fg">
               Music is Timeless
-            </div>
-            <p className="text-sm text-neutral-400 text-center md:text-left tracking-wide">
-              © {new Date().getFullYear()} 11:11. <span>ALL RIGHTS RESERVED.</span>
             </p>
           </div>
 
-          {/* Center Column: Newsletter Signup */}
-          <div className="flex flex-col items-center text-center space-y-4">
-            <h3 className="text-white text-lg font-bold tracking-wider uppercase font-display digital-glow-soft">JOIN OUR LIST</h3>
-            <p className="text-sm text-neutral-300 max-w-sm tracking-wide">
-              STAY UPDATED WITH EXCLUSIVE EVENTS AND VIP OFFERS
+          {/* Center: newsletter */}
+          <div className="flex flex-col items-center text-center md:items-start md:text-left">
+            <h2 className="font-heading text-lg tracking-wider text-fg">Join our list</h2>
+            <p className="mt-2 max-w-sm text-sm text-fg-dim">
+              Event announcements and VIP table offers. No more than a couple of emails a month.
             </p>
-            <form className="w-full max-w-sm" onSubmit={handleSubscribe}>
-              <div className="flex flex-col sm:flex-row gap-2">
-                <input
+            <form className="mt-4 w-full max-w-sm" onSubmit={handleSubscribe}>
+              {/* The input had no label at all — a placeholder is not a name, and
+                  it vanishes the moment someone starts typing. */}
+              <Label htmlFor="newsletter-email" className="sr-only">
+                Email address
+              </Label>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Input
+                  id="newsletter-email"
                   type="email"
-                  placeholder="EMAIL ADDRESS"
+                  autoComplete="email"
+                  placeholder="you@example.com"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={submitting}
-                  className="w-full p-3 rounded-none border border-white/50 bg-black/50 text-white placeholder-gray-500 focus:ring-1 focus:ring-white text-sm tracking-wider focus:border-white transition-all duration-300 disabled:opacity-50"
                 />
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-6 py-3 bg-white hover:bg-white/90 text-black font-bold rounded-none transition-all duration-300 tracking-wider hover:shadow-[0_0_10px_rgba(255,255,255,0.5)] disabled:opacity-50"
-                >
-                  {submitting ? '...' : 'SUBMIT'}
-                </button>
+                <Button type="submit" disabled={submitting} loading={submitting} variant="primary" size="md">
+                  {submitting ? 'Joining' : 'Join'}
+                </Button>
               </div>
             </form>
           </div>
 
-          {/* Right Column: Social Links & Navigation */}
-          <div className="flex flex-col items-center md:items-end space-y-4">
-            {/* Social Media Links */}
-            <h3 className="text-white text-lg font-bold tracking-wider uppercase font-display digital-glow-soft">FOLLOW US</h3>
-            <div className="flex space-x-6">
-              <a
-                href="https://www.instagram.com/1111eptx/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-neutral-400 hover:text-white transition-all duration-300 hover:shadow-[0_0_10px_rgba(255,255,255,0.5)]"
-                aria-label="Instagram"
-              >
-                <FiInstagram size={24} />
-              </a>
-              <a
-                href="https://www.facebook.com/1111eptx/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-neutral-400 hover:text-white transition-all duration-300 hover:shadow-[0_0_10px_rgba(255,255,255,0.5)]"
-                aria-label="Facebook"
-              >
-                <FiFacebook size={24} />
-              </a>
-              <a
-                href="https://twitter.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-neutral-400 hover:text-white transition-all duration-300 hover:shadow-[0_0_10px_rgba(255,255,255,0.5)]"
-                aria-label="Twitter"
-              >
-                <FiTwitter size={24} />
-              </a>
+          {/* Right: social + links */}
+          <div className="flex flex-col items-center gap-3 md:items-end">
+            <h2 className="font-heading text-lg tracking-wider text-fg">Follow us</h2>
+            <div className="flex items-center">
+              {FOOTER_SOCIAL.map(({ href, label, Icon }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${label} (opens in a new tab)`}
+                  className="flex h-11 w-11 items-center justify-center rounded-full text-fg-muted transition-colors hover:bg-fg/10 hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <Icon aria-hidden="true" size={20} />
+                </a>
+              ))}
             </div>
-
-            {/* Footer Menu */}
-            <nav className="text-sm flex flex-col md:items-end space-y-3 mt-4">
-              <Link href="/privacy" className="text-neutral-300 hover:text-white transition-all duration-300 tracking-wider group relative">
-                PRIVACY POLICY
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
+            <nav aria-label="Footer" className="mt-1">
+              {/* Was a 20px-tall text link. It gets a real target now. */}
+              <Link
+                href="/privacy"
+                className="inline-flex min-h-[44px] items-center text-sm tracking-wider text-fg-dim transition-colors hover:text-fg"
+              >
+                Privacy policy
               </Link>
             </nav>
           </div>
+        </div>
+
+        <div className="mt-10 border-t border-line-subtle pt-6 text-center text-xs tracking-wide text-fg-subtle md:text-left">
+          © {new Date().getFullYear()} 11:11 EPTX. All rights reserved.
         </div>
       </div>
     </footer>

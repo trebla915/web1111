@@ -18,6 +18,9 @@ import {
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { auth } from '@/lib/firebase/config';
 import Link from 'next/link';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/field";
 
 export default function ProfilePage() {
   const { user, loading: authLoading } = useAuth();
@@ -190,6 +193,11 @@ export default function ProfilePage() {
     setIsChangingPassword(true);
     
     try {
+      if (!user.email) {
+        toast.error("This account has no email address to reauthenticate with");
+        return;
+      }
+
       // Reauthenticate user
       const credential = EmailAuthProvider.credential(
         user.email,
@@ -223,8 +231,8 @@ export default function ProfilePage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-gray-800 flex items-center justify-center">
-        <div className="text-white text-lg">Loading...</div>
+      <div className="min-h-screen bg-gradient-to-br from-canvas via-surface to-surface-raised flex items-center justify-center">
+        <div className="text-fg text-lg">Loading...</div>
       </div>
     );
   }
@@ -234,77 +242,86 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-canvas via-surface to-surface-raised">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <Link 
+            {/* Icon-only link with no text and no label: announced as a bare
+                "link" and only 24px tall. */}
+            <Link
               href="/dashboard"
-              className="text-white hover:text-cyan-400 transition-colors"
+              aria-label="Back to dashboard"
+              className="-ml-2 flex h-11 w-11 items-center justify-center rounded-full text-fg transition-colors hover:bg-fg/10 hover:text-accent-bright focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <FiArrowLeft size={24} />
+              <FiArrowLeft aria-hidden="true" size={22} />
             </Link>
-            <h1 className="text-3xl font-bold text-white">My Profile</h1>
+            <h1 className="text-3xl font-bold text-fg">My Profile</h1>
           </div>
           
           {!isEditing && (
-            <button
+            <Button
               onClick={() => setIsEditing(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors"
+              variant="accent" size="md" className="flex items-center gap-2 px-4 py-2 bg-accent-600 hover:bg-accent-700"
             >
               <FiEdit2 size={18} />
               Edit Profile
-            </button>
+            </Button>
           )}
         </div>
 
         <div className="max-w-2xl mx-auto">
-          <div className="bg-gray-900/50 backdrop-blur-sm rounded-xl border border-gray-800 overflow-hidden">
+          <div className="bg-surface/50 backdrop-blur-sm rounded-xl border border-line-subtle overflow-hidden">
             {/* Profile Header */}
-            <div className="bg-gradient-to-r from-cyan-600/20 to-purple-600/20 p-8 border-b border-gray-800">
+            <div className="bg-gradient-to-r from-accent-600/20 to-profile-600/20 p-8 border-b border-line-subtle">
               <div className="flex items-center gap-6">
                 {/* Avatar */}
                 <div className="relative">
-                  <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-800 border-4 border-cyan-600/50">
+                  <div className="w-24 h-24 rounded-full overflow-hidden bg-surface-raised border-4 border-accent-600/50">
                     {avatarPreview ? (
+                      // next/image cannot optimise a data: URL, and this src is
+                      // a FileReader preview of the file the user just picked.
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img 
                         src={avatarPreview} 
                         alt="Profile" 
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      <div className="w-full h-full flex items-center justify-center text-fg-muted">
                         <FiUser size={32} />
                       </div>
                     )}
                   </div>
                   
                   {isEditing && (
-                    <button
+                    <Button
                       onClick={() => fileInputRef.current?.click()}
-                      className="absolute bottom-0 right-0 p-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-full transition-colors"
+                      variant="accent" size="md" className="absolute bottom-0 right-0 p-2 bg-accent-600 hover:bg-accent-700 rounded-full"
                     >
                       <FiCamera size={14} />
-                    </button>
+                    </Button>
                   )}
                   
+                  {/* Visually hidden but still in the accessibility tree, so it
+                      needs a name of its own. */}
                   <input
                     ref={fileInputRef}
                     type="file"
                     accept="image/*"
+                    aria-label="Choose a profile photo"
                     onChange={handleAvatarChange}
                     className="hidden"
                   />
                 </div>
                 
                 <div>
-                  <h2 className="text-2xl font-bold text-white mb-2">
+                  <h2 className="text-2xl font-bold text-fg mb-2">
                     {user.displayName || 'User'}
                   </h2>
-                  <p className="text-gray-400 mb-1">{user.email}</p>
+                  <p className="text-fg-muted mb-1">{user.email}</p>
                   {user.role && (
-                    <span className="inline-block px-3 py-1 bg-gray-800 text-cyan-400 rounded-full text-sm font-medium">
+                    <span className="inline-block px-3 py-1 bg-surface-raised text-accent-400 rounded-full text-sm font-medium">
                       {user.role.toUpperCase()}
                     </span>
                   )}
@@ -317,92 +334,86 @@ export default function ProfilePage() {
               <div className="space-y-6">
                 {/* Display Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <Label htmlFor="display-name" className="mb-1.5">
                     Display Name
-                  </label>
-                  <div className="relative">
-                    <FiUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                    <input
-                      type="text"
-                      value={profileData.displayName}
-                      onChange={(e) => setProfileData({...profileData, displayName: e.target.value})}
-                      disabled={!isEditing}
-                      className={`w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500 ${
-                        !isEditing ? 'cursor-not-allowed opacity-60' : ''
-                      }`}
-                      placeholder="Enter your display name"
-                    />
-                  </div>
+                  </Label>
+                  <Input
+                    id="display-name"
+                    type="text"
+                    autoComplete="name"
+                    leadingIcon={<FiUser aria-hidden="true" className="h-4 w-4" />}
+                    value={profileData.displayName}
+                    onChange={(e) => setProfileData({...profileData, displayName: e.target.value})}
+                    disabled={!isEditing}
+                    placeholder="Alex Navarro"
+                  />
                 </div>
 
                 {/* Email (Read Only) */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <Label htmlFor="email-address" className="mb-1.5">
                     Email Address
-                  </label>
-                  <div className="relative">
-                    <FiMail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                    <input
-                      type="email"
-                      value={user.email}
-                      disabled
-                      className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white cursor-not-allowed opacity-60"
-                    />
-                  </div>
-                  <p className="mt-1 text-xs text-gray-500">Email cannot be changed</p>
+                  </Label>
+                  <Input
+                    id="email-address"
+                    type="email"
+                    value={user.email ?? ""}
+                    disabled
+                    readOnly
+                    aria-describedby="email-hint"
+                    leadingIcon={<FiMail aria-hidden="true" className="h-4 w-4" />}
+                  />
+                  <p id="email-hint" className="mt-1.5 text-xs text-fg-subtle">
+                    Email cannot be changed
+                  </p>
                 </div>
 
                 {/* Phone Number */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <Label htmlFor="phone-number" className="mb-1.5">
                     Phone Number
-                  </label>
-                  <div className="relative">
-                    <FiPhone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                    <input
-                      type="tel"
-                      value={profileData.phoneNumber}
-                      onChange={(e) => setProfileData({...profileData, phoneNumber: e.target.value})}
-                      disabled={!isEditing}
-                      className={`w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500 ${
-                        !isEditing ? 'cursor-not-allowed opacity-60' : ''
-                      }`}
-                      placeholder="Enter your phone number"
-                    />
-                  </div>
+                  </Label>
+                  <Input
+                    id="phone-number"
+                    type="tel"
+                    autoComplete="tel"
+                    leadingIcon={<FiPhone aria-hidden="true" className="h-4 w-4" />}
+                    value={profileData.phoneNumber}
+                    onChange={(e) => setProfileData({...profileData, phoneNumber: e.target.value})}
+                    disabled={!isEditing}
+                    placeholder="(915) 555-0142"
+                  />
                 </div>
 
                 {/* First Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <Label htmlFor="first-name" className="mb-1.5">
                     First Name
-                  </label>
-                  <input
+                  </Label>
+                  <Input
+                    id="first-name"
                     type="text"
+                    autoComplete="given-name"
                     value={profileData.firstName}
                     onChange={(e) => setProfileData({...profileData, firstName: e.target.value})}
                     disabled={!isEditing}
-                    className={`w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500 ${
-                      !isEditing ? 'cursor-not-allowed opacity-60' : ''
-                    }`}
-                    placeholder="Enter your first name"
+                    placeholder="Alex"
                   />
                 </div>
 
                 {/* Last Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <Label htmlFor="last-name" className="mb-1.5">
                     Last Name
-                  </label>
-                  <input
+                  </Label>
+                  <Input
+                    id="last-name"
                     type="text"
+                    autoComplete="family-name"
                     value={profileData.lastName}
                     onChange={(e) => setProfileData({...profileData, lastName: e.target.value})}
                     disabled={!isEditing}
-                    className={`w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500 ${
-                      !isEditing ? 'cursor-not-allowed opacity-60' : ''
-                    }`}
-                    placeholder="Enter your last name"
+                    placeholder="Navarro"
                   />
                 </div>
               </div>
@@ -410,16 +421,16 @@ export default function ProfilePage() {
               {/* Action Buttons */}
               {isEditing && (
                 <div className="flex gap-4 mt-8">
-                  <button
+                  <Button
                     onClick={handleUpdateProfile}
                     disabled={isUpdating}
-                    className="flex items-center gap-2 px-6 py-3 bg-cyan-600 hover:bg-cyan-700 disabled:bg-cyan-600/50 text-white rounded-lg transition-colors"
+                    variant="accent" size="lg" className="flex items-center gap-2 px-6 py-3 bg-accent-600 hover:bg-accent-700 disabled:bg-accent-600/50"
                   >
                     <FiSave size={18} />
                     {isUpdating ? 'Saving...' : 'Save Changes'}
-                  </button>
+                  </Button>
                   
-                  <button
+                  <Button
                     onClick={() => {
                       setIsEditing(false);
                       setAvatarFile(null);
@@ -431,85 +442,88 @@ export default function ProfilePage() {
                         lastName: user.lastName || ''
                       });
                     }}
-                    className="flex items-center gap-2 px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                    variant="subtle" size="lg" className="flex items-center gap-2 px-6 py-3 bg-surface-hover hover:bg-surface-lifted"
                   >
                     <FiX size={18} />
                     Cancel
-                  </button>
+                  </Button>
                 </div>
               )}
 
               {/* Password Section */}
-              <div className="mt-12 pt-8 border-t border-gray-800">
+              <div className="mt-12 pt-8 border-t border-line-subtle">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-semibold text-white">Security</h3>
+                  <h3 className="text-xl font-semibold text-fg">Security</h3>
                   {!showPasswordForm && (
-                    <button
+                    <Button
                       onClick={() => setShowPasswordForm(true)}
-                      className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+                      variant="subtle" size="md" className="flex items-center gap-2 px-4 py-2 bg-profile-600 hover:bg-profile-700"
                     >
                       <FiLock size={18} />
                       Change Password
-                    </button>
+                    </Button>
                   )}
                 </div>
 
                 {showPasswordForm && (
-                  <div className="bg-gray-800/50 rounded-lg p-6">
-                    <h4 className="text-lg font-medium text-white mb-4">Change Password</h4>
+                  <div className="bg-surface-raised/50 rounded-lg p-6">
+                    <h4 className="text-lg font-medium text-fg mb-4">Change Password</h4>
                     
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                        <Label htmlFor="current-password" className="mb-1.5">
                           Current Password
-                        </label>
-                        <input
+                        </Label>
+                        <Input
+                          id="current-password"
                           type="password"
+                          autoComplete="current-password"
                           value={passwordData.currentPassword}
                           onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
-                          className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500"
                           placeholder="Enter your current password"
                         />
                       </div>
                       
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                        <Label htmlFor="new-password" className="mb-1.5">
                           New Password
-                        </label>
-                        <input
+                        </Label>
+                        <Input
+                          id="new-password"
                           type="password"
+                          autoComplete="new-password"
                           value={passwordData.newPassword}
                           onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
-                          className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500"
                           placeholder="Enter your new password (min. 6 characters)"
                         />
                       </div>
                       
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                        <Label htmlFor="confirm-password" className="mb-1.5">
                           Confirm New Password
-                        </label>
-                        <input
+                        </Label>
+                        <Input
+                          id="confirm-password"
                           type="password"
+                          autoComplete="new-password"
                           value={passwordData.confirmPassword}
                           onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
-                          className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500"
                           placeholder="Confirm your new password"
                         />
                       </div>
                     </div>
                     
                     <div className="flex gap-4 mt-6">
-                      <button
+                      <Button
                         onClick={handlePasswordChange}
                         disabled={isChangingPassword}
-                        className="flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-600/50 text-white rounded-lg transition-colors"
+                        variant="subtle" size="lg" className="flex items-center gap-2 px-6 py-3 bg-profile-600 hover:bg-profile-700 disabled:bg-profile-600/50"
                       >
                         <FiLock size={18} />
                         {isChangingPassword ? 'Updating...' : 'Update Password'}
-                      </button>
+                      </Button>
                       
-                      <button
+                      <Button
                         onClick={() => {
                           setShowPasswordForm(false);
                           setPasswordData({
@@ -518,11 +532,11 @@ export default function ProfilePage() {
                             confirmPassword: ''
                           });
                         }}
-                        className="flex items-center gap-2 px-6 py-3 bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-colors"
+                        variant="subtle" size="lg" className="flex items-center gap-2 px-6 py-3 bg-surface-lifted hover:bg-fg-subtle"
                       >
                         <FiX size={18} />
                         Cancel
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 )}

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminFirestore } from '@/lib/firebase/admin';
+import { ADMIN_ROLES, STAFF_ROLES, authErrorResponse } from '@/lib/auth/server';
+import { loadAuthorizedReservation, NotFoundError } from '@/lib/auth/reservation';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,6 +11,8 @@ export async function GET(
   { params }: { params: { reservationId: string; paymentId: string } }
 ) {
   try {
+    // Payment state for one booking: owner or staff.
+    await loadAuthorizedReservation(request, params.reservationId, STAFF_ROLES);
     const { reservationId, paymentId } = params;
     
     // Verify reservation exists
@@ -48,6 +52,9 @@ export async function GET(
       updatedAt: paymentData?.updatedAt
     });
   } catch (error) {
+    if (error instanceof NotFoundError) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    const __authed = authErrorResponse(error);
+    if (__authed) return __authed;
     console.error(`Error fetching payment status for payment ${params.paymentId}:`, error);
     return NextResponse.json({ error: 'Failed to fetch payment status' }, { status: 500 });
   }

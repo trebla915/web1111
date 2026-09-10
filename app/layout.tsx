@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { ReactNode } from "react";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import StripeProvider from "@/components/providers/StripeProvider";
@@ -57,12 +57,24 @@ export const metadata: Metadata = {
   }
 };
 
+/**
+ * `maximum-scale: 1` and `user-scalable: no` were previously set here, which
+ * disables pinch-zoom on iOS and Android — a WCAG 1.4.4 failure. The iOS
+ * zoom-on-focus problem those flags were working around is handled properly in
+ * globals.css instead, by giving form controls a 16px font size on small
+ * screens.
+ */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#000000",
+};
+
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className="min-h-full">
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-        <meta name="theme-color" content="#000000" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="11:11" />
@@ -70,7 +82,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <link rel="icon" type="image/png" href="/1111logo.png" />
         <link rel="manifest" href="/site.webmanifest" />
       </head>
-      <body className="bg-black text-white">
+      <body className="bg-canvas text-fg">
         <div id="__scroll-root" className="flex flex-col min-h-full">
           <AuthProvider>
             <StripeProvider>

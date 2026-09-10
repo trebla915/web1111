@@ -1,18 +1,12 @@
+import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { getUserTokens } from '@/lib/services/notifications';
-import { isAdmin } from '@/lib/auth-utils';
+import { ADMIN_ROLES, authErrorResponse, requireRole } from '@/lib/auth/server';
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
-    // Check if the current user is an admin
-    const admin = await isAdmin();
-    if (!admin) {
-      return NextResponse.json(
-        { success: false, error: 'Admin privileges required' },
-        { status: 403 }
-      );
-    }
-
+    // Push tokens identify devices; admin only.
+    await requireRole(request, ADMIN_ROLES, { checkRevoked: true });
     // Get the userIds from query parameters
     const { searchParams } = new URL(request.url);
     const userIds = searchParams.get('userIds');
@@ -53,6 +47,8 @@ export async function GET(request: Request) {
       users: validTokens
     });
   } catch (error) {
+    const __authed = authErrorResponse(error);
+    if (__authed) return __authed;
     console.error('Error retrieving user tokens:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to retrieve user tokens' },

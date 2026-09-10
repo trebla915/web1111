@@ -1,5 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminFirestore } from '@/lib/firebase/admin';
+import {
+  ADMIN_ROLES,
+  STAFF_ROLES,
+  authErrorResponse,
+  requireRole,
+  requireSelfOrRole,
+  requireUser,
+} from '@/lib/auth/server';
+import { recordAudit } from '@/lib/auth/audit';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,23 +20,32 @@ export async function GET(
   try {
     const { reservationId } = params;
     
-    // Get reservation from Firestore
+    // Authenticate BEFORE touching the database: an anonymous caller must not
+    // be able to make the server do a Firestore read (cost + a timing oracle
+    // for which reservation ids exist).
+    await requireUser(request);
+
     const reservationDoc = await adminFirestore
       .collection('reservations')
       .doc(reservationId)
       .get();
-    
+
     if (!reservationDoc.exists) {
       return NextResponse.json({ error: 'Reservation not found' }, { status: 404 });
     }
-    
+
+    // Ownership comes from the stored document, never from the request.
+    await requireSelfOrRole(request, reservationDoc.data()?.userId, STAFF_ROLES);
+
     const reservationData = {
       id: reservationDoc.id,
       ...reservationDoc.data()
     };
-    
+
     return NextResponse.json(reservationData);
   } catch (error) {
+    const authed = authErrorResponse(error);
+    if (authed) return authed;
     console.error(`Error fetching reservation ${params.reservationId}:`, error);
     return NextResponse.json({ error: 'Failed to fetch reservation' }, { status: 500 });
   }
@@ -40,6 +58,8 @@ export async function PATCH(
 ) {
   try {
     const { reservationId } = params;
+    // Same rule as GET: prove identity before doing any read or parse work.
+    await requireUser(request);
     const body = await request.json();
 
     const allowed = ['userEmail', 'userName', 'userPhone'];
@@ -65,6 +85,11 @@ export async function PATCH(
     const reservation = reservationDoc.data()!;
     const userId = reservation.userId as string | undefined;
 
+    // The customer may correct their own contact details; admins may correct
+    // anyone's. The field allowlist above already prevents touching price,
+    // status or payment fields through this endpoint.
+    const actor = await requireSelfOrRole(request, userId, ADMIN_ROLES);
+
     updates.updatedAt = new Date().toISOString();
     await reservationRef.update(updates);
 
@@ -83,6 +108,8 @@ export async function PATCH(
     const updated = (await reservationRef.get()).data();
     return NextResponse.json({ ...updated, id: reservationId });
   } catch (error) {
+    const authed = authErrorResponse(error);
+    if (authed) return authed;
     console.error(`Error updating reservation ${params.reservationId}:`, error);
     return NextResponse.json({ error: 'Failed to update reservation' }, { status: 500 });
   }
@@ -95,6 +122,16 @@ export async function DELETE(
   { params }: { params: { reservationId: string } }
 ) {
   try {
+    // Destroying a booking is an admin action and is recorded.
+    const actor = await requireRole(request, ADMIN_ROLES, { checkRevoked: true });
+    await recordAudit({
+      action: 'reservation.delete',
+      actorUid: actor.uid,
+      actorRole: actor.role,
+      targetType: 'reservation',
+      targetId: params.reservationId,
+    });
+
     const { reservationId } = params;
 
     const reservationRef = adminFirestore
@@ -142,6 +179,8 @@ export async function DELETE(
 
     return NextResponse.json({ message: 'Reservation deleted successfully' });
   } catch (error) {
+    const authed = authErrorResponse(error);
+    if (authed) return authed;
     console.error(`Error deleting reservation ${params.reservationId}:`, error);
     return NextResponse.json({ error: 'Failed to delete reservation' }, { status: 500 });
   }

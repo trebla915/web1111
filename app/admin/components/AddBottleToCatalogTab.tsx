@@ -5,6 +5,11 @@ import { toast } from "react-hot-toast";
 import Image from "next/image";
 import { FiEdit, FiTrash2, FiSearch, FiX, FiPlus, FiDollarSign, FiImage, FiList } from "react-icons/fi";
 import { fetchAllBottlesFromCatalog, addBottleToCatalog, updateBottleInCatalog, deleteBottleFromCatalog, uploadBottleImage } from "@/lib/services/catalog";
+import { Spinner } from "@/components/ui/spinner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/field";
+import { Card } from "@/components/ui/card";
 
 interface BottleCatalog {
   id: string;
@@ -195,34 +200,33 @@ export default function AddBottleToCatalogTab() {
 
   return (
     <div className="p-4 lg:p-6">
-      <h2 className="text-2xl lg:text-3xl font-bold mb-6 text-cyan-300 digital-glow-soft">Add Bottle to Catalog</h2>
+      <h2 className="text-2xl lg:text-3xl font-bold mb-6 text-accent-300 digital-glow-soft">Add Bottle to Catalog</h2>
       
       {/* Loading Overlay */}
       {loading && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="w-16 h-16 border-t-2 border-b-2 border-cyan-500 rounded-full animate-spin"></div>
+        <div className="fixed inset-0 bg-canvas bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-50">
+          <Spinner size="lg" className="text-accent-500 h-16 w-16" />
         </div>
       )}
 
       {/* Add New Bottle Form */}
-      <div className="bg-zinc-900 border border-cyan-900/30 p-4 lg:p-6 rounded-lg mb-8 relative">
-        <div className="absolute inset-0 noise opacity-5 rounded-lg"></div>
+      <Card padding="lg" texture className="mb-8">
         <div className="relative z-10">
-          <h3 className="text-xl font-semibold mb-4 text-cyan-200 flex items-center">
-            <FiPlus className="mr-2 text-cyan-400" />
+          <h3 className="text-xl font-semibold mb-4 text-accent-200 flex items-center">
+            <FiPlus className="mr-2 text-accent-400" />
             Add New Bottle
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <div className="mb-4">
-                <label htmlFor="bottleName" className="block text-sm font-medium mb-2 text-cyan-200">
-                  Bottle Name <span className="text-cyan-500">*</span>
-                </label>
+                <Label htmlFor="bottleName" className="mb-2 text-accent-200">
+                  Bottle Name <span className="text-accent-500">*</span>
+                </Label>
                 <div className="relative">
-                  <input
+                  <Input
                     id="bottleName"
                     type="text"
-                    className="w-full p-3 bg-zinc-800/80 rounded-lg text-white border border-cyan-900/50 focus:border-cyan-500/70 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 transition-all"
+                    className="p-3 bg-surface-raised/80 border border-accent-900/50 focus:border-accent-500/70 focus:ring-1 focus:ring-accent-500/50"
                     placeholder="Enter bottle name"
                     value={newBottleName}
                     onChange={(e) => setNewBottleName(e.target.value)}
@@ -232,17 +236,17 @@ export default function AddBottleToCatalogTab() {
               </div>
               
               <div className="mb-4">
-                <label htmlFor="bottlePrice" className="block text-sm font-medium mb-2 text-cyan-200">
-                  Price <span className="text-cyan-500">*</span>
-                </label>
+                <Label htmlFor="bottlePrice" className="mb-2 text-accent-200">
+                  Price <span className="text-accent-500">*</span>
+                </Label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FiDollarSign className="text-cyan-600" />
+                    <FiDollarSign className="text-accent-600" />
                   </div>
-                  <input
+                  <Input
                     id="bottlePrice"
                     type="number"
-                    className="w-full p-3 pl-8 bg-zinc-800/80 rounded-lg text-white border border-cyan-900/50 focus:border-cyan-500/70 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 transition-all"
+                    className="p-3 pl-8 bg-surface-raised/80 border border-accent-900/50 focus:border-accent-500/70 focus:ring-1 focus:ring-accent-500/50"
                     placeholder="Enter price"
                     value={newBottlePrice}
                     onChange={(e) => setNewBottlePrice(e.target.value)}
@@ -252,11 +256,11 @@ export default function AddBottleToCatalogTab() {
               </div>
               
               <div className="mb-4">
-                <label className="block text-sm font-medium mb-2 text-cyan-200">
-                  Bottle Image <span className="text-cyan-500">*</span>
-                </label>
-                <label className="flex items-center justify-center w-full h-12 px-4 transition bg-zinc-800/80 border border-cyan-900/50 hover:border-cyan-500/70 rounded-lg cursor-pointer">
-                  <FiImage className="mr-2 text-cyan-500" />
+                <Label className="mb-2 text-accent-200">
+                  Bottle Image <span className="text-accent-500">*</span>
+                </Label>
+                <label className="flex items-center justify-center w-full h-12 px-4 transition bg-surface-raised/80 border border-accent-900/50 hover:border-accent-500/70 rounded-lg cursor-pointer">
+                  <FiImage className="mr-2 text-accent-500" />
                   <span className="text-sm">
                     {newBottleImage ? "Change Image" : "Select Image"}
                   </span>
@@ -269,58 +273,57 @@ export default function AddBottleToCatalogTab() {
                 </label>
               </div>
               
-              <button
+              <Button
                 onClick={handleAddNewBottle}
-                className="w-full p-3 bg-gradient-to-r from-cyan-800 to-cyan-600 hover:from-cyan-700 hover:to-cyan-500 rounded-lg text-white font-medium transition-all border border-cyan-500/50 relative overflow-hidden group"
+                variant="outline" size="md" full className="p-3 bg-gradient-to-r from-accent-800 to-accent-600 hover:from-accent-700 hover:to-accent-500 border border-accent-500/50 relative overflow-hidden group"
               >
-                <div className="absolute inset-0 flex justify-center items-center bg-gradient-to-r from-cyan-600/0 via-cyan-600/30 to-cyan-600/0 opacity-0 group-hover:opacity-100 transform translate-y-full group-hover:translate-y-0 transition-all duration-500"></div>
+                <div className="absolute inset-0 flex justify-center items-center bg-gradient-to-r from-accent-600/0 via-accent-600/30 to-accent-600/0 opacity-0 group-hover:opacity-100 transform translate-y-full group-hover:translate-y-0 transition-all duration-500"></div>
                 <span className="relative z-10 flex items-center justify-center">
                   <FiPlus className="mr-2" />
                   Add Bottle
                 </span>
-              </button>
+              </Button>
             </div>
             
             <div className="flex items-center justify-center">
               {newBottleImagePreview ? (
-                <div className="relative w-48 h-48 border border-cyan-900/50 rounded-lg p-1 bg-black/50">
+                <div className="relative w-48 h-48 border border-accent-900/50 rounded-lg p-1 bg-canvas/50">
                   <Image 
                     src={newBottleImagePreview} 
                     alt="New bottle preview" 
                     fill
-                    style={{objectFit: "contain"}}
-                    className="rounded-lg"
+                    className="rounded-lg object-contain"
                   />
-                  <button 
+                  <Button 
                     onClick={() => {
                       URL.revokeObjectURL(newBottleImagePreview);
                       setNewBottleImagePreview(null);
                       setNewBottleImage(null);
                     }}
-                    className="absolute top-2 right-2 bg-red-500/80 rounded-full p-1 hover:bg-red-600 transition-colors"
+                    variant="ghost" size="md" className="absolute top-2 right-2 bg-danger-500/80 rounded-full p-1 hover:bg-danger-600"
                   >
-                    <FiX className="text-white" />
-                  </button>
+                    <FiX className="text-fg" />
+                  </Button>
                 </div>
               ) : (
-                <div className="w-48 h-48 bg-zinc-800/50 border border-cyan-900/30 rounded-lg flex flex-col items-center justify-center">
-                  <FiImage size={32} className="text-cyan-900/70 mb-2" />
-                  <span className="text-gray-400 text-center">No image selected</span>
+                <div className="w-48 h-48 bg-surface-raised/50 border border-accent-900/30 rounded-lg flex flex-col items-center justify-center">
+                  <FiImage size={32} className="text-accent-900/70 mb-2" />
+                  <span className="text-fg-muted text-center">No image selected</span>
                 </div>
               )}
             </div>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Search Bar */}
       <div className="relative mb-6">
         <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-          <FiSearch className="text-cyan-600" />
+          <FiSearch className="text-accent-600" />
         </div>
-        <input
+        <Input
           type="text"
-          className="w-full p-3 pl-10 bg-zinc-900 rounded-lg text-white border border-cyan-900/50 focus:border-cyan-500/70 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 transition-all"
+          className="p-3 pl-10 bg-surface border border-accent-900/50 focus:border-accent-500/70 focus:ring-1 focus:ring-accent-500/50"
           placeholder="Search bottles"
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
@@ -329,96 +332,96 @@ export default function AddBottleToCatalogTab() {
 
       {/* Bottle Catalog Header */}
       <div className="flex items-center mb-4">
-        <FiList className="text-cyan-500 mr-2" />
-        <h3 className="text-lg font-medium text-cyan-200">Current Bottle Catalog</h3>
+        <FiList className="text-accent-500 mr-2" />
+        <h3 className="text-lg font-medium text-accent-200">Current Bottle Catalog</h3>
       </div>
 
       {/* Bottle List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredBottles.length === 0 ? (
-          <div className="col-span-full text-center py-12 text-gray-400 border border-dashed border-cyan-900/30 rounded-lg bg-zinc-900/50">
-            <FiList size={48} className="mx-auto mb-4 text-cyan-900/50" />
+          <div className="col-span-full text-center py-12 text-fg-muted border border-dashed border-accent-900/30 rounded-lg bg-surface/50">
+            <FiList size={48} className="mx-auto mb-4 text-accent-900/50" />
             <p className="text-xl">No bottles in the catalog.</p>
           </div>
         ) : (
           filteredBottles.map((bottle) => (
-            <div 
-              key={bottle.id} 
-              className="bg-zinc-900 border border-cyan-900/30 p-4 rounded-lg cursor-pointer hover:border-cyan-700/50 transition-all relative group"
+            <Card
+              key={bottle.id}
+              padding="none"
+              texture
+              interactive
+              className="group p-4"
               onClick={() => handleAddOrEditBottle(bottle)}
             >
-              <div className="absolute inset-0 noise opacity-5 rounded-lg"></div>
               <div className="relative z-10">
                 <div className="flex items-center mb-3">
                   <div className="flex-1">
-                    <h3 className="font-medium text-white">{bottle.name}</h3>
-                    <p className="text-cyan-400">${bottle.price.toFixed(2)}</p>
+                    <h3 className="font-medium text-fg">{bottle.name}</h3>
+                    <p className="text-accent-400">${bottle.price.toFixed(2)}</p>
                   </div>
-                  <div className="bg-cyan-900/30 p-2 rounded-full text-cyan-400 hover:bg-cyan-800/50 hover:text-cyan-300 transition-colors">
+                  <div className="bg-accent-900/30 p-2 rounded-full text-accent-400 hover:bg-accent-800/50 hover:text-accent-300 transition-colors">
                     <FiEdit className="h-5 w-5" />
                   </div>
                 </div>
                 
-                <div className="relative w-full h-36 bg-black/30 rounded-lg border border-cyan-900/20 p-1">
+                <div className="relative w-full h-36 bg-canvas/30 rounded-lg border border-accent-900/20 p-1">
                   <Image
                     src={bottle.imageUrl}
                     alt={bottle.name}
                     fill
-                    style={{objectFit: "contain"}}
-                    className="rounded-lg"
+                    className="rounded-lg object-contain"
                     unoptimized={bottle.imageUrl?.includes('firebasestorage.googleapis.com') || bottle.imageUrl?.includes('storage.googleapis.com')}
                   />
                 </div>
               </div>
               
               {/* Hover effect bottom gradient line */}
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500/0 via-cyan-500/40 to-cyan-500/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-            </div>
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-accent-500/0 via-accent-500/40 to-accent-500/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+            </Card>
           ))
         )}
       </div>
 
       {/* Edit Modal */}
       {isModalVisible && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-40 p-4">
-          <div className="bg-zinc-900 border border-cyan-900/50 rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto relative">
-            <div className="absolute inset-0 noise opacity-5 rounded-lg"></div>
+        <div className="fixed inset-0 bg-canvas/90 backdrop-blur-sm flex items-center justify-center z-40 p-4">
+          <Card padding="none" texture className="max-w-md w-full max-h-[90vh] overflow-y-auto p-6">
             <div className="relative z-10">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-semibold text-cyan-300">Edit Bottle</h3>
-                <button 
+                <h3 className="text-xl font-semibold text-accent-300">Edit Bottle</h3>
+                <Button 
                   onClick={handleCloseModal}
-                  className="text-gray-400 hover:text-white bg-zinc-800/80 p-2 rounded-full hover:bg-zinc-700 transition-colors"
+                  variant="subtle" size="md" className="text-fg-muted hover:text-fg bg-surface-raised/80 p-2 rounded-full hover:bg-surface-hover"
                 >
                   <FiX size={20} />
-                </button>
+                </Button>
               </div>
 
               <div className="mb-4">
-                <label htmlFor="modalName" className="block text-sm font-medium mb-2 text-cyan-200">
+                <Label htmlFor="modalName" className="mb-2 text-accent-200">
                   Bottle Name
-                </label>
-                <input
+                </Label>
+                <Input
                   id="modalName"
                   type="text"
-                  className="w-full p-3 bg-zinc-800/80 rounded-lg text-white border border-cyan-900/50 focus:border-cyan-500/70 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 transition-all"
+                  className="p-3 bg-surface-raised/80 border border-accent-900/50 focus:border-accent-500/70 focus:ring-1 focus:ring-accent-500/50"
                   value={modalName}
                   onChange={(e) => setModalName(e.target.value)}
                 />
               </div>
 
               <div className="mb-4">
-                <label htmlFor="modalPrice" className="block text-sm font-medium mb-2 text-cyan-200">
+                <Label htmlFor="modalPrice" className="mb-2 text-accent-200">
                   Price
-                </label>
+                </Label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FiDollarSign className="text-cyan-600" />
+                    <FiDollarSign className="text-accent-600" />
                   </div>
-                  <input
+                  <Input
                     id="modalPrice"
                     type="number"
-                    className="w-full p-3 pl-8 bg-zinc-800/80 rounded-lg text-white border border-cyan-900/50 focus:border-cyan-500/70 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 transition-all"
+                    className="p-3 pl-8 bg-surface-raised/80 border border-accent-900/50 focus:border-accent-500/70 focus:ring-1 focus:ring-accent-500/50"
                     value={modalPrice}
                     onChange={(e) => setModalPrice(e.target.value)}
                   />
@@ -426,21 +429,20 @@ export default function AddBottleToCatalogTab() {
               </div>
 
               <div className="mb-6">
-                <label className="block text-sm font-medium mb-2 text-cyan-200">
+                <Label className="mb-2 text-accent-200">
                   Bottle Image
-                </label>
-                <div className="relative w-full h-48 mb-3 bg-black/30 rounded-lg border border-cyan-900/30 p-1">
+                </Label>
+                <div className="relative w-full h-48 mb-3 bg-canvas/30 rounded-lg border border-accent-900/30 p-1">
                   <Image
                     src={modalImageUrl || "/placeholder-bottle.png"}
                     alt="Bottle"
                     fill
-                    style={{objectFit: "contain"}}
-                    className="rounded-lg"
+                    className="rounded-lg object-contain"
                     unoptimized={modalImageUrl?.includes('firebasestorage.googleapis.com') || modalImageUrl?.includes('storage.googleapis.com')}
                   />
                 </div>
-                <label className="flex items-center justify-center w-full h-12 px-4 transition bg-zinc-800/80 border border-cyan-900/50 hover:border-cyan-500/70 rounded-lg cursor-pointer">
-                  <FiImage className="mr-2 text-cyan-500" />
+                <label className="flex items-center justify-center w-full h-12 px-4 transition bg-surface-raised/80 border border-accent-900/50 hover:border-accent-500/70 rounded-lg cursor-pointer">
+                  <FiImage className="mr-2 text-accent-500" />
                   <span className="text-sm">Change Image</span>
                   <input
                     type="file"
@@ -452,23 +454,23 @@ export default function AddBottleToCatalogTab() {
               </div>
 
               <div className="flex space-x-3">
-                <button
+                <Button
                   onClick={handleSaveBottle}
-                  className="flex-1 p-3 bg-gradient-to-r from-cyan-800 to-cyan-600 hover:from-cyan-700 hover:to-cyan-500 rounded-lg text-white font-medium transition-all border border-cyan-500/50 relative overflow-hidden group"
+                  variant="outline" size="md" className="flex-1 p-3 bg-gradient-to-r from-accent-800 to-accent-600 hover:from-accent-700 hover:to-accent-500 border border-accent-500/50 relative overflow-hidden group"
                 >
-                  <div className="absolute inset-0 flex justify-center items-center bg-gradient-to-r from-cyan-600/0 via-cyan-600/30 to-cyan-600/0 opacity-0 group-hover:opacity-100 transform translate-y-full group-hover:translate-y-0 transition-all duration-500"></div>
+                  <div className="absolute inset-0 flex justify-center items-center bg-gradient-to-r from-accent-600/0 via-accent-600/30 to-accent-600/0 opacity-0 group-hover:opacity-100 transform translate-y-full group-hover:translate-y-0 transition-all duration-500"></div>
                   <span className="relative z-10">Save Changes</span>
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={handleDeleteBottle}
-                  className="flex-1 p-3 bg-gradient-to-r from-red-900/80 to-red-700/80 hover:from-red-800 hover:to-red-600 rounded-lg text-white font-medium transition-all border border-red-500/50 flex items-center justify-center"
+                  variant="outline" size="md" className="flex-1 p-3 bg-gradient-to-r from-danger-900/80 to-danger-700/80 hover:from-danger-800 hover:to-danger-600 border border-danger-500/50 flex items-center justify-center"
                 >
                   <FiTrash2 className="mr-2" />
                   Delete
-                </button>
+                </Button>
               </div>
             </div>
-          </div>
+          </Card>
         </div>
       )}
     </div>

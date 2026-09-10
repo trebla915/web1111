@@ -6,6 +6,11 @@ import { useAuth } from '@/components/providers/AuthProvider';
 import { useReservation } from '@/components/providers/ReservationProvider';
 import { toast } from 'react-hot-toast';
 import { FiUser, FiPhone, FiMail, FiArrowLeft } from 'react-icons/fi';
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/field";
+import { RouteLoading } from "@/components/ui/page-state";
+import { ReservationStepHeader } from "@/components/reservation/ReservationSteps";
+import { Input } from "@/components/ui/input";
 
 export default function ContactInformationPage() {
   const params = useParams();
@@ -148,165 +153,133 @@ export default function ContactInformationPage() {
   
   // Show loading state while auth is being determined
   if (authLoading) {
-    return (
-      <div className="min-h-screen pt-28 pb-12 flex flex-col items-center">
-        <div className="w-full max-w-2xl mx-auto px-4">
-          <div className="h-64 flex items-center justify-center">
-            <div className="flex flex-col items-center">
-              <div className="w-12 h-12 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
-              <p className="mt-4 text-white">Loading...</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <RouteLoading message="Checking your account…" />;
   }
-  
+
   if (!reservationDetails) {
-    return (
-      <div className="min-h-screen pt-28 pb-12 flex flex-col items-center">
-        <div className="w-full max-w-2xl mx-auto px-4">
-          <div className="h-64 flex items-center justify-center">
-            <div className="flex flex-col items-center">
-              <div className="w-12 h-12 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
-              <p className="mt-4 text-white">Loading your reservation...</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <RouteLoading message="Loading your reservation…" />;
   }
 
   return (
-    <div className="min-h-screen pt-24 sm:pt-28 pb-12 flex flex-col">
-      <div className="w-full max-w-2xl mx-auto px-4">
-        {/* Back button */}
-        <button
-          onClick={handleGoBack}
-          className="mb-4 sm:mb-6 flex items-center text-white/70 hover:text-white transition-colors"
-        >
-          <FiArrowLeft className="mr-2" size={20} />
-          Back to Details
-        </button>
+    <div className="flex min-h-dvh flex-col pt-24 pb-16 sm:pt-28">
+      <div className="mx-auto w-full max-w-2xl px-4">
+        <Button onClick={handleGoBack} variant="ghost" size="md" className="mb-4 -ml-4">
+          <FiArrowLeft aria-hidden="true" size={18} />
+          Back to details
+        </Button>
 
-        {/* Reservation Header */}
-        <div className="mb-6 sm:mb-8 text-center">
-          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
-            Contact Information
-          </h1>
-          <p className="text-white/70 text-sm sm:text-base">
-            {reservationDetails.eventName} - {formatDate(reservationDetails.eventDate)}
-          </p>
-          <p className="text-zinc-400 mt-2 text-sm sm:text-base">
-            Table {reservationDetails.tableNumber} for {reservationDetails.guestCount} {reservationDetails.guestCount === 1 ? 'person' : 'people'}
-          </p>
-        </div>
+        {/* Three headings stacked here — "Contact Information", then "Please
+            provide your contact details", then a paragraph restating both —
+            all saying the same thing at three sizes. */}
+        <ReservationStepHeader
+          step="contact"
+          eventName={reservationDetails.eventName}
+          eventDate={formatDate(reservationDetails.eventDate)}
+          title="Your contact details"
+          description={`Table ${reservationDetails.tableNumber} for ${reservationDetails.guestCount} ${
+            reservationDetails.guestCount === 1 ? 'guest' : 'guests'
+          }. We'll send your confirmation and any updates here.`}
+        />
 
         {/* Contact Form */}
-        <div className="bg-zinc-900 rounded-lg border border-white/20 overflow-hidden">
-          <div className="p-4 sm:p-6">
-            <h2 className="text-lg sm:text-xl font-bold text-white mb-4 sm:mb-6">Please provide your contact details</h2>
-            <p className="text-zinc-400 mb-6 text-sm sm:text-base">
-              This information will be used for your reservation confirmation and any important updates about your event.
-            </p>
-
-            <div className="space-y-5 sm:space-y-6">
-              {/* Full Name */}
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-white mb-2">
-                  Full Name *
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FiUser className="h-5 w-5 text-zinc-400" />
-                  </div>
-                  <input
-                    type="text"
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    placeholder="Enter your full name"
-                    className={`w-full pl-10 pr-4 py-3 bg-zinc-800 border rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent ${
-                      errors.name ? 'border-red-500' : 'border-zinc-600'
-                    }`}
-                  />
-                </div>
-                {errors.name && (
-                  <p className="mt-1 text-sm text-red-400">{errors.name}</p>
-                )}
-              </div>
-
-              {/* Email */}
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-white mb-2">
-                  Email Address *
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FiMail className="h-5 w-5 text-zinc-400" />
-                  </div>
-                  <input
-                    type="email"
-                    id="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    placeholder="Enter your email address"
-                    className={`w-full pl-10 pr-4 py-3 bg-zinc-800 border rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent ${
-                      errors.email ? 'border-red-500' : 'border-zinc-600'
-                    }`}
-                  />
-                </div>
-                {errors.email && (
-                  <p className="mt-1 text-sm text-red-400">{errors.email}</p>
-                )}
-              </div>
-
-              {/* Phone Number */}
-              <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-white mb-2">
-                  Phone Number *
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FiPhone className="h-5 w-5 text-zinc-400" />
-                  </div>
-                  <input
-                    type="tel"
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    placeholder="(555) 123-4567"
-                    className={`w-full pl-10 pr-4 py-3 bg-zinc-800 border rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent ${
-                      errors.phone ? 'border-red-500' : 'border-zinc-600'
-                    }`}
-                  />
-                </div>
-                {errors.phone && (
-                  <p className="mt-1 text-sm text-red-400">{errors.phone}</p>
-                )}
-                <p className="mt-1 text-xs text-zinc-500">
-                  We'll use this number to contact you about your reservation
+        <div className="overflow-hidden rounded-lg border border-line-accent/30 bg-surface">
+          <div className="space-y-5 p-4 sm:p-6">
+            {/* Each field re-declared the input recipe by hand, with a focus
+                ring in `--fg` where the rest of the site rings in `--accent`,
+                and the validation errors were never tied to their input, so a
+                screen reader announced the field as valid and unlabelled while
+                a red sentence sat underneath it. */}
+            <div>
+              <Label htmlFor="name" className="mb-1.5">
+                Full name
+              </Label>
+              <Input
+                type="text"
+                id="name"
+                autoComplete="name"
+                required
+                leadingIcon={<FiUser aria-hidden="true" className="h-4 w-4" />}
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
+                placeholder="Alex Navarro"
+                aria-invalid={errors.name ? true : undefined}
+                aria-describedby={errors.name ? 'name-error' : undefined}
+              />
+              {errors.name && (
+                <p id="name-error" role="alert" className="mt-1.5 text-sm text-danger-bright">
+                  {errors.name}
                 </p>
-              </div>
+              )}
             </div>
 
-            {/* Privacy Notice */}
-            <div className="mt-6 p-4 bg-zinc-800 rounded-lg">
-              <p className="text-sm text-zinc-400">
-                <strong className="text-white">Privacy:</strong> Your contact information will only be used for this reservation and important event updates. We will not share your information with third parties or use it for marketing purposes.
-              </p>
+            <div>
+              <Label htmlFor="email" className="mb-1.5">
+                Email address
+              </Label>
+              <Input
+                type="email"
+                id="email"
+                autoComplete="email"
+                required
+                leadingIcon={<FiMail aria-hidden="true" className="h-4 w-4" />}
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+                placeholder="you@example.com"
+                aria-invalid={errors.email ? true : undefined}
+                aria-describedby={errors.email ? 'email-error' : undefined}
+              />
+              {errors.email && (
+                <p id="email-error" role="alert" className="mt-1.5 text-sm text-danger-bright">
+                  {errors.email}
+                </p>
+              )}
             </div>
+
+            <div>
+              <Label htmlFor="phone" className="mb-1.5">
+                Phone number
+              </Label>
+              <Input
+                type="tel"
+                id="phone"
+                autoComplete="tel"
+                required
+                leadingIcon={<FiPhone aria-hidden="true" className="h-4 w-4" />}
+                value={formData.phone}
+                onChange={(e) => handleInputChange('phone', e.target.value)}
+                placeholder="(915) 555-0142"
+                aria-invalid={errors.phone ? true : undefined}
+                aria-describedby={errors.phone ? 'phone-error' : 'phone-hint'}
+              />
+              {errors.phone ? (
+                <p id="phone-error" role="alert" className="mt-1.5 text-sm text-danger-bright">
+                  {errors.phone}
+                </p>
+              ) : (
+                <p id="phone-hint" className="mt-1.5 text-xs text-fg-subtle">
+                  Only used to reach you about this reservation.
+                </p>
+              )}
+            </div>
+
+            <p className="rounded-lg bg-surface-raised p-4 text-sm text-fg-muted">
+              <strong className="font-medium text-fg-dim">Privacy:</strong> your details are used for
+              this reservation and event updates only. We don't share them or use them for marketing.
+            </p>
           </div>
 
           {/* Actions */}
-          <div className="p-4 sm:p-6 border-t border-zinc-700">
-            <button
+          <div className="border-t border-line-subtle p-4 sm:p-6">
+            <Button
               onClick={handleContinueToPayment}
               disabled={isSubmitting}
-              className="w-full py-3 bg-white hover:bg-white/90 disabled:bg-white/40 disabled:cursor-not-allowed text-black font-bold rounded-lg transition-colors"
+              loading={isSubmitting}
+              variant="primary"
+              size="lg"
+              full
             >
-              {isSubmitting ? 'Saving...' : 'Continue to Payment'}
-            </button>
+              {isSubmitting ? 'Saving' : 'Continue to payment'}
+            </Button>
           </div>
         </div>
       </div>

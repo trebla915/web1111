@@ -1,19 +1,15 @@
+import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { storePushToken } from '@/lib/services/notifications';
-import { getSession } from '@/lib/auth-utils';
+import { authErrorResponse, requireUser } from '@/lib/auth/server';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     // Get current user from session
-    const session = await getSession();
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { success: false, error: 'Authentication required' },
-        { status: 401 }
-      );
-    }
-
-    const userId = session.user.uid;
+    // getSession() read the client-writable `userInfo` cookie, so any caller
+    // could register a push token against another user's uid.
+    const actor = await requireUser(request);
+    const userId = actor.uid;
     const body = await request.json();
     
     // Validate token
@@ -36,6 +32,8 @@ export async function POST(request: Request) {
       message: 'Push token registered successfully'
     });
   } catch (error) {
+    const __authed = authErrorResponse(error);
+    if (__authed) return __authed;
     console.error('Error registering push token:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to register push token' },

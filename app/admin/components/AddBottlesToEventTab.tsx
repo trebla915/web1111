@@ -7,6 +7,11 @@ import { FiSearch, FiPlus, FiTrash2, FiSave } from "react-icons/fi";
 import { BottleService } from "@/lib/services/bottles";
 import { Bottle } from '@/types/reservation';
 import EventPicker from "./EventPicker";
+import { Spinner } from "@/components/ui/spinner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface AddBottlesToEventTabProps {
   eventId?: string;
@@ -75,33 +80,34 @@ export default function AddBottlesToEventTab({ eventId: initialEventId }: AddBot
     <div className="space-y-6">
       {/* Mobile Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h2 className="text-2xl lg:text-3xl font-bold text-white">Event Bottles</h2>
-        <div className="text-sm text-gray-400">Assign catalog bottles to an event</div>
+        <h2 className="text-2xl lg:text-3xl font-bold text-fg">Event Bottles</h2>
+        <div className="text-sm text-fg-muted">Assign catalog bottles to an event</div>
       </div>
 
       {/* Event Selector */}
-      <div className="bg-zinc-900/50 rounded-lg border border-cyan-900/30 p-4 lg:p-6">
+      <Card padding="lg" className="bg-surface/50">
         <EventPicker value={eventId} onChange={setEventId} label="Select event" />
-      </div>
+      </Card>
 
       {!eventId ? (
-        <div className="text-center py-12 text-gray-400 bg-zinc-900/50 rounded-lg border border-cyan-900/30">
-          <p>Select an event above to manage its bottles.</p>
-        </div>
+        <EmptyState
+          title="No event selected"
+          description="Choose an event above to manage its bottles."
+        />
       ) : loading ? (
         <div className="flex items-center justify-center h-64">
-          <div className="w-12 h-12 border-t-2 border-b-2 border-cyan-500 rounded-full animate-spin"></div>
+          <Spinner size="lg" className="text-accent-500" />
         </div>
       ) : (
         <>
       {/* Search Bar */}
       <div className="relative">
         <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-          <FiSearch className="text-cyan-600" />
+          <FiSearch className="text-accent-600" />
         </div>
-        <input
+        <Input
           type="text"
-          className="w-full p-3 pl-10 bg-zinc-800 rounded-lg text-white border border-cyan-900/50 focus:border-cyan-500/70 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 text-base lg:text-sm"
+          className="p-3 pl-10 bg-surface-raised border border-accent-900/50 focus:border-accent-500/70 focus:ring-1 focus:ring-accent-500/50 text-base lg:text-sm"
           placeholder="Search bottles..."
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
@@ -110,34 +116,33 @@ export default function AddBottlesToEventTab({ eventId: initialEventId }: AddBot
 
       {/* Available Bottles */}
       <div>
-        <h3 className="text-lg font-bold text-white mb-4">Available Bottles</h3>
+        <h3 className="text-lg font-bold text-fg mb-4">Available Bottles</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredBottles.map((bottle) => (
             <div
               key={bottle.id}
-              className="bg-zinc-800 rounded-lg p-4 flex justify-between items-center"
+              className="bg-surface-raised rounded-lg p-4 flex justify-between items-center"
             >
               <div className="flex items-center space-x-4">
-                <div className="relative h-16 w-16 flex-shrink-0 bg-black/30 rounded-md border border-cyan-900/20 p-1">
+                <div className="relative h-16 w-16 flex-shrink-0 bg-canvas/30 rounded-md border border-accent-900/20 p-1">
                   <Image
                     src={bottle.imageUrl}
                     alt={bottle.name}
                     fill
-                    style={{objectFit: "contain"}}
-                    className="rounded-md"
+                    className="rounded-md object-contain"
                   />
                 </div>
                 <div>
-                  <h4 className="font-bold text-white">{bottle.name}</h4>
-                  <p className="text-cyan-400">${bottle.price.toFixed(2)}</p>
+                  <h4 className="font-bold text-fg">{bottle.name}</h4>
+                  <p className="text-accent-400">${bottle.price.toFixed(2)}</p>
                 </div>
               </div>
-              <button
+              <Button
                 onClick={() => handleAddBottle(bottle)}
-                className="p-2 bg-cyan-600 rounded-full hover:bg-cyan-700 transition-colors"
+                variant="accent" size="md" className="p-2 bg-accent-600 rounded-full hover:bg-accent-700"
               >
-                <FiPlus className="text-white" size={20} />
-              </button>
+                <FiPlus className="text-fg" size={20} />
+              </Button>
             </div>
           ))}
         </div>
@@ -146,45 +151,44 @@ export default function AddBottlesToEventTab({ eventId: initialEventId }: AddBot
       {/* Selected Bottles */}
       {selectedBottles.length > 0 && (
         <div>
-          <h3 className="text-lg font-bold text-white mb-4">Selected Bottles</h3>
+          <h3 className="text-lg font-bold text-fg mb-4">Selected Bottles</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {selectedBottles.map((bottle) => (
               <div
                 key={bottle.id}
-                className="bg-zinc-800 rounded-lg p-4 flex justify-between items-center"
+                className="bg-surface-raised rounded-lg p-4 flex justify-between items-center"
               >
                 <div className="flex items-center space-x-4">
-                  <div className="relative h-16 w-16 flex-shrink-0 bg-black/30 rounded-md border border-cyan-900/20 p-1">
+                  <div className="relative h-16 w-16 flex-shrink-0 bg-canvas/30 rounded-md border border-accent-900/20 p-1">
                     <Image
                       src={bottle.imageUrl}
                       alt={bottle.name}
                       fill
-                      style={{objectFit: "contain"}}
-                      className="rounded-md"
+                      className="rounded-md object-contain"
                     />
                   </div>
                   <div>
-                    <h4 className="font-bold text-white">{bottle.name}</h4>
-                    <p className="text-cyan-400">${bottle.price.toFixed(2)}</p>
+                    <h4 className="font-bold text-fg">{bottle.name}</h4>
+                    <p className="text-accent-400">${bottle.price.toFixed(2)}</p>
                   </div>
                 </div>
-                <button
+                <Button
                   onClick={() => handleRemoveBottle(bottle)}
-                  className="p-2 bg-red-600 rounded-full hover:bg-red-700 transition-colors"
+                  variant="danger" size="md" className="p-2 bg-danger-600 rounded-full hover:bg-danger-700"
                 >
-                  <FiTrash2 className="text-white" size={20} />
-                </button>
+                  <FiTrash2 className="text-fg" size={20} />
+                </Button>
               </div>
             ))}
           </div>
           <div className="mt-6">
-            <button
+            <Button
               onClick={handleSave}
-              className="px-4 py-2 bg-cyan-600 text-white rounded-md hover:bg-cyan-700 transition-colors flex items-center space-x-2"
+              variant="accent" size="md" className="px-4 py-2 bg-accent-600 rounded-md hover:bg-accent-700 flex items-center space-x-2"
             >
               <FiSave size={20} />
               <span>Save Changes</span>
-            </button>
+            </Button>
           </div>
         </div>
       )}

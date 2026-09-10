@@ -4,9 +4,12 @@ import RegisterForm from "@/components/Auth/RegisterForm";
 
 export default function RegisterPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black text-white">
-      <div className="bg-gray-900 p-6 rounded-lg w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center">Create Account</h2>
+    <div className="flex min-h-dvh items-center justify-center bg-canvas px-4 py-24 text-fg">
+      <div className="w-full max-w-md rounded-lg border border-line-accent/30 bg-surface p-6 sm:p-8">
+        <h1 className="mb-1 text-center font-heading text-2xl tracking-wide">Create account</h1>
+        <p className="mb-6 text-center text-sm text-fg-muted">
+          Book VIP tables and keep your reservations in one place.
+        </p>
         <RegisterForm />
       </div>
     </div>

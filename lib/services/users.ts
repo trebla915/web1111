@@ -19,27 +19,30 @@ import { getAuth } from 'firebase/auth';
 const USERS_COLLECTION = 'users';
 
 // Create a new user document in Firestore
-export const createUserDocument = async (user: User): Promise<void> => {
+/**
+ * Accepts either a Firestore profile or a Firebase auth user — it only reads
+ * the identity fields common to both, and previously rejected the auth user it
+ * is actually called with.
+ */
+export const createUserDocument = async (
+  user: { uid: string; email?: string | null; displayName?: string | null; photoURL?: string | null; role?: User['role'] }
+): Promise<void> => {
   try {
     const userRef = doc(db, USERS_COLLECTION, user.uid);
-    
-    // Determine role based on email
-    let role = 'user';
-    if (user.email) {
-      const isAdmin = user.email.includes('admin') || 
-                    user.email === 'albert@1111eptx.com' ||
-                    user.email === 'admin@1111eptx.com';
-      
-      if (isAdmin) {
-        role = 'admin';
-      } else if (user.email.includes('promoter')) {
-        role = 'promoter';
-      }
-    }
-    
+
+    // A profile document is always created as an ordinary customer.
+    //
+    // This previously derived the role from the email address
+    // (`email.includes('admin')`) and wrote it here with the CLIENT SDK — so
+    // the browser itself granted the privilege. With the deployed Firestore
+    // rules set to `allow write: if true`, that write succeeded, which is what
+    // turns this from vulnerable code into a working escalation.
+    //
+    // Privilege is granted deliberately by an administrator, never inferred
+    // from an address, and never written from a browser.
     await setDoc(userRef, {
       ...user,
-      role,
+      role: 'user',
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
@@ -226,8 +229,8 @@ export const getUsersByRole = async (role: string): Promise<User[]> => {
     const querySnapshot = await getDocs(q);
     
     return querySnapshot.docs.map(doc => ({
+      ...(doc.data() as User),
       uid: doc.id,
-      ...doc.data() as User
     }));
   } catch (error) {
     console.error(`Error fetching users with role ${role}:`, error);

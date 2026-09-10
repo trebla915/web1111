@@ -1,7 +1,10 @@
+import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { ADMIN_ROLES, STAFF_ROLES, authErrorResponse, requireRole, requireUser } from '@/lib/auth/server';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    await requireRole(request, ADMIN_ROLES, { checkRevoked: true });
     const body = await request.json();
     
     // Validate token
@@ -37,6 +40,8 @@ export async function POST(request: Request) {
       });
     }
   } catch (error) {
+    const __authed = authErrorResponse(error);
+    if (__authed) return __authed;
     console.error('Error testing push token:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to test push token' },

@@ -88,12 +88,23 @@ export const sendPushNotification = async (data: PushNotificationData) => {
   }
 };
 
+/** One row of the notification send log. */
+export interface NotificationHistoryItem {
+  id: string;
+  title: string;
+  message: string;
+  status: string;
+  sentAt: unknown;
+  targetedUsers?: string[];
+}
+
 /**
  * Get notification history
  * @param maxResults Maximum number of notifications to retrieve
- * @returns Promise<Array> List of past notifications
  */
-export const getNotificationHistory = async (maxResults = 10) => {
+export const getNotificationHistory = async (
+  maxResults = 10
+): Promise<NotificationHistoryItem[]> => {
   try {
     const notificationsCollection = collection(db, 'notifications');
     const q = query(
@@ -104,9 +115,9 @@ export const getNotificationHistory = async (maxResults = 10) => {
     
     const querySnapshot = await getDocs(q);
     
-    return querySnapshot.docs.map(doc => ({
+    return querySnapshot.docs.map((doc) => ({
+      ...(doc.data() as Omit<NotificationHistoryItem, 'id'>),
       id: doc.id,
-      ...doc.data()
     }));
   } catch (error) {
     console.error('Error fetching notification history:', error);

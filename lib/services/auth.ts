@@ -28,9 +28,9 @@ export const registerUser = async (email: string, password: string): Promise<Use
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     
     // Format user with the default role of 'user'
-    const user = {
+    const user: User = {
       ...formatUser(userCredential.user),
-      role: 'user'
+      role: 'user',
     };
     
     // Get token and store in cookie
@@ -131,7 +131,7 @@ export const onAuthStateChange = (callback: (user: User | null) => void) => {
           // Include any other fields from Firestore
           displayName: userDoc?.displayName || formattedUser.displayName,
           photoURL: userDoc?.photoURL || formattedUser.photoURL,
-          phone: userDoc?.phone,
+          phoneNumber: userDoc?.phoneNumber,
         };
         
         callback(completeUser);

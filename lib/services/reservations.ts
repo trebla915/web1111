@@ -38,7 +38,27 @@ export const getGroupedByEvent = async (): Promise<{ [eventId: string]: Reservat
   try {
     const response = await fetch('/api/reservations');
     if (!response.ok) throw new Error('Failed to fetch reservations');
-    return await response.json();
+    const body = await response.json();
+
+    /**
+     * `/api/reservations` answers an envelope:
+     *   { reservations: { [eventId]: [...] }, count, limit, truncated, viewerRole }
+     *
+     * This returned that envelope straight through while declaring the grouped
+     * map as its type, so the admin tab iterated `count`, `limit`, `truncated`
+     * and `viewerRole` looking for arrays, found none, and rendered "No
+     * reservations found" no matter how many existed.
+     *
+     * Unwrapped tolerantly: a bare grouped map still passes through unchanged,
+     * so this holds whichever shape the deployed route returns.
+     */
+    if (body && typeof body === 'object' && !Array.isArray(body)) {
+      const grouped = (body as { reservations?: unknown }).reservations;
+      if (grouped && typeof grouped === 'object' && !Array.isArray(grouped)) {
+        return grouped as { [eventId: string]: Reservation[] };
+      }
+    }
+    return body;
   } catch (error) {
     console.error('Error getting reservations grouped by event:', error);
     throw error;

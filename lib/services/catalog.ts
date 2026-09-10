@@ -128,11 +128,8 @@ export const uploadBottleImage = async (bottleId: string, file: File): Promise<s
     // Create a storage reference
     const storageRef = ref(storage, `bottles/${bottleId}/${Date.now()}_${file.name}`);
     
-    // Convert the file to a Blob if needed
-    const fileBlob = file instanceof Blob ? file : await file.arrayBuffer().then(buffer => new Blob([buffer]));
-    
-    // Upload the file
-    const snapshot = await uploadBytes(storageRef, fileBlob);
+    // File already extends Blob, so it can be uploaded directly.
+    const snapshot = await uploadBytes(storageRef, file);
     console.log('Uploaded bottle image:', snapshot.ref.fullPath);
     
     // Get the download URL

@@ -17,9 +17,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const res = await fetch(`${BASE_URL}/api/events`, { next: { revalidate: 3600 } });
     const data = await res.json();
     const events = Array.isArray(data) ? data : data?.events ?? [];
-    eventEntries = events.map((event: { id: string; updated?: string; created?: string }) => ({
+    eventEntries = events.map((event: { id: string; updatedAt?: string; createdAt?: string }) => ({
       url: `${BASE_URL}/events/${event.id}`,
-      lastModified: event.updated || event.created ? new Date(event.updated || event.created) : new Date(),
+      lastModified: event.updatedAt || event.createdAt ? new Date(event.updatedAt ?? event.createdAt!) : new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.8,
     }));

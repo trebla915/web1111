@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminStorage } from '@/lib/firebase/admin';
 import { v4 as uuidv4 } from 'uuid';
+import { ADMIN_ROLES, STAFF_ROLES, authErrorResponse, requireRole, requireUser } from '@/lib/auth/server';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
+    // Uploads are attributed to the verified caller.
+    const actor = await requireUser(request);
     const formData = await request.formData();
     const file = formData.get('file') as File;
     
@@ -49,6 +52,8 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json({ url: publicUrl });
   } catch (error) {
+    const __authed = authErrorResponse(error);
+    if (__authed) return __authed;
     console.error('Avatar upload error:', error);
     return NextResponse.json({ error: 'Failed to upload avatar' }, { status: 500 });
   }

@@ -9,7 +9,12 @@ import { getEventTables } from '@/lib/services/tables';
 import { useReservation } from '@/components/providers/ReservationProvider';
 import { Table, Event } from '@/types/reservation';
 import { toast } from 'react-hot-toast';
-import { formatToMMDDYYYY } from '@/lib/utils/dateFormatter';
+import { FiAlertTriangle } from 'react-icons/fi';
+import { BiTable } from 'react-icons/bi';
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { RouteError, RouteLoading } from "@/components/ui/page-state";
+import { ReservationStepHeader } from "@/components/reservation/ReservationSteps";
 
 export default function TableSelectionPage() {
   const params = useParams();
@@ -135,113 +140,88 @@ export default function TableSelectionPage() {
     router.push(`/reserve/${eventId}/details`);
   };
   
-  // Helper function to format date to MM-DD-YY
+  /**
+   * Readable date. This rendered "10-17-26", while the very next step of the
+   * same flow spelled the same fact out as "Saturday, October 17, 2026" — two
+   * formats for one date, with the terse one sitting on the screen where the
+   * guest decides which night they are booking.
+   */
   const formatDate = (dateStr: string): string => {
     try {
-      if (!dateStr) return 'Invalid date';
-      
-      // Parse the ISO string directly
+      if (!dateStr) return 'Date TBA';
       const [datePart] = dateStr.split('T');
       const [year, month, day] = datePart.split('-').map(Number);
-      
-      // Format date
-      const formattedMonth = String(month).padStart(2, '0');
-      const formattedDay = String(day).padStart(2, '0');
-      const formattedYear = String(year).slice(2);
-      
-      return `${formattedMonth}-${formattedDay}-${formattedYear}`;
+      const date = new Date(year, month - 1, day);
+      if (isNaN(date.getTime())) return 'Date TBA';
+      return date.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      });
     } catch {
-      return 'Invalid date';
+      return 'Date TBA';
     }
   };
-  
-  // Show loading state while auth is being determined
-  if (authLoading) {
-    return (
-      <div className="min-h-screen pt-28 pb-12 flex flex-col items-center">
-        <div className="w-full max-w-2xl mx-auto px-4">
-          <div className="h-64 flex items-center justify-center">
-            <div className="flex flex-col items-center">
-              <div className="w-12 h-12 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
-              <p className="mt-4 text-white">Loading...</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-  
-  if (loading) {
-    return (
-      <div className="min-h-screen pt-28 pb-12 flex flex-col items-center">
-        <div className="w-full max-w-7xl mx-auto px-4">
-          <div className="h-64 flex items-center justify-center">
-            <div className="flex flex-col items-center">
-              <div className="w-12 h-12 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
-              <p className="mt-4 text-white">Loading tables...</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-  
+
+  if (authLoading) return <RouteLoading message="Checking your account…" />;
+
+  if (loading) return <RouteLoading message="Loading the floor plan…" />;
+
   if (error) {
     return (
-      <div className="min-h-screen pt-28 pb-12 flex flex-col items-center">
-        <div className="w-full max-w-7xl mx-auto px-4">
-          <div className="h-64 flex items-center justify-center">
-            <div className="text-center">
-              <p className="text-red-500 mb-4">{error}</p>
-              <button
-                onClick={() => router.push('/events')}
-                className="px-4 py-2 bg-white text-black rounded-md hover:bg-white/90 transition-colors font-medium"
-              >
-                Back to Events
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <RouteError
+        title="We couldn't load the tables"
+        description={error}
+        onRetry={fetchTables}
+        action={
+          <Button variant="ghost" size="md" onClick={() => router.push('/events')}>
+            Back to events
+          </Button>
+        }
+      />
     );
   }
-  
+
   return (
-    <div className="min-h-screen pt-24 sm:pt-28 pb-12 flex flex-col">
-      <div className="w-full max-w-7xl mx-auto px-4">
-        <div className="mb-8 sm:mb-12 text-center">
-          {eventDetails && (
-            <div className="mb-4">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white">
-                {eventDetails.title}
-              </h1>
-              <p className="text-white/70 mt-2 sm:mt-3 text-base sm:text-lg">
-                {formatDate(eventDetails.date)}
-              </p>
-            </div>
-          )}
-          
-          {usingMockData && (
-            <div className="bg-yellow-900/30 text-yellow-300 px-4 py-3 rounded-md mt-4 text-sm flex items-center justify-center mx-auto max-w-2xl">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-              </svg>
-              <span>Using demo data for development. In production, real tables will be displayed.</span>
-            </div>
-          )}
-        </div>
-        
-        {tables.length === 0 ? (
-          <div className="bg-black text-white p-6 sm:p-8 rounded-lg border border-white/20 text-center">
-            <h2 className="text-xl sm:text-2xl font-bold mb-4">No Available Tables</h2>
-            <p className="text-gray-400 mb-6">There are no tables available for this event right now.</p>
-            <button
-              onClick={() => router.push('/events')}
-              className="w-full sm:w-auto px-4 py-3 sm:py-2 bg-white text-black rounded-md hover:bg-white/90 transition-colors font-medium"
-            >
-              Browse Other Events
-            </button>
+    <div className="flex min-h-dvh flex-col pt-24 pb-16 sm:pt-28">
+      <div className="mx-auto w-full max-w-5xl px-4">
+        {/* The task is the heading on a task page. The event is context above
+            it, not a 48px display line that outweighs the thing being done. */}
+        <ReservationStepHeader
+          step="table"
+          eventName={eventDetails?.title}
+          eventDate={eventDetails ? formatDate(eventDetails.date) : undefined}
+          title="Choose your table"
+          description="Prices are per table for the night. Each table shows how many it seats and its bottle minimum."
+          aside={
+            <Button variant="outline" size="md" onClick={() => router.push('/events')}>
+              All events
+            </Button>
+          }
+        />
+
+        {usingMockData && (
+          <div
+            role="status"
+            className="mb-6 flex items-start gap-3 rounded-lg border border-warning-line/40 bg-warning-950/40 px-4 py-3 text-sm text-warning-200"
+          >
+            <FiAlertTriangle aria-hidden="true" className="mt-0.5 shrink-0" size={16} />
+            <span>Showing demo tables. Real availability appears once this event is published.</span>
           </div>
+        )}
+
+        {tables.length === 0 ? (
+          <EmptyState
+            icon={<BiTable size={40} aria-hidden="true" />}
+            title="No tables yet"
+            description="Tables for this event haven't been set up. Try another event, or check back closer to the date."
+            action={
+              <Button variant="primary" size="lg" onClick={() => router.push('/events')}>
+                Browse other events
+              </Button>
+            }
+          />
         ) : (
           <ClubLayout
             tables={tables}

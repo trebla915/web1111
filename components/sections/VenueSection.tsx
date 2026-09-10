@@ -16,62 +16,70 @@ export default function VenueSection() {
   return (
     <section
       id="venue"
-      className="py-16 bg-black text-white relative overflow-hidden border-t border-white/20"
+      className="py-16 bg-canvas text-fg relative overflow-hidden border-t border-fg/20"
     >
       {/* Background effects */}
-      <div className="absolute inset-0 noise opacity-5"></div>
-      <div className="absolute inset-0 spotlight opacity-10"></div>
+      <div aria-hidden="true" className="noise pointer-events-none absolute inset-0 opacity-5" />
+      <div aria-hidden="true" className="spotlight opacity-10" />
 
       <div className="container mx-auto px-4 relative z-10">
         <SectionHeader title="OUR VENUE" subtitle="EXPERIENCE THE UNIQUE ATMOSPHERE OF 11:11" />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-          <div ref={imageParallaxRef} className="relative h-80 md:h-auto overflow-hidden rounded-lg border border-white/20">
+          {/* `public/images/venue.jpg` is currently a zero-byte file, so this
+              rendered as a black rectangle with a caption floating on nothing.
+              The grain and spotlight sit behind the photo: when the file is
+              supplied it covers them, and until then the block still reads as a
+              deliberate panel rather than a hole. */}
+          <div
+            ref={imageParallaxRef}
+            className="relative h-72 overflow-hidden rounded-lg border border-fg/20 bg-surface sm:h-80 md:h-auto md:min-h-[22rem]"
+          >
+            <div aria-hidden="true" className="noise absolute inset-0 opacity-10" />
+            <div aria-hidden="true" className="spotlight opacity-20" />
             <div className="absolute inset-0 scale-110" style={imageParallaxStyle}>
               <Image
                 src="/images/venue.jpg"
-                alt="11:11 Venue"
+                alt=""
                 fill
                 className="object-cover"
               />
             </div>
-            <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent" />
-            <div className="absolute bottom-0 left-0 p-4">
-              <h3 className="text-2xl font-bold text-white font-display">MAIN FLOOR</h3>
-              <p className="text-white">STATE OF THE ART SOUND SYSTEM</p>
+            <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-canvas via-canvas/40 to-transparent" />
+            <div className="absolute bottom-0 left-0 p-5">
+              <h3 className="font-heading text-2xl tracking-wide text-fg">Main floor</h3>
+              <p className="mt-1 text-sm text-fg-dim">State-of-the-art sound system</p>
             </div>
           </div>
           
           <div className="space-y-4">
-            <div className="border border-white/20 p-6 bg-black">
-              <h3 className="text-2xl font-bold mb-4 text-white font-display">VENUE FEATURES</h3>
-              <ul className="space-y-3 text-white">
-                <li className="flex items-center">
-                  <span className="block w-2 h-2 bg-white mr-2"></span>
-                  PREMIUM SOUND & LIGHTING
-                </li>
-                <li className="flex items-center">
-                  <span className="block w-2 h-2 bg-white mr-2"></span>
-                  MULTIPLE BAR AREAS
-                </li>
-                <li className="flex items-center">
-                  <span className="block w-2 h-2 bg-white mr-2"></span>
-                  VIP BOTTLE SERVICE
-                </li>
-                <li className="flex items-center">
-                  <span className="block w-2 h-2 bg-white mr-2"></span>
-                  SPACIOUS DANCE FLOOR
-                </li>
-                <li className="flex items-center">
-                  <span className="block w-2 h-2 bg-white mr-2"></span>
-                  PROFESSIONAL SECURITY
-                </li>
+            {/* The image column carries `rounded-lg`; these two panels were
+                square, so one side of the row had corners and the other did
+                not. */}
+            <div className="rounded-lg border border-fg/20 bg-canvas p-6">
+              <h3 className="mb-4 font-heading text-2xl tracking-wide text-fg">Venue features</h3>
+              {/* `items-center` centred each square marker against the whole
+                  line box, so a wrapped feature pushed its marker to the middle
+                  of the block instead of the first line. */}
+              <ul className="space-y-3 text-fg-dim">
+                {[
+                  'Premium sound & lighting',
+                  'Multiple bar areas',
+                  'VIP bottle service',
+                  'Spacious dance floor',
+                  'Professional security',
+                ].map((feature) => (
+                  <li key={feature} className="flex items-start gap-3">
+                    <span aria-hidden="true" className="mt-[0.45rem] block h-1.5 w-1.5 shrink-0 bg-fg" />
+                    {feature}
+                  </li>
+                ))}
               </ul>
             </div>
             
-            <div className="border border-white/20 p-6 bg-black">
-              <h3 className="text-2xl font-bold mb-2 text-white font-display">OPENING HOURS</h3>
-              <p className="text-white">SPECIAL EVENTS: CHECK SCHEDULE ON FLYER</p>
+            <div className="rounded-lg border border-fg/20 bg-canvas p-6">
+              <h3 className="mb-2 font-heading text-2xl tracking-wide text-fg">Opening hours</h3>
+              <p className="text-fg-dim">Special events only — check the schedule on each event flyer.</p>
             </div>
           </div>
         </div>

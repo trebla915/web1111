@@ -1,85 +1,211 @@
 /**
- * 11:11 EPTX — Single source of truth for styling
- * Change colors, typography, spacing, and effects here only.
- * Tailwind theme extends these tokens; globals.css uses var(--*).
+ * 11:11 EPTX — Design tokens. THE single source of truth for colour.
+ * ---------------------------------------------------------------------------
+ * Every colour on the site resolves to a token below. Components must never
+ * name a raw Tailwind palette colour (`bg-zinc-900`, `text-gray-400`,
+ * `border-cyan-900`) — they use the semantic utilities these tokens back
+ * (`bg-surface`, `text-fg-muted`, `border-line-accent`). To restyle the site,
+ * change a value here and nothing else.
+ *
+ * WHY RGB CHANNELS, NOT HEX
+ * Tokens are stored as space-separated RGB channels so Tailwind can compose
+ * them with its opacity modifier: `rgb(var(--surface) / <alpha-value>)` makes
+ * `bg-surface/50` work. A token stored as `#18181b` would silently break every
+ * `/opacity` suffix, which is what the previous `var(--color-bg)` setup did.
+ *
+ * NEUTRAL RAMP
+ * One neutral ramp only: zinc. The site previously mixed Tailwind `gray-*`
+ * (blue-tinted) and `zinc-*` (neutral) for identical roles — often in the same
+ * file — which read as a subtle colour cast that drifted screen to screen.
+ * Brand colours (black, white, cyan) and status colours are unchanged.
  */
 
 :root {
-  /* ─── Colors ─────────────────────────────────────────────────────────── */
-  --color-bg: #000000;
-  --color-bg-elevated: rgba(0, 0, 0, 0.95);
-  --color-bg-overlay: rgba(0, 0, 0, 0.8);
-  --color-bg-muted: rgba(0, 0, 0, 0.3);
-  --color-bg-hover: rgba(255, 255, 255, 0.05);
-  --color-bg-hover-strong: rgba(255, 255, 255, 0.1);
+  /* ─── Canvas & surfaces ──────────────────────────────────────────────────
+     Elevation ladder: canvas (page) → surface (card) → raised (input, chip)
+     → hover. `sunken` sits *below* the card for wells and code blocks. */
+  --canvas:          0 0 0;        /* black    — page background        */
+  --surface:         24 24 27;     /* zinc-900 — cards, panels, modals   */
+  --surface-raised:  39 39 42;     /* zinc-800 — inputs, chips, table th */
+  --surface-hover:   63 63 70;     /* zinc-700 — hover on raised         */
+  --surface-lifted:  82 82 91;     /* zinc-600 — highest neutral fill    */
+  --surface-sunken:  9 9 11;       /* zinc-950 — wells, inset regions    */
 
-  --color-foreground: #ffffff;
-  --color-foreground-muted: rgba(255, 255, 255, 0.6);
-  --color-foreground-subtle: rgba(255, 255, 255, 0.5);
-  --color-foreground-faint: rgba(255, 255, 255, 0.4);
-  --color-foreground-dim: rgba(255, 255, 255, 0.8);
+  /* ─── Foreground ─────────────────────────────────────────────────────────
+     Four steps of emphasis. `fg-subtle` is the lightest that still clears
+     4.5:1 on `--surface`; anything dimmer is decorative only. */
+  --fg:              255 255 255;  /* white    — primary text            */
+  --fg-dim:          212 212 216;  /* zinc-300 — secondary text          */
+  --fg-muted:        161 161 170;  /* zinc-400 — labels, metadata        */
+  --fg-subtle:       113 113 122;  /* zinc-500 — placeholders, captions  */
+  /* Below the 4.5:1 threshold on --canvas. Decorative text only (watermark
+     labels, disabled glyphs) — never body copy or anything actionable. */
+  --fg-faint:        82 82 91;     /* zinc-600 — decorative only         */
+  --fg-inverse:      0 0 0;        /* black    — text on light surfaces  */
 
-  --color-accent: #06b6d4;
-  --color-accent-muted: rgba(6, 182, 212, 0.5);
-  --color-accent-soft: rgba(6, 182, 212, 0.3);
-  --color-accent-focus: rgba(6, 182, 212, 0.6);
-  --color-accent-tap: rgba(6, 182, 212, 0.1);
-  --color-accent-shadow: rgba(6, 182, 212, 0.1);
+  /* ─── Lines ──────────────────────────────────────────────────────────────
+     `line-accent` is the cyan hairline used to tint card edges. */
+  --line:            63 63 70;     /* zinc-700 — default borders         */
+  --line-subtle:     39 39 42;     /* zinc-800 — dividers, quiet edges   */
+  --line-strong:     82 82 91;     /* zinc-600 — emphasised borders      */
+  --line-accent:     22 78 99;     /* cyan-900 — brand-tinted card edge  */
 
-  --color-border: rgba(255, 255, 255, 0.2);
-  --color-border-subtle: rgba(255, 255, 255, 0.1);
-  --color-border-strong: rgba(255, 255, 255, 0.5);
-  --color-border-focus: rgba(255, 255, 255, 0.8);
+  /* ─── Accent — brand cyan ramp (values unchanged) ────────────────────────
+     A numeric ramp, not a set of semantic guesses: cyan is used across ten
+     steps for text, fills, gradients and hairlines, so naming each step by
+     position keeps the mapping lossless. The semantic aliases below cover the
+     common roles — reach for those first. */
+  --accent-100: 207 250 254;
+  --accent-200: 165 243 252;
+  --accent-300: 103 232 249;
+  --accent-400: 34 211 238;
+  --accent-500: 6 182 212;
+  --accent-600: 8 145 178;
+  --accent-700: 14 116 144;
+  --accent-800: 21 94 117;
+  --accent-900: 22 78 99;
+  --accent-950: 8 51 68;
 
-  --color-gradient-dot: #06b6d4;
+  --accent:        var(--accent-500);  /* interactive default, focus ring */
+  --accent-bright: var(--accent-400);  /* accent text on dark             */
+  --accent-soft:   var(--accent-300);  /* hover text                      */
+  --accent-pale:   var(--accent-200);  /* form labels                     */
+  --accent-dim:    var(--accent-600);  /* solid button fill               */
+  --accent-deep:   var(--accent-700);  /* pressed / hover fill            */
+  --accent-deeper: var(--accent-900);  /* tinted fills and card edges     */
+  --accent-abyss:  var(--accent-950);  /* deepest tinted wash             */
 
-  --color-destructive: #dc2626;
-  --color-destructive-foreground: #ffffff;
+  /* ─── Status ramps (values unchanged) ────────────────────────────────────
+     Same rationale as the accent ramp. Semantic aliases follow each one;
+     `bright` is the step that holds contrast as text on a dark surface. */
+  --danger-200: 254 202 202;
+  --danger-300: 252 165 165;
+  --danger-400: 248 113 113;
+  --danger-500: 239 68 68;
+  --danger-600: 220 38 38;
+  --danger-700: 185 28 28;
+  --danger-800: 153 27 27;
+  --danger-900: 127 29 29;
+  --danger-950: 69 10 10;
 
+  --danger:        var(--danger-600);
+  --danger-bright: var(--danger-400);
+  --danger-line:   var(--danger-500);
+  --danger-deep:   var(--danger-900);
+  --danger-abyss:  var(--danger-950);
+
+  --success-300: 134 239 172;
+  --success-400: 74 222 128;
+  --success-500: 34 197 94;
+  --success-600: 22 163 74;
+  --success-700: 21 128 61;
+  --success-800: 22 101 52;
+  --success-900: 20 83 45;
+  --success-950: 5 46 22;
+
+  --success:        var(--success-600);
+  --success-bright: var(--success-400);
+  --success-line:   var(--success-500);
+  --success-deep:   var(--success-900);
+  --success-abyss:  var(--success-950);
+
+  --warning-200: 254 240 138;
+  --warning-300: 253 224 71;
+  --warning-400: 250 204 21;
+  --warning-500: 234 179 8;
+  --warning-600: 202 138 4;
+  --warning-700: 161 98 7;
+  --warning-900: 113 63 18;
+  --warning-950: 66 32 6;
+
+  --warning:        var(--warning-600);
+  --warning-bright: var(--warning-400);
+  --warning-line:   var(--warning-500);
+  --warning-deep:   var(--warning-900);
+  --warning-abyss:  var(--warning-950);
+
+  --info-300: 147 197 253;
+  --info-400: 96 165 250;
+  --info-500: 59 130 246;
+  --info-600: 37 99 235;
+  --info-700: 29 78 216;
+  --info-900: 30 58 138;
+
+  --info:        var(--info-600);
+  --info-bright: var(--info-400);
+  --info-deep:   var(--info-900);
+
+  /* ─── Categorical action palette ─────────────────────────────────────────
+     Three admin actions sit side by side in the reservations toolbar and are
+     told apart by hue, not by severity — so they cannot collapse into the
+     status ramps above without becoming indistinguishable.
+       attention — refund/charge a price difference; test-mode banners
+       confirm   — move a booking to another table
+       revoke    — cancel and refund
+     These duplicate `warning` / `success` at slightly different hues. Folding
+     them in would be a visual change, so they are kept and named instead. */
+  --attention-200: 253 230 138;
+  --attention-300: 252 211 77;
+  --attention-400: 251 191 36;
+  --attention-600: 217 119 6;
+  --attention-700: 180 83 9;
+  --attention-900: 120 53 15;
+
+  --confirm-400: 52 211 153;
+  --confirm-600: 5 150 105;
+  --confirm-700: 4 120 87;
+  --confirm-900: 6 78 59;
+
+  --revoke-400: 251 146 60;
+  --revoke-600: 234 88 12;
+  --revoke-700: 194 65 12;
+  --revoke-900: 124 45 18;
+
+  /* Secondary accent, used only on the profile header and its actions. */
+  --profile-600: 147 51 234;
+  --profile-700: 126 34 206;
+
+  /* ─── External brand colours ─────────────────────────────────────────────
+     Share buttons must match the destination service's own brand. These are
+     deliberately outside the semantic palette: retuning `--success` for status
+     messaging must never repaint the WhatsApp button. */
+  --social-facebook:       37 99 235;
+  --social-facebook-hover: 29 78 216;
+  --social-twitter:        14 165 233;
+  --social-twitter-hover:  2 132 199;
+  --social-whatsapp:       22 163 74;
+  --social-whatsapp-hover: 21 128 61;
+
+  /* ─── Radius ─────────────────────────────────────────────────────────────
+     One base radius. `rounded-lg` (the site's dominant corner) resolves to
+     this; sm/md step down from it so corners stay proportional. */
   --radius: 0.5rem;
 
-  /*
-   * ─── shadcn/ui compatibility layer ───────────────────────────────────
-   * shadcn components read these standard variable names. They are pure
-   * aliases onto the --color-* tokens above — never give one of these an
-   * independent value. To restyle a shadcn component, edit the --color-*
-   * token it points to, not the alias.
-   */
-  --background: var(--color-bg);
-  --foreground: var(--color-foreground);
-  --card: var(--color-bg-elevated);
-  --card-foreground: var(--color-foreground);
-  --popover: var(--color-bg-elevated);
-  --popover-foreground: var(--color-foreground);
-  --primary: var(--color-foreground);
-  --primary-foreground: var(--color-bg);
-  --secondary: var(--color-bg-hover-strong);
-  --secondary-foreground: var(--color-foreground);
-  --muted: var(--color-bg-muted);
-  --muted-foreground: var(--color-foreground-muted);
-  --accent: var(--color-accent);
-  --accent-foreground: var(--color-bg);
-  --destructive: var(--color-destructive);
-  --destructive-foreground: var(--color-destructive-foreground);
-  --border: var(--color-border);
-  --input: var(--color-border);
-  --ring: var(--color-accent);
-
-  /* ─── Typography ─────────────────────────────────────────────────────── */
-  --font-sans: 'Inter', Arial, Helvetica, sans-serif;
-  --font-heading: 'Anton', 'Anta', sans-serif;
+  /* ─── Typography ─────────────────────────────────────────────────────────
+     `heading` is the condensed display face used for h1–h3 and titles;
+     `display` is the monospace used for numerals, codes and timestamps. */
+  --font-sans:    'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-heading: 'Anton', 'Anta', 'Arial Narrow', sans-serif;
   --font-display: ui-monospace, 'SF Mono', 'Menlo', 'Consolas', monospace;
-  --font-impact: 'Impact', sans-serif;
 
-  /* ─── Effects ─────────────────────────────────────────────────────────── */
-  --shadow-glow-white: 0 0 5px rgba(255, 255, 255, 0.7), 0 0 10px rgba(255, 255, 255, 0.5), 0 0 15px rgba(255, 255, 255, 0.3);
-  --shadow-glow-soft: 0 0 2px rgba(255, 255, 255, 0.5), 0 0 8px rgba(255, 255, 255, 0.3), 0 0 12px rgba(255, 255, 255, 0.2);
-  --shadow-glow-accent: 0 0 10px var(--color-accent-muted);
-  --shadow-glow-accent-soft: 2px 0 10px var(--color-accent-soft);
-  --shadow-card-hover: 0 4px 12px var(--color-accent-shadow);
-  --shadow-focus: 0 0 0 2px var(--color-accent-focus);
+  /* ─── Motion ─────────────────────────────────────────────────────────────
+     Exponential easing only. Bounce/elastic easing reads as dated and was
+     flagged by the design detector on the hero scroll cue. */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);   /* ease-out-quint        */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-slow: 400ms;
+
+  /* ─── Effects ────────────────────────────────────────────────────────────
+     Glow is the venue's signature; keep it to these three intensities so it
+     stays a deliberate accent rather than ambient noise. */
+  --shadow-glow-white: 0 0 5px rgb(var(--fg) / 0.7), 0 0 10px rgb(var(--fg) / 0.5), 0 0 15px rgb(var(--fg) / 0.3);
+  --shadow-glow-soft:  0 0 2px rgb(var(--fg) / 0.5), 0 0 8px rgb(var(--fg) / 0.3), 0 0 12px rgb(var(--fg) / 0.2);
+  --shadow-glow-accent: 0 0 10px rgb(var(--accent) / 0.5);
+  --shadow-card-hover:  0 4px 12px rgb(var(--accent) / 0.1);
 
   /* ─── Layout ─────────────────────────────────────────────────────────── */
   --touch-target-min: 44px;
-  --scrollbar-thumb: var(--color-accent-soft);
+  --scrollbar-thumb: rgb(var(--accent) / 0.3);
 }

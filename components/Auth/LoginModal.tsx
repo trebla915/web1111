@@ -9,9 +9,9 @@ interface LoginModalProps {
 export default function LoginModal({ onClose, className = "" }: LoginModalProps) {
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className={`bg-gray-900 text-white border-white/10 ${className}`}>
+      <DialogContent className={`bg-surface text-fg border-fg/10 ${className}`}>
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold tracking-tight text-white">Login</DialogTitle>
+          <DialogTitle className="text-2xl font-bold tracking-tight text-fg">Login</DialogTitle>
         </DialogHeader>
         <LoginForm onSuccess={onClose} />
       </DialogContent>

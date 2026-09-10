@@ -3,12 +3,22 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/components/providers/AuthProvider';
+import { AgeConfirmationGate } from '@/components/reserve/AgeConfirmationGate';
+import { hasConfirmedAge } from '@/lib/compliance/age-confirmation';
 import { useReservation } from '@/components/providers/ReservationProvider';
 import { PaymentService } from '@/lib/services/payment';
 import { BottleService } from '@/lib/services/bottles';
 import { toast } from 'react-hot-toast';
-import { FiPlus, FiMinus, FiShoppingCart, FiX } from 'react-icons/fi';
+import { FiPlus, FiMinus, FiShoppingCart, FiX, FiCheck, FiAlertCircle } from 'react-icons/fi';
 import { Bottle } from '@/types/reservation';
+import { Button } from "@/components/ui/button";
+import { RouteLoading } from "@/components/ui/page-state";
+import { ReservationStepHeader } from "@/components/reservation/ReservationSteps";
+
+/** Same Intl formatting the payment step uses, so a figure never changes shape
+ *  between the two screens ("$1030.00" here, "$1,030.00" there). */
+const money = (amount: number) =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount || 0);
 
 export default function ReservationDetailsPage() {
   const params = useParams();
@@ -60,10 +70,14 @@ export default function ReservationDetailsPage() {
       }
     };
     
-    if (eventId) {
+    // Deliberately gated: bottles are not fetched until the customer is signed
+    // in AND has confirmed 21+. Fetching first and hiding the result would put
+    // the whole catalogue in the page for anyone to read, which would make the
+    // gate cosmetic.
+    if (eventId && user && hasConfirmedAge(user.uid)) {
       fetchBottles();
     }
-  }, [eventId]);
+  }, [eventId, user, showBottleSelection]);
   
   const handleUpdateGuestCount = (increment: boolean, e?: React.MouseEvent) => {
     if (e) {
@@ -222,221 +236,290 @@ export default function ReservationDetailsPage() {
     }
   };
   
-  const renderBottleRequirements = () => {
-    return (
-      <p className={`text-sm mt-1 ${bottleRequirements.isMet ? 'text-green-400' : 'text-yellow-400'}`}>
-        {bottleRequirements.isMet 
-          ? "Minimum bottle requirement met"
-          : `Minimum ${bottleRequirements.required} bottle${bottleRequirements.required > 1 ? 's' : ''} required`}
-      </p>
-    );
-  };
-  
-  // Show loading state while auth is being determined
-  if (authLoading) {
-    return (
-      <div className="min-h-screen pt-28 pb-12 flex flex-col items-center">
-        <div className="w-full max-w-2xl mx-auto px-4">
-          <div className="h-64 flex items-center justify-center">
-            <div className="flex flex-col items-center">
-              <div className="w-12 h-12 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
-              <p className="mt-4 text-white">Loading...</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-  
-  if (loading || !reservationDetails) {
-    return (
-      <div className="min-h-screen pt-28 pb-12 flex flex-col items-center">
-        <div className="w-full max-w-2xl mx-auto px-4">
-          <div className="h-64 flex items-center justify-center">
-            <div className="flex flex-col items-center">
-              <div className="w-12 h-12 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
-              <p className="mt-4 text-white">Loading your reservation...</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  /**
+   * The bottle minimum is a gate on the Continue button, so it is stated as a
+   * status with an icon rather than as a tinted sentence — colour alone was
+   * carrying the difference between "you're clear" and "you're blocked".
+   */
+  const renderBottleRequirements = () => (
+    <p
+      className={`mt-1 flex items-center gap-1.5 text-sm ${
+        bottleRequirements.isMet ? 'text-success-bright' : 'text-warning-bright'
+      }`}
+    >
+      {bottleRequirements.isMet ? (
+        <FiCheck aria-hidden="true" size={14} className="shrink-0" />
+      ) : (
+        <FiAlertCircle aria-hidden="true" size={14} className="shrink-0" />
+      )}
+      {bottleRequirements.isMet
+        ? 'Bottle minimum met'
+        : `Table ${reservationDetails?.tableNumber} needs at least ${bottleRequirements.required} bottle${
+            bottleRequirements.required > 1 ? 's' : ''
+          }`}
+    </p>
+  );
+
+  if (authLoading) return <RouteLoading message="Checking your account…" />;
+
+  if (loading || !reservationDetails) return <RouteLoading message="Loading your reservation…" />;
   
   return (
-    <div className="min-h-screen pt-24 sm:pt-28 pb-12 flex flex-col">
-      <div className="w-full max-w-2xl mx-auto px-4">
-        {/* Reservation Header */}
-        <div className="mb-6 sm:mb-8 text-center">
-          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
-            {reservationDetails.eventName}
-          </h1>
-          <p className="text-white/70 text-sm sm:text-base">
-            {formatDate(reservationDetails.eventDate)} - Table {reservationDetails.tableNumber}
-          </p>
-        </div>
+    <div className="flex min-h-dvh flex-col pt-24 pb-16 sm:pt-28">
+      <div className="mx-auto w-full max-w-2xl px-4">
+        <ReservationStepHeader
+          step="details"
+          eventName={reservationDetails.eventName}
+          eventDate={formatDate(reservationDetails.eventDate)}
+          title={`Table ${reservationDetails.tableNumber}`}
+          description="Set your party size and add bottles. You'll see the full total before paying."
+        />
 
         {/* Main Content */}
-        <div className="bg-zinc-900 rounded-lg border border-white/20 overflow-hidden">
+        <div className="overflow-hidden rounded-lg border border-line-accent/30 bg-surface">
           {/* Guest Count */}
-          <div className="p-4 sm:p-6 border-b border-white/20">
-            <h2 className="text-lg sm:text-xl font-bold text-white mb-4">Guest Count</h2>
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={(e) => handleUpdateGuestCount(false, e)}
-                  className="w-11 h-11 rounded-full border border-white/30 flex items-center justify-center text-white hover:bg-white/10 transition-colors shrink-0"
-                >
-                  <FiMinus size={20} />
-                </button>
-                <span className="text-2xl font-bold text-white">{guestCount}</span>
-                <button
-                  onClick={(e) => handleUpdateGuestCount(true, e)}
-                  className="w-11 h-11 rounded-full border border-white/30 flex items-center justify-center text-white hover:bg-white/10 transition-colors shrink-0"
-                >
-                  <FiPlus size={20} />
-                </button>
-              </div>
-              <p className="text-zinc-400 text-sm sm:text-base text-right">
-                Max {reservationDetails.capacity} guests
-              </p>
+          <div className="border-b border-line-subtle p-4 sm:p-6">
+            <h2 className="font-heading text-lg tracking-wide text-fg">Party size</h2>
+            <p className="mt-1 text-sm text-fg-muted">
+              Table {reservationDetails.tableNumber} seats up to{' '}
+              <span className="tabular">{reservationDetails.capacity}</span>.
+            </p>
+            <div className="mt-4 flex items-center gap-4">
+              <Button
+                onClick={(e) => handleUpdateGuestCount(false, e)}
+                disabled={guestCount <= 1}
+                variant="outline"
+                size="icon"
+                className="rounded-full"
+                aria-label="Remove one guest"
+              >
+                <FiMinus aria-hidden="true" size={20} />
+              </Button>
+              {/* Announced as a live value: pressing +/- otherwise changes a
+                  number a screen-reader user never hears. */}
+              <span
+                aria-live="polite"
+                aria-atomic="true"
+                className="tabular min-w-[3ch] text-center font-heading text-3xl tracking-wide text-fg"
+              >
+                {guestCount}
+              </span>
+              <Button
+                onClick={(e) => handleUpdateGuestCount(true, e)}
+                disabled={guestCount >= (reservationDetails.capacity ?? 99)}
+                variant="outline"
+                size="icon"
+                className="rounded-full"
+                aria-label="Add one guest"
+              >
+                <FiPlus aria-hidden="true" size={20} />
+              </Button>
+              <span className="text-sm text-fg-muted">
+                {guestCount === 1 ? 'guest' : 'guests'}
+              </span>
             </div>
           </div>
 
           {/* Bottles */}
-          <div className="p-4 sm:p-6 border-b border-white/20">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
+          <div className="border-b border-line-subtle p-4 sm:p-6">
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <h2 className="text-lg sm:text-xl font-bold text-white">Bottles</h2>
+                <h2 className="font-heading text-lg tracking-wide text-fg">Bottles</h2>
                 {renderBottleRequirements()}
               </div>
-              <button
+              <Button
                 onClick={() => setShowBottleSelection(true)}
-                className="w-full sm:w-auto px-4 py-3 sm:py-2 bg-white text-black rounded-md hover:bg-white/90 transition-colors flex items-center justify-center space-x-2 font-medium"
+                variant="primary"
+                size="md"
+                className="w-full shrink-0 sm:w-auto"
               >
-                <FiShoppingCart size={20} />
-                <span>Add Bottles</span>
-              </button>
+                <FiShoppingCart aria-hidden="true" size={18} />
+                <span>Add bottles</span>
+              </Button>
             </div>
             
             {showBottleSelection && (
-              <div className="mb-4 p-4 bg-zinc-800 rounded-lg">
-                <div className="flex justify-between items-center mb-4">
+              <AgeConfirmationGate onDecline={() => setShowBottleSelection(false)}>
+              <div className="mb-4 rounded-lg bg-surface-raised p-4">
+                <div className="mb-4 flex items-start justify-between gap-3">
                   <div>
-                    <h3 className="text-lg font-bold text-white">Select Bottles</h3>
-                    <p className={`text-sm mt-1 ${bottleRequirements.isMet ? 'text-green-400' : 'text-yellow-400'}`}>
+                    <h3 className="font-heading text-base tracking-wide text-fg">Bottle menu</h3>
+                    <p
+                      className={`mt-1 text-sm ${
+                        bottleRequirements.isMet ? 'text-success-bright' : 'text-warning-bright'
+                      }`}
+                    >
                       {bottleRequirements.isMet
-                        ? 'Minimum requirement met'
-                        : `${bottleRequirements.required - bottleRequirements.current} more bottle${(bottleRequirements.required - bottleRequirements.current) > 1 ? 's' : ''} required`}
+                        ? 'Minimum met — add more if you like'
+                        : `${bottleRequirements.required - bottleRequirements.current} more to go`}
                     </p>
                   </div>
-                  <button
+                  <Button
                     onClick={() => setShowBottleSelection(false)}
-                    className="text-zinc-400 hover:text-white"
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Close bottle menu"
                   >
-                    <FiX size={20} />
-                  </button>
+                    <FiX aria-hidden="true" size={20} />
+                  </Button>
                 </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+
+                {/* `unstyled` because these are left-aligned two-line tiles, not
+                    the primitive's centred single-line button geometry — the
+                    variant's fixed height was squashing the price onto the name. */}
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {availableBottles.map((bottle) => (
-                    <button
+                    <Button
+                      unstyled
                       key={bottle.id}
                       onClick={() => handleBottleSelect(bottle)}
-                      className="p-4 bg-zinc-700 rounded-lg text-left hover:bg-zinc-600 transition-colors"
+                      aria-label={`Add ${bottle.name}, ${money(bottle.price)}`}
+                      className="flex w-full items-baseline justify-between gap-3 rounded-lg border border-line bg-surface-hover px-4 py-3 text-left hover:border-line-strong hover:bg-surface-lifted"
                     >
-                      <h4 className="font-bold text-white">{bottle.name}</h4>
-                      <p className="text-white/70">${bottle.price.toFixed(2)}</p>
-                    </button>
+                      <span className="min-w-0 truncate font-medium text-fg">{bottle.name}</span>
+                      <span className="tabular shrink-0 text-sm text-accent-bright">
+                        {money(bottle.price)}
+                      </span>
+                    </Button>
                   ))}
                 </div>
               </div>
+              </AgeConfirmationGate>
             )}
             
             {reservationDetails.bottles && reservationDetails.bottles.length > 0 ? (
-              <div className="space-y-2">
+              <ul className="space-y-2">
                 {reservationDetails.bottles.map((bottle) => (
-                  <div
+                  <li
                     key={bottle.id}
-                    className="flex justify-between items-center p-3 bg-zinc-800 rounded-lg"
+                    className="flex items-center justify-between gap-3 rounded-lg bg-surface-raised py-2 pl-4 pr-2"
                   >
-                    <div>
-                      <h4 className="font-bold text-white">{bottle.name}</h4>
-                      <p className="text-white/70">${bottle.price.toFixed(2)}</p>
-                    </div>
-                    <button
-                      onClick={() => handleRemoveBottle(bottle.id)}
-                      className="text-red-400 hover:text-red-300"
-                    >
-                      <FiX size={20} />
-                    </button>
-                  </div>
+                    <span className="min-w-0 truncate font-medium text-fg">{bottle.name}</span>
+                    <span className="flex shrink-0 items-center gap-1">
+                      <span className="tabular text-sm text-fg-dim">{money(bottle.price)}</span>
+                      <Button
+                        onClick={() => handleRemoveBottle(bottle.id)}
+                        variant="ghost"
+                        size="icon"
+                        className="text-fg-muted hover:text-danger-bright"
+                        aria-label={`Remove ${bottle.name}`}
+                      >
+                        <FiX aria-hidden="true" size={18} />
+                      </Button>
+                    </span>
+                  </li>
                 ))}
-              </div>
+              </ul>
             ) : (
-              <p className="text-zinc-400">No bottles selected</p>
+              <p className="rounded-lg border border-dashed border-line py-6 text-center text-sm text-fg-muted">
+                No bottles added yet.
+              </p>
             )}
           </div>
           
-          {/* Cost Breakdown */}
-          <div className="p-4 sm:p-6 border-b border-white/20">
-            <h2 className="text-lg sm:text-xl font-bold text-white mb-4">Cost Breakdown</h2>
-            <div className="space-y-2 text-sm sm:text-base">
-              <div className="flex justify-between gap-3">
-                <span className="text-zinc-400">Table Price:</span>
-                <span className="text-white">${costBreakdown.tablePrice.toFixed(2)}</span>
+          {/* Cost Breakdown
+              Eight rows at identical weight, ending in a total distinguished
+              only by `font-bold`, made the one figure the guest is agreeing to
+              pay the hardest to find. Charges and fees are now separate groups,
+              the fee percentages ride on their own rows instead of repeating as
+              three asterisked paragraphs underneath, and the total is the
+              largest thing in the panel. */}
+          <div className="border-b border-line-subtle p-4 sm:p-6">
+            <h2 className="mb-4 font-heading text-lg tracking-wide text-fg">What you'll pay</h2>
+
+            <dl className="text-sm">
+              <div className="space-y-2">
+                <div className="flex justify-between gap-3">
+                  <dt className="text-fg-dim">Table {reservationDetails.tableNumber}</dt>
+                  <dd className="tabular text-fg">{money(costBreakdown.tablePrice)}</dd>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <dt className="text-fg-dim">
+                    Bottles
+                    {reservationDetails.bottles?.length ? (
+                      <span className="text-fg-muted"> ({reservationDetails.bottles.length})</span>
+                    ) : null}
+                  </dt>
+                  <dd className="tabular text-fg">{money(costBreakdown.bottlesCost)}</dd>
+                </div>
+                {costBreakdown.mixersCost > 0 && (
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-fg-dim">Mixers</dt>
+                    <dd className="tabular text-fg">{money(costBreakdown.mixersCost)}</dd>
+                  </div>
+                )}
               </div>
-              <div className="flex justify-between gap-3">
-                <span className="text-zinc-400">Bottles:</span>
-                <span className="text-white">${costBreakdown.bottlesCost.toFixed(2)}</span>
+
+              {/* `costBreakdown.subtotal` is the post-tax, post-gratuity figure
+                  the Stripe fee is calculated from — not the sum of the charges
+                  listed above it. Printed under the word "Subtotal" directly
+                  beneath those charges, it read as arithmetic that did not add
+                  up ($500 + $1,030 shown, "$1,841.63" underneath). */}
+              <div className="mt-3 flex justify-between gap-3 border-t border-line-subtle pt-3">
+                <dt className="text-fg-dim">Subtotal</dt>
+                <dd className="tabular text-fg">
+                  {money(costBreakdown.tablePrice + costBreakdown.bottlesCost + costBreakdown.mixersCost)}
+                </dd>
               </div>
-              <div className="flex justify-between gap-3">
-                <span className="text-zinc-400">Mixers:</span>
-                <span className="text-white">${costBreakdown.mixersCost.toFixed(2)}</span>
+
+              {/* Taxes and fees, grouped and quieter than the charges above. */}
+              <div className="mt-3 space-y-2 border-t border-line-subtle pt-3">
+                <div className="flex justify-between gap-3">
+                  <dt className="text-fg-muted">
+                    Sales tax <span className="tabular text-fg-subtle">8.25%</span>
+                  </dt>
+                  <dd className="tabular text-fg-dim">{money(costBreakdown.salesTax)}</dd>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <dt className="text-fg-muted">
+                    Gratuity <span className="tabular text-fg-subtle">18% on bottles</span>
+                  </dt>
+                  <dd className="tabular text-fg-dim">{money(costBreakdown.gratAmount)}</dd>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <dt className="text-fg-muted">
+                    Card processing <span className="tabular text-fg-subtle">2.9% + $0.30</span>
+                  </dt>
+                  <dd className="tabular text-fg-dim">{money(costBreakdown.stripeFee)}</dd>
+                </div>
               </div>
-              <div className="flex justify-between gap-3">
-                <span className="text-zinc-400">Sales Tax (8.25%):</span>
-                <span className="text-white">${costBreakdown.salesTax.toFixed(2)}</span>
+
+              <div className="mt-4 flex items-baseline justify-between gap-3 border-t-2 border-line-strong pt-4">
+                <dt className="font-heading text-lg tracking-wide text-fg">Total</dt>
+                <dd className="tabular font-heading text-2xl tracking-wide text-fg sm:text-3xl">
+                  {money(costBreakdown.total)}
+                </dd>
               </div>
-              <div className="flex justify-between gap-3">
-                <span className="text-zinc-400">Gratuity (18% on bottles):</span>
-                <span className="text-white">${costBreakdown.gratAmount.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between gap-3">
-                <span className="text-zinc-400">Processing Fee (2.9% + $0.30):</span>
-                <span className="text-white">${costBreakdown.stripeFee.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between gap-3">
-                <span className="text-zinc-400">Subtotal:</span>
-                <span className="text-white">${costBreakdown.subtotal.toFixed(2)}</span>
-              </div>
-              <div className="border-t border-zinc-700 pt-2 mt-2 flex justify-between font-bold">
-                <span className="text-white">Total:</span>
-                <span className="text-white">${costBreakdown.total.toFixed(2)}</span>
-              </div>
-              <div className="mt-4 text-sm text-zinc-500">
-                <p>* A card processing fee of 2.9% + $0.30 is applied to all transactions to cover payment processing costs.</p>
-                <p className="mt-2">* Please note: an automatic 18% gratuity is applied to all bottle purchases at checkout.</p>
-                <p className="mt-2">* Sales tax of 8.25% is applied to all purchases except gratuity and processing fees.</p>
-              </div>
-            </div>
+            </dl>
+
+            {/* Each line is rounded to the cent on its own, so the column can
+                read a penny either side of the total. The total is the figure
+                that is charged; the note says so rather than leaving a guest to
+                find the discrepancy by adding it up. */}
+            <p className="mt-3 text-xs text-fg-subtle">
+              Gratuity applies to bottles only. Sales tax applies to everything except gratuity
+              and the card processing fee. Each line is rounded to the nearest cent, so the
+              figures above can differ from the total by a penny — the total is what you pay.
+            </p>
           </div>
           
-          {/* Actions */}
+          {/* Actions — the primitive already owns the disabled treatment, so
+              the hand-rolled `bg-surface-lifted / cursor-not-allowed` pair that
+              was here disagreed with every other disabled control on the site. */}
           <div className="p-4 sm:p-6">
-            <button
+            <Button
+              variant="primary"
+              size="lg"
+              full
               onClick={handleContinueToContact}
               disabled={!bottleRequirements.isMet}
-              className={`w-full py-3 font-bold rounded transition-colors ${
-                !bottleRequirements.isMet
-                  ? 'bg-gray-600 text-gray-300 cursor-not-allowed'
-                  : 'bg-white hover:bg-white/90 text-black'
-              }`}
             >
-              {bottleRequirements.isMet 
-                ? 'Continue to Contact Info' 
-                : `Add Required Bottles (${bottleRequirements.required - bottleRequirements.current} More)`}
-            </button>
+              {bottleRequirements.isMet
+                ? 'Continue to contact info'
+                : `Add ${bottleRequirements.required - bottleRequirements.current} more bottle${
+                    bottleRequirements.required - bottleRequirements.current > 1 ? 's' : ''
+                  } to continue`}
+            </Button>
           </div>
         </div>
       </div>

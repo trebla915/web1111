@@ -8,13 +8,17 @@ import { PaymentService } from '@/lib/services/payment';
 import { toast } from 'react-hot-toast';
 import { PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import StripeProvider from '@/components/providers/StripeProvider';
-import { FiCreditCard, FiCheckCircle, FiAlertCircle, FiArrowLeft } from 'react-icons/fi';
-import { User } from '@/types/user';
+import { FiCreditCard, FiCheckCircle, FiAlertCircle, FiArrowLeft, FiLock, FiAlertTriangle } from 'react-icons/fi';
+import { AuthUser } from '@/types/user';
+import { Spinner } from "@/components/ui/spinner";
+import { Button } from "@/components/ui/button";
+import { RouteLoading } from "@/components/ui/page-state";
+import { ReservationStepHeader } from "@/components/reservation/ReservationSteps";
 
 function PaymentForm({ clientSecret, onSuccess, user, reservationDetails }: { 
   clientSecret: string; 
   onSuccess: () => void;
-  user: User | null;
+  user: AuthUser | null;
   reservationDetails: any;
 }) {
   const stripe = useStripe();
@@ -76,7 +80,7 @@ function PaymentForm({ clientSecret, onSuccess, user, reservationDetails }: {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="p-3 sm:p-6 border border-zinc-700 rounded-lg bg-zinc-900/50">
+      <div className="p-3 sm:p-6 border border-line rounded-lg bg-surface/50">
         <PaymentElement
           options={{
             layout: 'tabs',
@@ -89,120 +93,40 @@ function PaymentForm({ clientSecret, onSuccess, user, reservationDetails }: {
             business: {
               name: '1111'
             },
-            appearance: {
-              theme: 'night',
-              variables: {
-                colorPrimary: '#0891b2',
-                colorBackground: '#18181b',
-                colorText: '#ffffff',
-                colorDanger: '#ef4444',
-                fontFamily: 'system-ui, sans-serif',
-                spacingUnit: '4px',
-                borderRadius: '8px',
-              },
-              rules: {
-                '.Tab': {
-                  border: '1px solid #52525b',
-                  boxShadow: '0px 1px 3px 0px rgba(0, 0, 0, 0.1), 0px 1px 2px 0px rgba(0, 0, 0, 0.06)',
-                  backgroundColor: '#27272a',
-                  color: '#ffffff',
-                },
-                '.Tab:hover': {
-                  color: '#0891b2',
-                  borderColor: '#0891b2',
-                },
-                '.Tab--selected': {
-                  backgroundColor: '#0891b2',
-                  color: '#ffffff',
-                  borderColor: '#0891b2',
-                },
-                '.Tab--selected:hover': {
-                  backgroundColor: '#0e7490',
-                  color: '#ffffff',
-                },
-                '.TabLabel': {
-                  color: '#ffffff',
-                },
-                '.TabLabel--selected': {
-                  color: '#ffffff',
-                },
-                '.Input': {
-                  backgroundColor: '#27272a',
-                  border: '1px solid #52525b',
-                  color: '#ffffff',
-                },
-                '.Input:focus': {
-                  borderColor: '#0891b2',
-                  boxShadow: '0 0 0 1px #0891b2',
-                },
-                '.Input::placeholder': {
-                  color: '#a1a1aa',
-                },
-                '.Label': {
-                  color: '#ffffff',
-                },
-                '.Text': {
-                  color: '#ffffff',
-                },
-                '.Text--secondary': {
-                  color: '#a1a1aa',
-                },
-                '.Text--small': {
-                  color: '#a1a1aa',
-                },
-                '.Icon': {
-                  color: '#a1a1aa',
-                },
-                '.Icon--selected': {
-                  color: '#0891b2',
-                },
-                '.Divider': {
-                  backgroundColor: '#52525b',
-                },
-                '.Spinner': {
-                  color: '#0891b2',
-                },
-                '.Alert': {
-                  backgroundColor: '#dc2626',
-                  color: '#ffffff',
-                },
-                '.Alert--error': {
-                  backgroundColor: '#dc2626',
-                  color: '#ffffff',
-                },
-                '.Alert--warning': {
-                  backgroundColor: '#d97706',
-                  color: '#ffffff',
-                },
-                '.Alert--info': {
-                  backgroundColor: '#0891b2',
-                  color: '#ffffff',
-                },
-              },
-            },
           }}
         />
       </div>
+      {/* A ⚠️ emoji was standing in for an icon in a file that imports an icon
+          set, and the submit button re-declared its own disabled colours. */}
       {!bottleRequirement.met && (
-        <div className="text-yellow-400 text-sm bg-yellow-900/20 border border-yellow-900/30 rounded-lg p-3">
-          ⚠️ Table {reservationDetails?.tableNumber} requires a minimum of {bottleRequirement.required} bottle{bottleRequirement.required > 1 ? 's' : ''}. 
-          You currently have {bottleRequirement.current}. Please go back and add more bottles.
+        <div role="alert" className="flex items-start gap-2 rounded-lg border border-warning-line/40 bg-warning-950/40 p-3 text-sm text-warning-200">
+          <FiAlertTriangle aria-hidden="true" className="mt-0.5 shrink-0" size={15} />
+          <span>
+            Table {reservationDetails?.tableNumber} needs at least {bottleRequirement.required} bottle
+            {bottleRequirement.required > 1 ? 's' : ''}; you have {bottleRequirement.current}. Go back
+            and add more to continue.
+          </span>
         </div>
       )}
       {error && (
-        <div className="text-red-400 text-sm">{error}</div>
+        <p role="alert" className="text-sm text-danger-bright">{error}</p>
       )}
-      <button
+      <Button
         type="submit"
+        variant="primary"
+        size="lg"
+        full
+        loading={isProcessing}
         disabled={!stripe || isProcessing || !bottleRequirement.met}
-        className={`w-full py-3 font-bold rounded-lg transition-all ${
-          !bottleRequirement.met
-            ? 'bg-gray-600 text-gray-300 cursor-not-allowed'
-            : 'bg-white hover:bg-white/90 text-black disabled:bg-white/40 disabled:cursor-not-allowed'
-        }`}
       >
-        {isProcessing ? 'Processing...' : bottleRequirement.met ? 'Pay Now' : `Add ${bottleRequirement.required - bottleRequirement.current} More Bottle${(bottleRequirement.required - bottleRequirement.current) > 1 ? 's' : ''}`}
-      </button>
+        {isProcessing
+          ? 'Processing'
+          : bottleRequirement.met
+            ? 'Pay now'
+            : `Add ${bottleRequirement.required - bottleRequirement.current} more bottle${
+                bottleRequirement.required - bottleRequirement.current > 1 ? 's' : ''
+              }`}
+      </Button>
     </form>
   );
 }
@@ -450,7 +374,7 @@ export default function PaymentPage() {
                     (reservationDetails.bottles || []).reduce((total, bottle) => total + (bottle.price || 0), 0) +
                     (reservationDetails.mixers || []).reduce((total, mixer) => total + (mixer.price || 0), 0)).toString(),
           totalAmount: total.toString(),
-          userId: user?.uid,
+          userId: user?.uid || '',
           platform: 'web',
           source: '1111web'
         };
@@ -491,7 +415,7 @@ export default function PaymentPage() {
     setIsProcessing(true);
     try {
       // Get the auth token from Firebase
-      const token = await user?.auth?.getIdToken();
+      const token = await user?.getIdToken();
       if (!token) {
         throw new Error('Not authenticated');
       }
@@ -534,18 +458,7 @@ export default function PaymentPage() {
   };
 
   if (loading || !reservationDetails) {
-    return (
-      <div className="min-h-screen pt-28 pb-12 flex flex-col items-center">
-        <div className="w-full max-w-2xl mx-auto px-4">
-          <div className="h-64 flex items-center justify-center">
-            <div className="flex flex-col items-center">
-              <div className="w-12 h-12 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
-              <p className="mt-4 text-white">Loading...</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <RouteLoading message="Loading your reservation…" />;
   }
 
   const costBreakdown = (() => {
@@ -601,90 +514,141 @@ export default function PaymentPage() {
   })();
 
   return (
-    <div className="min-h-screen pt-28 pb-12 flex flex-col">
-      <div className="w-full max-w-2xl mx-auto px-4">
-        {/* Back button */}
-        <button
-          onClick={handleGoBack}
-          className="mb-6 flex items-center text-white/70 hover:text-white transition-colors"
-        >
-          <FiArrowLeft className="mr-2" size={20} />
-          Back to Contact Info
-        </button>
+    <div className="flex min-h-dvh flex-col pt-24 pb-16 sm:pt-28">
+      <div className="mx-auto w-full max-w-2xl px-4">
+        <Button onClick={handleGoBack} variant="ghost" size="md" className="mb-4 -ml-4">
+          <FiArrowLeft aria-hidden="true" size={18} />
+          Back to contact info
+        </Button>
 
-        {/* Payment Header */}
-        <div className="mb-6 sm:mb-8 text-center">
-          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
-            Complete Payment
-          </h1>
-          <p className="text-zinc-400 text-sm sm:text-base">
-            Table {reservationDetails.tableNumber} • {reservationDetails.guestCount} {reservationDetails.guestCount === 1 ? 'person' : 'people'}
+        <ReservationStepHeader
+          step="payment"
+          eventName={reservationDetails.eventName}
+          title="Review and pay"
+          description={`Table ${reservationDetails.tableNumber} for ${reservationDetails.guestCount} ${
+            reservationDetails.guestCount === 1 ? 'guest' : 'guests'
+          }.`}
+        />
+
+        {/* Order summary.
+            This listed the table, the bottles and then the total — leaving the
+            tax, the 18% gratuity and the card fee out entirely. On a $1,150
+            order that is a $562 gap between the figures shown and the figure
+            charged, on the screen where the guest hands over a card. The same
+            breakdown the details step showed is repeated here. */}
+        <div className="mb-6 rounded-lg border border-line-accent/30 bg-surface p-4 sm:p-6">
+          <h2 className="mb-4 font-heading text-lg tracking-wide text-fg">Order summary</h2>
+
+          <dl className="text-sm">
+            <div className="space-y-2">
+              <div className="flex justify-between gap-3">
+                <dt className="text-fg-dim">Table {reservationDetails.tableNumber}</dt>
+                <dd className="tabular text-fg">{formatCurrency(costBreakdown.tablePrice)}</dd>
+              </div>
+
+              {reservationDetails.bottles?.map((bottle, index) => (
+                <div key={index} className="flex justify-between gap-3">
+                  <dt className="min-w-0 truncate text-fg-dim">{bottle.name}</dt>
+                  <dd className="tabular shrink-0 text-fg">{formatCurrency(bottle.price || 0)}</dd>
+                </div>
+              ))}
+
+              {costBreakdown.mixersCost > 0 && (
+                <div className="flex justify-between gap-3">
+                  <dt className="text-fg-dim">Mixers</dt>
+                  <dd className="tabular text-fg">{formatCurrency(costBreakdown.mixersCost)}</dd>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-3 flex justify-between gap-3 border-t border-line-subtle pt-3">
+              <dt className="text-fg-dim">Subtotal</dt>
+              <dd className="tabular text-fg">
+                {formatCurrency(costBreakdown.tablePrice + costBreakdown.bottlesCost + costBreakdown.mixersCost)}
+              </dd>
+            </div>
+
+            <div className="mt-3 space-y-2 border-t border-line-subtle pt-3">
+              <div className="flex justify-between gap-3">
+                <dt className="text-fg-muted">
+                  Sales tax <span className="tabular text-fg-subtle">8.25%</span>
+                </dt>
+                <dd className="tabular text-fg-dim">{formatCurrency(costBreakdown.salesTax)}</dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-fg-muted">
+                  Gratuity <span className="tabular text-fg-subtle">18% on bottles</span>
+                </dt>
+                <dd className="tabular text-fg-dim">{formatCurrency(costBreakdown.gratAmount)}</dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-fg-muted">
+                  Card processing <span className="tabular text-fg-subtle">2.9% + $0.30</span>
+                </dt>
+                <dd className="tabular text-fg-dim">{formatCurrency(costBreakdown.stripeFee)}</dd>
+              </div>
+            </div>
+
+            <div className="mt-4 flex items-baseline justify-between gap-3 border-t-2 border-line-strong pt-4">
+              <dt className="font-heading text-lg tracking-wide text-fg">Total due</dt>
+              <dd className="tabular font-heading text-2xl tracking-wide text-fg sm:text-3xl">
+                {formatCurrency(costBreakdown.total || 0)}
+              </dd>
+            </div>
+          </dl>
+
+          {/* Each line is rounded to the cent independently, so the column can
+              read a penny either side of the total. "Total due" is the figure
+              submitted to Stripe. */}
+          <p className="mt-3 text-xs text-fg-subtle">
+            Each line is rounded to the nearest cent, so the figures above can differ from the
+            total by a penny. Total due is the amount charged.
           </p>
         </div>
 
-        {/* Order Summary */}
-        <div className="mb-6 sm:mb-8 p-4 sm:p-6 bg-black border border-white/20 rounded-lg">
-          <h2 className="text-lg sm:text-xl font-bold text-white mb-4">Order Summary</h2>
-          
-          <div className="space-y-4">
-            <div className="flex justify-between text-white">
-              <span className="font-medium">Table Reservation</span>
-              <span className="font-semibold">{formatCurrency(reservationDetails.tablePrice || 0)}</span>
-            </div>
-            
-            {reservationDetails.bottles && reservationDetails.bottles.length > 0 && (
-              <>
-                <div className="border-t border-zinc-600 pt-4">
-                  <h3 className="text-white font-semibold mb-3">Bottles</h3>
-                  {reservationDetails.bottles.map((bottle, index) => (
-                    <div key={index} className="flex justify-between text-white mb-2">
-                      <span>{bottle.name}</span>
-                      <span className="font-medium">{formatCurrency(bottle.price || 0)}</span>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-            
-            <div className="border-t border-zinc-600 pt-4 flex justify-between text-white font-bold text-lg">
-              <span>Total</span>
-              <span>{formatCurrency(costBreakdown.total || 0)}</span>
-            </div>
-          </div>
-        </div>
-
         {/* Payment Actions */}
-        <div className="mt-8 flex flex-col gap-6">
+        <div className="flex flex-col gap-6">
           {process.env.NODE_ENV === 'development' && (
-            <div className="p-4 sm:p-6 bg-amber-900/30 border border-amber-700/50 rounded-lg">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-amber-300">Test Mode</h3>
-                  <p className="text-sm text-amber-200/80">Skip payment for testing purposes</p>
-                </div>
-                <button
-                  onClick={handleTestModePayment}
-                  disabled={isProcessing}
-                  className="w-full sm:w-auto px-6 py-3 bg-amber-600 text-white font-semibold rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
-                >
-                  {isProcessing ? 'Processing...' : 'Test Payment'}
-                </button>
+            <div className="flex flex-col gap-4 rounded-lg border border-attention-700/50 bg-attention-900/30 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+              <div>
+                <h3 className="font-heading text-base tracking-wide text-attention-300">Test mode</h3>
+                <p className="mt-0.5 text-sm text-attention-200/80">
+                  Development only — completes the booking without a charge.
+                </p>
               </div>
+              <Button
+                onClick={handleTestModePayment}
+                disabled={isProcessing}
+                loading={isProcessing}
+                variant="outline"
+                size="md"
+                className="shrink-0 border-attention-600 text-attention-200 hover:bg-attention-900/40"
+              >
+                {isProcessing ? 'Processing' : 'Test payment'}
+              </Button>
             </div>
           )}
 
           {/* Regular payment button */}
-          <button
+          <Button
             onClick={handlePayment}
             disabled={isProcessing}
-            className="w-full py-4 bg-white text-black font-bold text-lg rounded-lg hover:bg-white/90 transition-colors disabled:opacity-50 shadow-lg"
+            loading={isProcessing}
+            variant="primary"
+            size="lg"
+            full
           >
-            {isProcessing ? 'Processing...' : `Pay ${formatCurrency(costBreakdown.total || 0)}`}
-          </button>
+            {isProcessing ? 'Processing' : `Pay ${formatCurrency(costBreakdown.total || 0)}`}
+          </Button>
+
+          <p className="flex items-center justify-center gap-2 text-xs text-fg-subtle">
+            <FiLock aria-hidden="true" size={12} />
+            Card details are handled by Stripe. We never see or store them.
+          </p>
 
           {/* Payment Form */}
           {clientSecret && (
-            <div className="mt-8">
+            <div>
               <StripeProvider clientSecret={clientSecret}>
                 <PaymentForm
                   clientSecret={clientSecret}

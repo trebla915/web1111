@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminFirestore } from '@/lib/firebase/admin';
+import { STAFF_ROLES, authErrorResponse, requireRole } from '@/lib/auth/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,6 +10,8 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    // Operational data across customers: staff and admin only.
+    await requireRole(request, STAFF_ROLES, { checkRevoked: true });
     const { id } = params;
     
     // Verify event exists
@@ -30,6 +33,8 @@ export async function GET(
     
     return NextResponse.json(reservations);
   } catch (error) {
+    const authed = authErrorResponse(error);
+    if (authed) return authed;
     console.error(`Error fetching reservations for event ${params.id}:`, error);
     return NextResponse.json({ error: 'Failed to fetch reservations' }, { status: 500 });
   }

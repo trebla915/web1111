@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminFirestore } from '@/lib/firebase/admin';
+import { ADMIN_ROLES, STAFF_ROLES, authErrorResponse, requireRole, requireUser } from '@/lib/auth/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,6 +32,8 @@ export async function GET(
     
     return NextResponse.json(bottles);
   } catch (error) {
+    const __authed = authErrorResponse(error);
+    if (__authed) return __authed;
     console.error(`Error fetching bottles for event ${params.id}:`, error);
     return NextResponse.json({ error: 'Failed to fetch bottles' }, { status: 500 });
   }
@@ -42,6 +45,7 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
+    await requireRole(request, ADMIN_ROLES, { checkRevoked: true });
     const { id } = params;
     const data = await request.json();
     
@@ -92,6 +96,8 @@ export async function POST(
     
     return NextResponse.json(result, { status: 201 });
   } catch (error) {
+    const __authed = authErrorResponse(error);
+    if (__authed) return __authed;
     console.error(`Error adding bottles to event ${params.id}:`, error);
     return NextResponse.json({ error: 'Failed to add bottles to event' }, { status: 500 });
   }

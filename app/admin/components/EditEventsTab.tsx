@@ -7,6 +7,10 @@ import { toast } from 'react-hot-toast';
 import { FiSearch, FiEdit, FiTrash2, FiCalendar, FiLink, FiCheck, FiAlertTriangle, FiRefreshCw, FiEdit2 } from 'react-icons/fi';
 import { BiTable } from 'react-icons/bi';
 import { Event } from '@/types/event';
+import { Spinner } from "@/components/ui/spinner";
+import { Button } from "@/components/ui/button";
+import { Input, Textarea } from "@/components/ui/input";
+import { Label } from "@/components/ui/field";
 
 interface EditEventsTabProps {
   onManageTables?: (eventId: string) => void;
@@ -172,28 +176,28 @@ export default function EditEventsTab({ onManageTables }: EditEventsTabProps) {
     <div className="h-full">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Events List */}
-        <div className="lg:col-span-1 bg-zinc-900/50 rounded-lg border border-cyan-900/30">
-          <div className="p-4 border-b border-cyan-900/30">
+        <div className="lg:col-span-1 bg-surface/50 rounded-lg border border-accent-900/30">
+          <div className="p-4 border-b border-accent-900/30">
             <div className="relative">
-              <input
+              <Input
                 type="text"
-                className="w-full px-4 py-2 pl-10 bg-black/50 border border-cyan-900/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-white placeholder-gray-500"
+                className="px-4 py-2 pl-10 bg-canvas/50 border border-accent-900/30 focus:ring-2 focus:ring-accent-500/50 placeholder-fg-subtle"
                 placeholder="Search events..."
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
               />
-              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-fg-muted" />
             </div>
           </div>
 
-          <div className="overflow-y-auto" style={{ height: 'calc(100% - 4rem)' }}>
+          <div className="h-[calc(100%-4rem)] overflow-y-auto">
             {loading && !events.length ? (
               <div className="flex items-center justify-center p-6">
-                <div className="w-5 h-5 border-t-2 border-b-2 border-cyan-500 rounded-full animate-spin mr-3"></div>
-                <span className="text-cyan-400">Loading events...</span>
+                <Spinner size="sm" className="text-accent-500 h-5 w-5 mr-3" />
+                <span className="text-accent-400">Loading events...</span>
               </div>
             ) : filteredEvents.length === 0 ? (
-              <div className="p-6 text-center text-gray-400">
+              <div className="p-6 text-center text-fg-muted">
                 <FiAlertTriangle className="mx-auto h-8 w-8 mb-2" />
                 <p>No events found</p>
               </div>
@@ -205,13 +209,13 @@ export default function EditEventsTab({ onManageTables }: EditEventsTabProps) {
                     onClick={() => handleEventSelection(event.id)}
                     className={`p-4 rounded-lg cursor-pointer transition-all
                       ${selectedEventId === event.id 
-                        ? 'bg-cyan-900/20 border-l-2 border-l-cyan-500' 
-                        : 'hover:bg-cyan-900/10'}`}
+                        ? 'bg-accent-900/20 border-l-2 border-l-cyan-500' 
+                        : 'hover:bg-accent-900/10'}`}
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-white font-medium truncate">{event.title}</h4>
-                        <div className="flex items-center mt-1 text-sm text-gray-400">
+                        <h4 className="text-fg font-medium truncate">{event.title}</h4>
+                        <div className="flex items-center mt-1 text-sm text-fg-muted">
                           <FiCalendar className="mr-1 flex-shrink-0" size={12} />
                           <span className="truncate">{formatEventDate(event.date)}</span>
                         </div>
@@ -225,67 +229,67 @@ export default function EditEventsTab({ onManageTables }: EditEventsTabProps) {
         </div>
 
         {/* Edit Form */}
-        <div className="lg:col-span-3 bg-zinc-900/50 rounded-lg border border-cyan-900/30">
+        <div className="lg:col-span-3 bg-surface/50 rounded-lg border border-accent-900/30">
           <div className="p-6">
             {selectedEventId ? (
               <form className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Event Title */}
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-200">
+                    <Label>
                       Event Title
-                    </label>
-                    <input
+                    </Label>
+                    <Input
                       type="text"
                       value={eventTitle}
                       onChange={(e) => setEventTitle(e.target.value)}
-                      className="w-full px-4 py-2 bg-black/50 border border-cyan-900/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-white"
+                      className="px-4 py-2 bg-canvas/50 border border-accent-900/30 focus:ring-2 focus:ring-accent-500/50"
                     />
                   </div>
 
                   {/* Event Date */}
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-200">
+                    <Label>
                       Event Date
-                    </label>
+                    </Label>
                     <div className="relative">
-                      <input
+                      <Input
                         type="date"
                         value={eventDate}
                         onChange={(e) => setEventDate(e.target.value)}
-                        className="w-full px-4 py-2 bg-black/50 border border-cyan-900/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-white"
+                        className="px-4 py-2 bg-canvas/50 border border-accent-900/30 focus:ring-2 focus:ring-accent-500/50"
                       />
-                      <FiCalendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                      <FiCalendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-fg-muted" />
                     </div>
                   </div>
 
                   {/* Ticket Link */}
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-200">
+                    <Label>
                       Ticket Link
-                    </label>
+                    </Label>
                     <div className="relative">
-                      <input
+                      <Input
                         type="url"
                         value={ticketLink}
                         onChange={(e) => setTicketLink(e.target.value)}
-                        className="w-full px-4 py-2 bg-black/50 border border-cyan-900/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-white"
+                        className="px-4 py-2 bg-canvas/50 border border-accent-900/30 focus:ring-2 focus:ring-accent-500/50"
                         placeholder="https://"
                       />
-                      <FiLink className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                      <FiLink className="absolute right-3 top-1/2 transform -translate-y-1/2 text-fg-muted" />
                     </div>
                   </div>
 
                   {/* Description */}
                   <div className="space-y-2 md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-200">
+                    <Label>
                       Description (Optional)
-                    </label>
-                    <textarea
+                    </Label>
+                    <Textarea
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       rows={3}
-                      className="w-full px-4 py-2 bg-black/50 border border-cyan-900/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-white placeholder-gray-500 resize-none"
+                      className="px-4 py-2 bg-canvas/50 border border-accent-900/30 focus:ring-2 focus:ring-accent-500/50 placeholder-fg-subtle resize-none"
                       placeholder="Notes about the event..."
                     />
                   </div>
@@ -299,8 +303,8 @@ export default function EditEventsTab({ onManageTables }: EditEventsTabProps) {
                         onChange={(e) => setReservationsEnabled(e.target.checked)}
                         className="sr-only peer"
                       />
-                      <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-600"></div>
-                      <span className="ml-3 text-sm font-medium text-gray-200">Enable Reservations</span>
+                      <div className="w-11 h-6 bg-surface-hover peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-fg after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-fg after:border-fg-dim after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-600"></div>
+                      <span className="ml-3 text-sm font-medium text-fg-dim">Enable Reservations</span>
                     </label>
                   </div>
                 </div>
@@ -308,28 +312,24 @@ export default function EditEventsTab({ onManageTables }: EditEventsTabProps) {
                 {/* Action Buttons */}
                 <div className="flex flex-wrap gap-4 pt-6">
                   {onManageTables && (
-                    <button
+                    <Button
                       type="button"
                       onClick={() => onManageTables(selectedEventId)}
-                      className="px-6 py-3 bg-zinc-800 text-white rounded-lg font-medium border border-cyan-900/30
-                        hover:border-cyan-700/50 focus:outline-none focus:ring-2 focus:ring-cyan-500/50
-                        flex items-center justify-center gap-2"
+                      variant="subtle" size="lg" className="px-6 py-3 bg-surface-raised border border-accent-900/30 hover:border-accent-700/50 flex items-center justify-center gap-2"
                     >
                       <BiTable className="w-5 h-5" />
                       <span>Manage Tables</span>
-                    </button>
+                    </Button>
                   )}
-                  <button
+                  <Button
                     type="button"
                     onClick={handleUpdateEvent}
                     disabled={loading}
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-600 to-cyan-700 text-white rounded-lg font-medium
-                      hover:from-cyan-500 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 
-                      disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    variant="ghost" size="lg" className="flex-1 px-6 py-3 bg-gradient-to-r from-accent-600 to-accent-700 hover:from-accent-500 hover:to-accent-600 flex items-center justify-center gap-2"
                   >
                     {loading ? (
                       <>
-                        <div className="w-5 h-5 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
+                        <Spinner size="sm" className="text-fg h-5 w-5" />
                         <span>Updating...</span>
                       </>
                     ) : (
@@ -338,27 +338,27 @@ export default function EditEventsTab({ onManageTables }: EditEventsTabProps) {
                         <span>Update Event</span>
                       </>
                     )}
-                  </button>
+                  </Button>
                   
-                  <button
+                  <Button unstyled
                     type="button"
                     onClick={handleDeleteEvent}
                     disabled={loading}
                     className={`flex-1 px-6 py-3 rounded-lg font-medium flex items-center justify-center gap-2
                       ${confirmDelete === selectedEventId
-                        ? 'bg-red-600 hover:bg-red-700 text-white'
-                        : 'bg-red-900/10 text-red-400 hover:bg-red-900/20'
+                        ? 'bg-danger-600 hover:bg-danger-700 text-fg'
+                        : 'bg-danger-900/10 text-danger-400 hover:bg-danger-900/20'
                       } transition-colors`}
                   >
                     <FiTrash2 className="w-5 h-5" />
                     <span>
                       {confirmDelete === selectedEventId ? 'Confirm Delete' : 'Delete Event'}
                     </span>
-                  </button>
+                  </Button>
                 </div>
               </form>
             ) : (
-              <div className="text-center py-12 text-gray-400">
+              <div className="text-center py-12 text-fg-muted">
                 <FiEdit className="mx-auto mb-4 text-4xl" />
                 <p>Select an event from the list to edit its details</p>
               </div>

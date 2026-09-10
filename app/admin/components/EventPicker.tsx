@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { FiCalendar, FiChevronDown } from "react-icons/fi";
 import { getAllEvents } from "@/lib/services/events";
 import { Event } from "@/types/event";
+import { Select } from "@/components/ui/input";
+import { Label } from "@/components/ui/field";
 
 interface EventPickerProps {
   value: string;
@@ -30,14 +32,14 @@ export default function EventPicker({ value, onChange, label = "Event" }: EventP
 
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-200">{label}</label>
+      <Label>{label}</Label>
       <div className="relative">
-        <FiCalendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
-        <select
+        <FiCalendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-fg-muted pointer-events-none" />
+        <Select
           value={value}
           onChange={(e) => onChange(e.target.value)}
           disabled={loading}
-          className="w-full pl-10 pr-10 py-3 lg:py-2 bg-black/50 border border-cyan-900/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-white text-base lg:text-sm appearance-none disabled:opacity-50"
+          className="pl-10 pr-10 py-3 lg:py-2 bg-canvas/50 border border-accent-900/30 focus:ring-2 focus:ring-accent-500/50 text-base lg:text-sm appearance-none disabled:opacity-50"
         >
           <option value="">{loading ? "Loading events..." : "Select an event..."}</option>
           {events.map((event) => (
@@ -45,8 +47,8 @@ export default function EventPicker({ value, onChange, label = "Event" }: EventP
               {event.title}
             </option>
           ))}
-        </select>
-        <FiChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+        </Select>
+        <FiChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-fg-muted pointer-events-none" />
       </div>
     </div>
   );

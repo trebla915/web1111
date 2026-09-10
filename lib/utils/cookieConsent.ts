@@ -21,6 +21,12 @@ export const hasConsentForCookie = (cookieType: 'analytics' | 'marketing' | 'fun
 };
 
 export const setCookieConsent = (type: CookieConsentType) => {
+  // `null` means "no choice recorded" — clear the cookie rather than writing
+  // the string "null" into it.
+  if (type === null) {
+    Cookies.remove('cookieConsent');
+    return;
+  }
   Cookies.set('cookieConsent', type, { expires: 365 }); // 1 year expiry
   
   // Set individual cookie preferences based on consent type

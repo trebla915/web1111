@@ -14,6 +14,7 @@ import {
   type ChangeTableInitResponse,
   type ChangeTableSuccessResponse,
 } from "@/lib/services/reservations";
+import { Button } from "@/components/ui/button";
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amount);
@@ -72,33 +73,24 @@ function PaymentStep({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <p className="text-zinc-300 text-sm">
-        Pay the price difference of <strong className="text-white">{formatCurrency(amountDue)}</strong> (including service fee).
+      <p className="text-fg-dim text-sm">
+        Pay the price difference of <strong className="text-fg">{formatCurrency(amountDue)}</strong> (including service fee).
       </p>
-      <div className="p-3 sm:p-4 border border-zinc-700 rounded-lg bg-zinc-900/50">
+      <div className="p-3 sm:p-4 border border-line rounded-lg bg-surface/50">
         <PaymentElement
           options={{
             layout: "tabs",
-            appearance: {
-              theme: "night",
-              variables: {
-                colorPrimary: "#0891b2",
-                colorBackground: "#18181b",
-                colorText: "#ffffff",
-                borderRadius: "8px",
-              },
-            },
           }}
         />
       </div>
-      {error && <p className="text-red-400 text-sm">{error}</p>}
-      <button
+      {error && <p className="text-danger-400 text-sm">{error}</p>}
+      <Button
         type="submit"
         disabled={!stripe || isProcessing}
-        className="w-full py-3 bg-white text-black font-semibold rounded-lg hover:bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed"
+        variant="primary" size="lg" full className="py-3 bg-fg font-semibold hover:bg-fg/90"
       >
         {isProcessing ? "Processing…" : `Pay ${formatCurrency(amountDue)} & change table`}
-      </button>
+      </Button>
     </form>
   );
 }
@@ -148,33 +140,24 @@ function PendingFixPaymentStep({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <p className="text-zinc-300 text-sm">
-        Pay the outstanding price difference of <strong className="text-white">{formatCurrency(amountDue)}</strong>.
+      <p className="text-fg-dim text-sm">
+        Pay the outstanding price difference of <strong className="text-fg">{formatCurrency(amountDue)}</strong>.
       </p>
-      <div className="p-3 sm:p-4 border border-zinc-700 rounded-lg bg-zinc-900/50">
+      <div className="p-3 sm:p-4 border border-line rounded-lg bg-surface/50">
         <PaymentElement
           options={{
             layout: "tabs",
-            appearance: {
-              theme: "night",
-              variables: {
-                colorPrimary: "#0891b2",
-                colorBackground: "#18181b",
-                colorText: "#ffffff",
-                borderRadius: "8px",
-              },
-            },
           }}
         />
       </div>
-      {error && <p className="text-red-400 text-sm">{error}</p>}
-      <button
+      {error && <p className="text-danger-400 text-sm">{error}</p>}
+      <Button
         type="submit"
         disabled={!stripe || isProcessing}
-        className="w-full py-3 bg-white text-black font-semibold rounded-lg hover:bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed"
+        variant="primary" size="lg" full className="py-3 bg-fg font-semibold hover:bg-fg/90"
       >
         {isProcessing ? "Processing…" : `Pay ${formatCurrency(amountDue)}`}
-      </button>
+      </Button>
     </form>
   );
 }
@@ -189,7 +172,7 @@ export default function ChangeTablePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<{
-    tables: Array<{ id: string; number: number; price: number; reserved: boolean }>;
+    tables: Array<{ id: string; number: number; price: number; reserved: boolean; capacity?: number }>;
     currentTableId: string;
     currentTableNumber: number;
     event: { title?: string; date?: string } | null;
@@ -296,7 +279,7 @@ export default function ChangeTablePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <div className="min-h-screen bg-canvas text-fg flex items-center justify-center">
         <div className="animate-pulse">Loading…</div>
       </div>
     );
@@ -304,19 +287,19 @@ export default function ChangeTablePage() {
 
   if (error && !data) {
     return (
-      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6">
-        <p className="text-red-400 mb-4">{error}</p>
-        <Link href="/" className="text-white hover:underline">Back to home</Link>
+      <div className="min-h-screen bg-canvas text-fg flex flex-col items-center justify-center p-6">
+        <p className="text-danger-400 mb-4">{error}</p>
+        <Link href="/" className="text-fg hover:underline">Back to home</Link>
       </div>
     );
   }
 
   if (pendingFixPayment) {
     return (
-      <div className="min-h-screen bg-black text-white pt-24 pb-16 sm:py-24 px-4">
+      <div className="min-h-screen bg-canvas text-fg pt-24 pb-16 sm:py-24 px-4">
         <div className="max-w-md mx-auto">
           <h1 className="text-2xl font-bold mb-2">Pay price difference</h1>
-          <p className="text-zinc-400 mb-6">Your table was updated. Please pay the outstanding amount below.</p>
+          <p className="text-fg-muted mb-6">Your table was updated. Please pay the outstanding amount below.</p>
           <StripeProvider clientSecret={pendingFixPayment.clientSecret}>
             <PendingFixPaymentStep
               clientSecret={pendingFixPayment.clientSecret}
@@ -340,25 +323,25 @@ export default function ChangeTablePage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6">
-        <div className="max-w-md w-full bg-zinc-900 rounded-xl p-6 sm:p-8 text-center border border-zinc-800">
-          <div className="w-14 h-14 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-4">
-            <FiCheck className="w-7 h-7 text-green-400" />
+      <div className="min-h-screen bg-canvas text-fg flex flex-col items-center justify-center p-6">
+        <div className="max-w-md w-full bg-surface rounded-xl p-6 sm:p-8 text-center border border-line-subtle">
+          <div className="w-14 h-14 rounded-full bg-success-500/20 flex items-center justify-center mx-auto mb-4">
+            <FiCheck className="w-7 h-7 text-success-400" />
           </div>
-          <h1 className="text-xl font-bold text-white mb-2">Table changed</h1>
-          <p className="text-zinc-400 mb-6">{success.message}</p>
+          <h1 className="text-xl font-bold text-fg mb-2">Table changed</h1>
+          <p className="text-fg-muted mb-6">{success.message}</p>
           {success.refund && (
-            <p className="text-white text-sm mb-6">
+            <p className="text-fg text-sm mb-6">
               A refund of {formatCurrency(success.refund.amount)} will be processed to your original payment method.
             </p>
           )}
           <Link
             href="/dashboard/reservations"
-            className="block w-full py-3 bg-white text-black font-semibold rounded-lg hover:bg-white/90 text-center"
+            className="block w-full py-3 bg-fg text-fg-inverse font-semibold rounded-lg hover:bg-fg/90 text-center"
           >
             View my reservations
           </Link>
-          <Link href="/events" className="block mt-3 text-zinc-400 hover:text-white text-sm">
+          <Link href="/events" className="block mt-3 text-fg-muted hover:text-fg text-sm">
             Browse events
           </Link>
         </div>
@@ -368,17 +351,17 @@ export default function ChangeTablePage() {
 
   if (paymentStep) {
     return (
-      <div className="min-h-screen bg-black text-white pt-24 pb-16 sm:py-24 px-4">
+      <div className="min-h-screen bg-canvas text-fg pt-24 pb-16 sm:py-24 px-4">
         <div className="max-w-md mx-auto">
-          <button
+          <Button
             type="button"
             onClick={() => setPaymentStep(null)}
-            className="flex items-center gap-2 text-zinc-400 hover:text-white mb-6"
+            variant="ghost" size="md" className="flex items-center gap-2 text-fg-muted hover:text-fg mb-6"
           >
             <FiArrowLeft /> Back
-          </button>
+          </Button>
           <h1 className="text-2xl font-bold mb-2">Pay price difference</h1>
-          <p className="text-zinc-400 mb-6">
+          <p className="text-fg-muted mb-6">
             Moving from Table #{paymentStep.currentTableNumber} to Table #{paymentStep.newTableNumber}.
           </p>
           <StripeProvider clientSecret={paymentStep.clientSecret}>
@@ -397,25 +380,25 @@ export default function ChangeTablePage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white py-24 px-4">
+    <div className="min-h-screen bg-canvas text-fg py-24 px-4">
       <div className="max-w-lg mx-auto">
         <Link
           href="/dashboard/reservations"
-          className="inline-flex items-center gap-2 text-zinc-400 hover:text-white mb-6"
+          className="inline-flex items-center gap-2 text-fg-muted hover:text-fg mb-6"
         >
           <FiArrowLeft /> My reservations
         </Link>
         <h1 className="text-2xl font-bold mb-1">Change your table</h1>
         {data?.event?.title && (
-          <p className="text-zinc-400 mb-6">{data.event.title}</p>
+          <p className="text-fg-muted mb-6">{data.event.title}</p>
         )}
-        <p className="text-zinc-400 text-sm mb-6">
-          Your current table is <strong className="text-white">#{data?.currentTableNumber}</strong>.
+        <p className="text-fg-muted text-sm mb-6">
+          Your current table is <strong className="text-fg">#{data?.currentTableNumber}</strong>.
           Select a different available table below. You may owe an extra charge or receive a refund depending on the table price.
         </p>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-900/30 border border-red-800 rounded-lg text-red-300 text-sm">
+          <div className="mb-4 p-3 bg-danger-900/30 border border-danger-800 rounded-lg text-danger-300 text-sm">
             {error}
           </div>
         )}
@@ -426,58 +409,58 @@ export default function ChangeTablePage() {
             const diffWithFee = Math.round(diff * 1.1 * 100) / 100;
             const isCurrent = table.id === data?.currentTableId;
             return (
-              <button
+              <Button unstyled
                 key={table.id}
                 type="button"
                 disabled={isCurrent}
                 onClick={() => setSelectedTableId(table.id)}
                 className={`w-full text-left p-4 rounded-lg border transition-colors ${
                   selectedTableId === table.id
-                    ? "border-white bg-white/10"
-                    : "border-zinc-700 bg-zinc-900/50 hover:border-zinc-600"
+                    ? "border-fg bg-fg/10"
+                    : "border-line bg-surface/50 hover:border-line-strong"
                 } ${isCurrent ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 <div className="flex justify-between items-start">
                   <div>
-                    <span className="font-semibold text-white">Table #{table.number}</span>
-                    <span className="text-zinc-400 ml-2">· {formatCurrency(table.price)}</span>
+                    <span className="font-semibold text-fg">Table #{table.number}</span>
+                    <span className="text-fg-muted ml-2">· {formatCurrency(table.price)}</span>
                   </div>
                   {!isCurrent && diff !== 0 && (
-                    <span className={diffWithFee > 0 ? "text-amber-400" : "text-green-400"}>
+                    <span className={diffWithFee > 0 ? "text-attention-400" : "text-success-400"}>
                       {diffWithFee > 0 ? `+${formatCurrency(diffWithFee)}` : formatCurrency(diffWithFee)} (refund)
                     </span>
                   )}
                 </div>
                 {table.capacity != null && (
-                  <div className="flex items-center gap-1 mt-1 text-zinc-500 text-sm">
+                  <div className="flex items-center gap-1 mt-1 text-fg-subtle text-sm">
                     <FiUsers className="w-3.5 h-3.5" /> Up to {table.capacity} guests
                   </div>
                 )}
-              </button>
+              </Button>
             );
           })}
         </div>
 
         {otherTables?.length === 0 && (
-          <p className="text-zinc-500">No other tables available for this event.</p>
+          <p className="text-fg-subtle">No other tables available for this event.</p>
         )}
 
         {selectedTableId && selectedTable && (
-          <div className="border-t border-zinc-800 pt-6">
-            <p className="text-zinc-400 text-sm mb-2">
+          <div className="border-t border-line-subtle pt-6">
+            <p className="text-fg-muted text-sm mb-2">
               Selected: Table #{selectedTable.number} ({formatCurrency(selectedTable.price)})
               {priceDiff !== 0 && (
-                <span className={isUpgrade ? "text-amber-400" : "text-green-400"}>
+                <span className={isUpgrade ? "text-attention-400" : "text-success-400"}>
                   {" "}
                   · {isUpgrade ? `Pay ${formatCurrency(priceDiffWithFee)}` : `Refund ${formatCurrency(Math.abs(priceDiffWithFee))}`}
                 </span>
               )}
             </p>
-            <button
+            <Button
               type="button"
               onClick={handleSelectTable}
               disabled={submitting}
-              className="w-full py-3 bg-white text-black font-semibold rounded-lg hover:bg-white/90 disabled:opacity-50 flex items-center justify-center gap-2"
+              variant="primary" size="lg" full className="py-3 bg-fg font-semibold hover:bg-fg/90 flex items-center justify-center gap-2"
             >
               {submitting ? (
                 "Processing…"
@@ -488,7 +471,7 @@ export default function ChangeTablePage() {
               ) : (
                 <>Confirm move to Table #{selectedTable.number}</>
               )}
-            </button>
+            </Button>
           </div>
         )}
       </div>

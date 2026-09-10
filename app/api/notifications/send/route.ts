@@ -1,11 +1,15 @@
+import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { 
   sendPushNotification, 
   sendPushNotificationToUsers 
 } from '@/lib/services/notifications';
+import { ADMIN_ROLES, STAFF_ROLES, authErrorResponse, requireRole, requireUser } from '@/lib/auth/server';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    // Broadcasts to customers: admin only.
+    await requireRole(request, ADMIN_ROLES, { checkRevoked: true });
     const body = await request.json();
     
     // Validate required fields
@@ -67,6 +71,8 @@ export async function POST(request: Request) {
       );
     }
   } catch (error: any) {
+    const __authed = authErrorResponse(error);
+    if (__authed) return __authed;
     console.error('Error processing push notification request:', error);
     return NextResponse.json(
       { 

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminFirestore } from '@/lib/firebase/admin';
 import { sendReservationConfirmation } from '@/lib/utils/sendEmail';
+import { ADMIN_ROLES, STAFF_ROLES, authErrorResponse } from '@/lib/auth/server';
+import { loadAuthorizedReservation, NotFoundError } from '@/lib/auth/reservation';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,6 +14,8 @@ export async function POST(
   { params }: { params: { reservationId: string } }
 ) {
   try {
+    // Resending a confirmation emails the customer: owner or admin only.
+    await loadAuthorizedReservation(request, params.reservationId, ADMIN_ROLES);
     const { reservationId } = params;
     const body = await request
       .json()
@@ -114,6 +118,9 @@ export async function POST(
       emailId: result.emailId,
     });
   } catch (error: any) {
+    if (error instanceof NotFoundError) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    const __authed = authErrorResponse(error);
+    if (__authed) return __authed;
     const message = error?.message || String(error);
     console.error(
       `Error in send-confirmation for ${params.reservationId}:`,

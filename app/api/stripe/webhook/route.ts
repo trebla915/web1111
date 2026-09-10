@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { stripe } from '@/lib/stripe';
 import Stripe from 'stripe';
 import { adminFirestore } from '@/lib/firebase/admin';
 
 export const dynamic = 'force-dynamic';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-04-10',
-});
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
@@ -128,6 +125,9 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
     amount: paymentIntent.amount / 100,
     reservationCreated: true,
     reservationId,
+    // Recorded so /api/payments/[id]/status can authorize the polling customer
+    // without leaking payments to anyone who guesses a PaymentIntent id.
+    userId,
     createdAt: now,
     updatedAt: now,
   });

@@ -1,74 +1,21 @@
-import { auth } from './firebase';
-import { cookies } from 'next/headers';
-
 /**
- * Get the current user session
- * This checks both Firebase auth state and cookies
+ * DEPRECATED — do not use.
+ *
+ * This module previously exported `getSession()` / `isAuthenticated()` /
+ * `hasRole()`, which resolved identity by:
+ *   1. reading `auth.currentUser` from the *client* Firebase SDK (always null
+ *      on the server), then
+ *   2. falling back to `JSON.parse(cookies().get('userInfo'))` and trusting the
+ *      `role` and `uid` inside it.
+ *
+ * Because `userInfo` is written by the browser, any caller could impersonate
+ * any user — including an admin — on every route that used it.
+ *
+ * Server-side identity now comes from a verified Firebase ID token:
+ *   - route handlers (Node):  `@/lib/auth/server`
+ *   - middleware (Edge):      `@/lib/auth/edge`
+ *
+ * The exports are removed rather than fixed in place so that any code still
+ * importing them fails to compile instead of silently authorizing.
  */
-export async function getSession() {
-  try {
-    // Try to get the current user from Firebase Auth
-    const currentUser = auth.currentUser;
-    
-    if (currentUser) {
-      return {
-        user: {
-          uid: currentUser.uid,
-          email: currentUser.email,
-          displayName: currentUser.displayName
-        }
-      };
-    }
-    
-    // If no current user in Firebase Auth, check cookies
-    const cookieStore = cookies();
-    const userInfoCookie = cookieStore.get('userInfo');
-    
-    if (userInfoCookie) {
-      try {
-        const userInfo = JSON.parse(userInfoCookie.value);
-        return { user: userInfo };
-      } catch (error) {
-        console.error('Error parsing userInfo cookie:', error);
-      }
-    }
-    
-    return null;
-  } catch (error) {
-    console.error('Error getting session:', error);
-    return null;
-  }
-}
-
-/**
- * Check if the current user is authenticated
- */
-export async function isAuthenticated() {
-  const session = await getSession();
-  return !!session?.user;
-}
-
-/**
- * Check if the current user has the specified role
- */
-export async function hasRole(role: string) {
-  const session = await getSession();
-  if (!session?.user) return false;
-  
-  return session.user.role === role;
-}
-
-/**
- * Check if the current user is an admin
- */
-export async function isAdmin() {
-  return hasRole('admin');
-}
-
-/**
- * Get the current user ID
- */
-export async function getCurrentUserId() {
-  const session = await getSession();
-  return session?.user?.uid || null;
-} 
+export {};

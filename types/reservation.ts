@@ -10,16 +10,13 @@ export interface Table {
   minimumBottles: number;
 }
 
-export interface Event {
-  id: string;
-  title: string;
-  date: string;
-  description?: string;
-  flyerUrl?: string;
-  imageUrl?: string;
-  createdAt: string;
-  updatedAt: string;
-}
+/**
+ * Re-exported so `@/types/reservation` and `@/types/event` cannot drift. This
+ * module previously declared its own thinner `Event`, which is why
+ * `reservationsEnabled` appeared missing on the reserve page — it was reading
+ * the duplicate, not the real one.
+ */
+export type { Event } from './event';
 
 export interface Reservation {
   id: string;

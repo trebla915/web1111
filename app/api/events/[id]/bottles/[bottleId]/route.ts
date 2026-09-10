@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminFirestore } from '@/lib/firebase/admin';
+import { ADMIN_ROLES, STAFF_ROLES, authErrorResponse, requireRole, requireUser } from '@/lib/auth/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,6 +35,8 @@ export async function GET(
       ...bottleDoc.data()
     });
   } catch (error) {
+    const __authed = authErrorResponse(error);
+    if (__authed) return __authed;
     console.error(`Error fetching bottle ${params.bottleId} for event ${params.id}:`, error);
     return NextResponse.json({ error: 'Failed to fetch bottle' }, { status: 500 });
   }
@@ -45,6 +48,8 @@ export async function PUT(
   { params }: { params: { id: string; bottleId: string } }
 ) {
   try {
+    // Per-event bottle pricing is administrative.
+    await requireRole(request, ADMIN_ROLES, { checkRevoked: true });
     const { id, bottleId } = params;
     const data = await request.json();
     
@@ -78,6 +83,8 @@ export async function PUT(
       updatedAt: new Date().toISOString()
     });
   } catch (error) {
+    const __authed = authErrorResponse(error);
+    if (__authed) return __authed;
     console.error(`Error updating bottle ${params.bottleId} for event ${params.id}:`, error);
     return NextResponse.json({ error: 'Failed to update bottle' }, { status: 500 });
   }
@@ -89,6 +96,7 @@ export async function DELETE(
   { params }: { params: { id: string; bottleId: string } }
 ) {
   try {
+    await requireRole(request, ADMIN_ROLES, { checkRevoked: true });
     const { id, bottleId } = params;
     
     // Verify event exists
@@ -114,6 +122,8 @@ export async function DELETE(
     
     return NextResponse.json({ message: 'Bottle deleted successfully' });
   } catch (error) {
+    const __authed = authErrorResponse(error);
+    if (__authed) return __authed;
     console.error(`Error deleting bottle ${params.bottleId} for event ${params.id}:`, error);
     return NextResponse.json({ error: 'Failed to delete bottle' }, { status: 500 });
   }

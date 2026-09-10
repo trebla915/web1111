@@ -5,6 +5,9 @@ import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { FiCheckCircle, FiUsers, FiCalendar, FiMapPin, FiUser, FiPhone, FiMail, FiClock, FiAlertCircle } from 'react-icons/fi';
 import { BiTable, BiWine, BiDrink } from 'react-icons/bi';
+import { Spinner } from "@/components/ui/spinner";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 interface Reservation {
   id: string;
@@ -130,10 +133,10 @@ export default function StaffCheckInPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-canvas flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-t-2 border-b-2 border-cyan-500 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-white">Loading reservation details...</p>
+          <Spinner size="lg" className="text-accent-500 mx-auto mb-4" />
+          <p className="text-fg">Loading reservation details...</p>
         </div>
       </div>
     );
@@ -141,17 +144,17 @@ export default function StaffCheckInPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-canvas flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-4">
-          <FiAlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-white mb-4">Error</h1>
-          <p className="text-red-400 mb-6">{error}</p>
-          <button
+          <FiAlertCircle className="w-16 h-16 text-danger-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-fg mb-4">Error</h1>
+          <p className="text-danger-400 mb-6">{error}</p>
+          <Button
             onClick={() => router.push('/staff')}
-            className="px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors"
+            variant="accent" size="lg" className="px-6 py-3 bg-accent-600 hover:bg-accent-700"
           >
             Back to Staff Dashboard
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -159,9 +162,9 @@ export default function StaffCheckInPage() {
 
   if (!reservation) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-canvas flex items-center justify-center">
         <div className="text-center">
-          <p className="text-white">No reservation data found</p>
+          <p className="text-fg">No reservation data found</p>
         </div>
       </div>
     );
@@ -170,24 +173,24 @@ export default function StaffCheckInPage() {
   const isAlreadyCheckedIn = reservation.status === 'checked-in';
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-canvas text-fg">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-cyan-400 mb-2">
+          <h1 className="text-3xl font-bold text-accent-400 mb-2">
             Staff Check-In
           </h1>
-          <p className="text-gray-400">Reservation ID: {reservationId}</p>
+          <p className="text-fg-muted">Reservation ID: {reservationId}</p>
         </div>
 
         {/* Status Banner */}
         {isAlreadyCheckedIn && (
-          <div className="bg-green-900/30 border border-green-500/50 rounded-lg p-4 mb-6">
+          <div className="bg-success-900/30 border border-success-500/50 rounded-lg p-4 mb-6">
             <div className="flex items-center gap-3">
-              <FiCheckCircle className="w-6 h-6 text-green-400" />
+              <FiCheckCircle className="w-6 h-6 text-success-400" />
               <div>
-                <p className="text-green-400 font-semibold">Already Checked In</p>
-                <p className="text-green-300 text-sm">
+                <p className="text-success-400 font-semibold">Already Checked In</p>
+                <p className="text-success-300 text-sm">
                   Checked in by {reservation.checkedInBy} on {formatDate(reservation.checkedInAt!)}
                 </p>
               </div>
@@ -197,8 +200,8 @@ export default function StaffCheckInPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Event Details */}
-          <div className="bg-zinc-900 rounded-lg border border-cyan-900/30 p-6">
-            <h2 className="text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2">
+          <Card padding="none" className="p-6">
+            <h2 className="text-xl font-bold text-accent-400 mb-4 flex items-center gap-2">
               <FiCalendar className="w-5 h-5" />
               Event Details
             </h2>
@@ -206,67 +209,67 @@ export default function StaffCheckInPage() {
             {event && (
               <div className="space-y-3">
                 <div>
-                  <p className="text-gray-400 text-sm">Event Name</p>
-                  <p className="text-white font-medium">{event.title}</p>
+                  <p className="text-fg-muted text-sm">Event Name</p>
+                  <p className="text-fg font-medium">{event.title}</p>
                 </div>
                 <div>
-                  <p className="text-gray-400 text-sm">Date</p>
-                  <p className="text-white">{formatDate(event.date)}</p>
+                  <p className="text-fg-muted text-sm">Date</p>
+                  <p className="text-fg">{formatDate(event.date)}</p>
                 </div>
                 {event.description && (
                   <div>
-                    <p className="text-gray-400 text-sm">Description</p>
-                    <p className="text-white">{event.description}</p>
+                    <p className="text-fg-muted text-sm">Description</p>
+                    <p className="text-fg">{event.description}</p>
                   </div>
                 )}
               </div>
             )}
-          </div>
+          </Card>
 
           {/* Table & Guest Info */}
-          <div className="bg-zinc-900 rounded-lg border border-cyan-900/30 p-6">
-            <h2 className="text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2">
+          <Card padding="none" className="p-6">
+            <h2 className="text-xl font-bold text-accent-400 mb-4 flex items-center gap-2">
               <BiTable className="w-5 h-5" />
               Table Information
             </h2>
             
             <div className="space-y-3">
               <div>
-                <p className="text-gray-400 text-sm">Table Number</p>
-                <p className="text-white font-medium text-2xl">#{reservation.tableNumber}</p>
+                <p className="text-fg-muted text-sm">Table Number</p>
+                <p className="text-fg font-medium text-2xl">#{reservation.tableNumber}</p>
               </div>
               <div>
-                <p className="text-gray-400 text-sm">Guest Count</p>
-                <p className="text-white flex items-center gap-2">
+                <p className="text-fg-muted text-sm">Guest Count</p>
+                <p className="text-fg flex items-center gap-2">
                   <FiUsers className="w-4 h-4" />
                   {reservation.guestCount} guests
                 </p>
               </div>
               {reservation.totalAmount && (
                 <div>
-                  <p className="text-gray-400 text-sm">Total Amount</p>
-                  <p className="text-white font-medium">{formatCurrency(reservation.totalAmount)}</p>
+                  <p className="text-fg-muted text-sm">Total Amount</p>
+                  <p className="text-fg font-medium">{formatCurrency(reservation.totalAmount)}</p>
                 </div>
               )}
             </div>
-          </div>
+          </Card>
 
           {/* Customer Information */}
-          <div className="bg-zinc-900 rounded-lg border border-cyan-900/30 p-6">
-            <h2 className="text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2">
+          <Card padding="none" className="p-6">
+            <h2 className="text-xl font-bold text-accent-400 mb-4 flex items-center gap-2">
               <FiUser className="w-5 h-5" />
               Customer Information
             </h2>
             
             <div className="space-y-3">
               <div>
-                <p className="text-gray-400 text-sm">Name</p>
-                <p className="text-white font-medium">{reservation.userName || 'N/A'}</p>
+                <p className="text-fg-muted text-sm">Name</p>
+                <p className="text-fg font-medium">{reservation.userName || 'N/A'}</p>
               </div>
               {reservation.userEmail && (
                 <div>
-                  <p className="text-gray-400 text-sm">Email</p>
-                  <p className="text-white flex items-center gap-2">
+                  <p className="text-fg-muted text-sm">Email</p>
+                  <p className="text-fg flex items-center gap-2">
                     <FiMail className="w-4 h-4" />
                     {reservation.userEmail}
                   </p>
@@ -274,19 +277,19 @@ export default function StaffCheckInPage() {
               )}
               {reservation.userPhone && (
                 <div>
-                  <p className="text-gray-400 text-sm">Phone</p>
-                  <p className="text-white flex items-center gap-2">
+                  <p className="text-fg-muted text-sm">Phone</p>
+                  <p className="text-fg flex items-center gap-2">
                     <FiPhone className="w-4 h-4" />
                     {reservation.userPhone}
                   </p>
                 </div>
               )}
             </div>
-          </div>
+          </Card>
 
           {/* Bottles & Mixers */}
-          <div className="bg-zinc-900 rounded-lg border border-cyan-900/30 p-6">
-            <h2 className="text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2">
+          <Card padding="none" className="p-6">
+            <h2 className="text-xl font-bold text-accent-400 mb-4 flex items-center gap-2">
               <BiWine className="w-5 h-5" />
               Orders
             </h2>
@@ -294,13 +297,13 @@ export default function StaffCheckInPage() {
             <div className="space-y-4">
               {reservation.bottles && reservation.bottles.length > 0 && (
                 <div>
-                  <p className="text-gray-400 text-sm mb-2">Bottles</p>
+                  <p className="text-fg-muted text-sm mb-2">Bottles</p>
                   <div className="space-y-1">
                     {reservation.bottles.map((bottle, index) => (
                       <div key={index} className="flex justify-between items-center">
-                        <p className="text-white">{bottle.name}</p>
+                        <p className="text-fg">{bottle.name}</p>
                         {bottle.price && (
-                          <p className="text-gray-400">{formatCurrency(bottle.price)}</p>
+                          <p className="text-fg-muted">{formatCurrency(bottle.price)}</p>
                         )}
                       </div>
                     ))}
@@ -310,13 +313,13 @@ export default function StaffCheckInPage() {
               
               {reservation.mixers && reservation.mixers.length > 0 && (
                 <div>
-                  <p className="text-gray-400 text-sm mb-2">Mixers</p>
+                  <p className="text-fg-muted text-sm mb-2">Mixers</p>
                   <div className="space-y-1">
                     {reservation.mixers.map((mixer, index) => (
                       <div key={index} className="flex justify-between items-center">
-                        <p className="text-white">{mixer.name}</p>
+                        <p className="text-fg">{mixer.name}</p>
                         {mixer.price && (
-                          <p className="text-gray-400">{formatCurrency(mixer.price)}</p>
+                          <p className="text-fg-muted">{formatCurrency(mixer.price)}</p>
                         )}
                       </div>
                     ))}
@@ -326,38 +329,38 @@ export default function StaffCheckInPage() {
               
               {(!reservation.bottles || reservation.bottles.length === 0) && 
                (!reservation.mixers || reservation.mixers.length === 0) && (
-                <p className="text-gray-400">No bottles or mixers ordered</p>
+                <p className="text-fg-muted">No bottles or mixers ordered</p>
               )}
             </div>
-          </div>
+          </Card>
         </div>
 
         {/* Reservation Metadata */}
-        <div className="mt-6 bg-zinc-900 rounded-lg border border-cyan-900/30 p-6">
-          <h3 className="text-lg font-semibold text-gray-300 mb-3">Reservation Details</h3>
+        <div className="mt-6 bg-surface rounded-lg border border-accent-900/30 p-6">
+          <h3 className="text-lg font-semibold text-fg-dim mb-3">Reservation Details</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
-              <p className="text-gray-400">Status</p>
+              <p className="text-fg-muted">Status</p>
               <p className={`font-medium ${
-                reservation.status === 'checked-in' ? 'text-green-400' :
-                reservation.status === 'confirmed' ? 'text-cyan-400' :
-                reservation.status === 'pending' ? 'text-yellow-400' :
-                'text-gray-400'
+                reservation.status === 'checked-in' ? 'text-success-400' :
+                reservation.status === 'confirmed' ? 'text-accent-400' :
+                reservation.status === 'pending' ? 'text-warning-400' :
+                'text-fg-muted'
               }`}>
                 {reservation.status.charAt(0).toUpperCase() + reservation.status.slice(1)}
               </p>
             </div>
             <div>
-              <p className="text-gray-400">Created</p>
-              <p className="text-white">{formatDate(reservation.createdAt)}</p>
+              <p className="text-fg-muted">Created</p>
+              <p className="text-fg">{formatDate(reservation.createdAt)}</p>
             </div>
             <div>
-              <p className="text-gray-400">Payment ID</p>
-              <p className="text-white font-mono text-xs">{reservation.paymentId}</p>
+              <p className="text-fg-muted">Payment ID</p>
+              <p className="text-fg font-display text-xs">{reservation.paymentId}</p>
             </div>
             <div>
-              <p className="text-gray-400">Table ID</p>
-              <p className="text-white">{reservation.tableId}</p>
+              <p className="text-fg-muted">Table ID</p>
+              <p className="text-fg">{reservation.tableId}</p>
             </div>
           </div>
         </div>

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminFirestore } from '@/lib/firebase/admin';
+import { withId } from '@/lib/firebase/docs';
 import { notifyVipCheckin } from '@/lib/utils/dispatcher';
+import { ADMIN_ROLES, STAFF_ROLES, authErrorResponse, requireRole, requireUser } from '@/lib/auth/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +12,8 @@ export async function GET(
   { params }: { params: { reservationId: string } }
 ) {
   try {
+    // Door operations: staff, promoter or admin.
+    await requireRole(request, STAFF_ROLES, { checkRevoked: true });
     const { reservationId } = params;
     
     // Get reservation from Firestore
@@ -22,10 +26,7 @@ export async function GET(
       return NextResponse.json({ error: 'Reservation not found' }, { status: 404 });
     }
     
-    const reservationData = {
-      id: reservationDoc.id,
-      ...reservationDoc.data()
-    };
+    const reservationData = withId<{ eventId: string }>(reservationDoc);
 
     // Get event details
     const eventDoc = await adminFirestore
@@ -40,6 +41,8 @@ export async function GET(
       event: eventData ? { id: eventDoc.id, ...eventData } : null
     });
   } catch (error) {
+    const __authed = authErrorResponse(error);
+    if (__authed) return __authed;
     console.error(`Error fetching reservation for check-in ${params.reservationId}:`, error);
     return NextResponse.json({ error: 'Failed to fetch reservation details' }, { status: 500 });
   }
@@ -51,6 +54,7 @@ export async function POST(
   { params }: { params: { reservationId: string } }
 ) {
   try {
+    await requireRole(request, STAFF_ROLES, { checkRevoked: true });
     const { reservationId } = params;
     const body = await request.json().catch(() => ({}));
     const staffName = (body.staffName && String(body.staffName).trim()) || 'QR Scan';
@@ -118,6 +122,8 @@ export async function POST(
 
     return NextResponse.json(result.body, { status: result.status });
   } catch (error) {
+    const __authed = authErrorResponse(error);
+    if (__authed) return __authed;
     console.error(`Error checking in reservation ${params.reservationId}:`, error);
     return NextResponse.json({ error: 'Failed to check in reservation' }, { status: 500 });
   }

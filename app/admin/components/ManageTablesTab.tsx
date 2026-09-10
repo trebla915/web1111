@@ -7,6 +7,12 @@ import { BiTable } from "react-icons/bi";
 import { getEventTables, createEventTable, updateEventTable, deleteEventTable } from "@/lib/services/tables";
 import { Table } from "@/types/reservation";
 import EventPicker from "./EventPicker";
+import { Spinner } from "@/components/ui/spinner";
+import { Button } from "@/components/ui/button";
+import { Input, Select } from "@/components/ui/input";
+import { Label } from "@/components/ui/field";
+import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface ManageTablesTabProps {
   initialEventId?: string;
@@ -166,102 +172,104 @@ export default function ManageTablesTab({ initialEventId }: ManageTablesTabProps
     <div className="space-y-6">
       {/* Mobile Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h2 className="text-2xl lg:text-3xl font-bold text-white">Manage Tables</h2>
-        <div className="text-sm text-gray-400">Set table number, price, capacity, and placement per event</div>
+        <h2 className="text-2xl lg:text-3xl font-bold text-fg">Manage Tables</h2>
+        <div className="text-sm text-fg-muted">Set table number, price, capacity, and placement per event</div>
       </div>
 
       {/* Event Selector */}
-      <div className="bg-zinc-900/50 rounded-lg border border-cyan-900/30 p-4 lg:p-6">
+      <Card padding="lg" className="bg-surface/50">
         <EventPicker value={eventId} onChange={setEventId} label="Select event" />
-      </div>
+      </Card>
 
       {!eventId ? (
-        <div className="text-center py-12 text-gray-400 bg-zinc-900/50 rounded-lg border border-cyan-900/30">
-          <p>Select an event above to manage its tables.</p>
-        </div>
+        <EmptyState
+          title="No event selected"
+          description="Choose an event above to manage its tables."
+        />
       ) : (
         <>
           <div className="flex justify-end">
-            <button
+            <Button
               onClick={openAddModal}
-              className="flex items-center gap-2 px-4 py-3 lg:py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors text-sm font-medium"
+              variant="accent" size="lg" className="flex items-center gap-2 px-4 py-3 lg:py-2 bg-accent-600 hover:bg-accent-700 text-sm"
             >
               <FiPlus />
               Add Table
-            </button>
+            </Button>
           </div>
 
           {loading ? (
             <div className="flex items-center justify-center h-64">
-              <div className="w-12 h-12 border-t-2 border-b-2 border-cyan-500 rounded-full animate-spin"></div>
+              <Spinner size="lg" className="text-accent-500" />
             </div>
           ) : tables.length === 0 ? (
-            <div className="text-center py-12 text-gray-400 bg-zinc-900/50 rounded-lg border border-cyan-900/30">
-              <BiTable size={48} className="mx-auto mb-4 opacity-50" />
-              <p>No tables yet for this event. Add one to get started.</p>
-            </div>
+            <EmptyState
+              icon={<BiTable size={48} />}
+              title="No tables yet"
+              description="Add the first table for this event to get started."
+            />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {tables.map((table) => (
                 <div
                   key={table.id}
-                  className="bg-zinc-900/50 border border-cyan-900/30 rounded-lg p-4 hover:border-cyan-700/50 transition-colors"
+                  className="bg-surface/50 border border-accent-900/30 rounded-lg p-4 hover:border-accent-700/50 transition-colors"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                        <BiTable className="text-cyan-400" />
+                      <h3 className="text-lg font-bold text-fg flex items-center gap-2">
+                        <BiTable className="text-accent-400" />
                         Table #{table.number}
                       </h3>
                       <span
                         className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs border ${
                           table.reserved
-                            ? "bg-red-900/30 text-red-400 border-red-500/50"
-                            : "bg-green-900/30 text-green-400 border-green-500/50"
+                            ? "bg-danger-900/30 text-danger-400 border-danger-500/50"
+                            : "bg-success-900/30 text-success-400 border-success-500/50"
                         }`}
                       >
                         {table.reserved ? "Reserved" : "Available"}
                       </span>
                     </div>
                     <div className="flex gap-1">
-                      <button
+                      <Button
                         onClick={() => openEditModal(table)}
-                        className="p-2 text-gray-400 hover:bg-gray-700/30 rounded-lg transition-colors"
+                        variant="ghost" size="md" className="p-2 text-fg-muted hover:bg-surface-hover/30"
                         title="Edit table"
                       >
                         <FiEdit2 size={16} />
-                      </button>
-                      <button
+                      </Button>
+                      <Button unstyled
                         onClick={() => handleDelete(table)}
                         disabled={table.reserved || deletingId === table.id}
                         className={`p-2 rounded-lg transition-colors ${
                           confirmDeleteId === table.id
-                            ? "text-white bg-red-600 hover:bg-red-700"
-                            : "text-red-400 hover:bg-red-900/20"
+                            ? "text-fg bg-danger-600 hover:bg-danger-700"
+                            : "text-danger-400 hover:bg-danger-900/20"
                         } disabled:opacity-40 disabled:cursor-not-allowed`}
                         title={table.reserved ? "Cancel the reservation first to delete this table" : confirmDeleteId === table.id ? "Click again to confirm delete" : "Delete table"}
                       >
                         {table.reserved ? <FiLock size={16} /> : <FiTrash2 size={16} />}
-                      </button>
+                      </Button>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
-                      <span className="text-gray-400 block flex items-center gap-1"><FiDollarSign size={12} /> Price</span>
-                      <span className="text-white font-medium">${table.price.toFixed(2)}</span>
+                      <span className="text-fg-muted block flex items-center gap-1"><FiDollarSign size={12} /> Price</span>
+                      <span className="text-fg font-medium">${table.price.toFixed(2)}</span>
                     </div>
                     <div>
-                      <span className="text-gray-400 block flex items-center gap-1"><FiUsers size={12} /> Capacity</span>
-                      <span className="text-white font-medium">{table.capacity}</span>
+                      <span className="text-fg-muted block flex items-center gap-1"><FiUsers size={12} /> Capacity</span>
+                      <span className="text-fg font-medium">{table.capacity}</span>
                     </div>
                     <div>
-                      <span className="text-gray-400 block">Location</span>
-                      <span className="text-white font-medium capitalize">{table.location}</span>
+                      <span className="text-fg-muted block">Location</span>
+                      <span className="text-fg font-medium capitalize">{table.location}</span>
                     </div>
                     <div>
-                      <span className="text-gray-400 block">Min. Bottles</span>
-                      <span className="text-white font-medium">{table.minimumBottles ?? 1}</span>
+                      <span className="text-fg-muted block">Min. Bottles</span>
+                      <span className="text-fg font-medium">{table.minimumBottles ?? 1}</span>
                     </div>
                   </div>
                 </div>
@@ -273,36 +281,36 @@ export default function ManageTablesTab({ initialEventId }: ManageTablesTabProps
 
       {/* Add/Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-zinc-900 border border-cyan-900/50 rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-canvas/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-surface border border-accent-900/50 rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-semibold text-cyan-300">
+              <h3 className="text-xl font-semibold text-accent-300">
                 {editingTable ? "Edit Table" : "Add Table"}
               </h3>
-              <button onClick={closeModal} className="text-gray-400 hover:text-white">
+              <Button onClick={closeModal} variant="ghost" size="md" className="text-fg-muted hover:text-fg">
                 <FiX size={20} />
-              </button>
+              </Button>
             </div>
 
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-200 mb-1">Table Number *</label>
-                  <input
+                  <Label className="mb-2">Table Number *</Label>
+                  <Input
                     type="number"
                     value={form.number}
                     onChange={(e) => setForm({ ...form, number: e.target.value })}
-                    className="w-full px-3 py-2 bg-zinc-800 border border-cyan-900/50 rounded-lg text-white focus:border-cyan-500/70 focus:outline-none"
+                    className="px-3 py-2 bg-surface-raised border border-accent-900/50 focus:border-accent-500/70"
                     disabled={saving}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-200 mb-1">Capacity *</label>
-                  <input
+                  <Label className="mb-2">Capacity *</Label>
+                  <Input
                     type="number"
                     value={form.capacity}
                     onChange={(e) => setForm({ ...form, capacity: e.target.value })}
-                    className="w-full px-3 py-2 bg-zinc-800 border border-cyan-900/50 rounded-lg text-white focus:border-cyan-500/70 focus:outline-none"
+                    className="px-3 py-2 bg-surface-raised border border-accent-900/50 focus:border-accent-500/70"
                     disabled={saving}
                   />
                 </div>
@@ -310,26 +318,26 @@ export default function ManageTablesTab({ initialEventId }: ManageTablesTabProps
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-200 mb-1">Price *</label>
+                  <Label className="mb-2">Price *</Label>
                   <div className="relative">
-                    <FiDollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-                    <input
+                    <FiDollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-fg-muted" size={14} />
+                    <Input
                       type="number"
                       step="0.01"
                       value={form.price}
                       onChange={(e) => setForm({ ...form, price: e.target.value })}
-                      className="w-full pl-8 pr-3 py-2 bg-zinc-800 border border-cyan-900/50 rounded-lg text-white focus:border-cyan-500/70 focus:outline-none"
+                      className="pl-8 pr-3 py-2 bg-surface-raised border border-accent-900/50 focus:border-accent-500/70"
                       disabled={saving}
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-200 mb-1">Min. Bottles</label>
-                  <input
+                  <Label className="mb-2">Min. Bottles</Label>
+                  <Input
                     type="number"
                     value={form.minimumBottles}
                     onChange={(e) => setForm({ ...form, minimumBottles: e.target.value })}
-                    className="w-full px-3 py-2 bg-zinc-800 border border-cyan-900/50 rounded-lg text-white focus:border-cyan-500/70 focus:outline-none"
+                    className="px-3 py-2 bg-surface-raised border border-accent-900/50 focus:border-accent-500/70"
                     disabled={saving}
                   />
                 </div>
@@ -337,53 +345,53 @@ export default function ManageTablesTab({ initialEventId }: ManageTablesTabProps
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-200 mb-1">Location</label>
-                  <select
+                  <Label className="mb-2">Location</Label>
+                  <Select
                     value={form.location}
                     onChange={(e) => setForm({ ...form, location: e.target.value as Table["location"] })}
-                    className="w-full px-3 py-2 bg-zinc-800 border border-cyan-900/50 rounded-lg text-white focus:border-cyan-500/70 focus:outline-none"
+                    className="px-3 py-2 bg-surface-raised border border-accent-900/50 focus:border-accent-500/70"
                     disabled={saving}
                   >
                     <option value="left">Left</option>
                     <option value="right">Right</option>
                     <option value="center">Center</option>
-                  </select>
+                  </Select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-200 mb-1">Shape</label>
-                  <select
+                  <Label className="mb-2">Shape</Label>
+                  <Select
                     value={form.shape}
                     onChange={(e) => setForm({ ...form, shape: e.target.value as NonNullable<Table["shape"]> })}
-                    className="w-full px-3 py-2 bg-zinc-800 border border-cyan-900/50 rounded-lg text-white focus:border-cyan-500/70 focus:outline-none"
+                    className="px-3 py-2 bg-surface-raised border border-accent-900/50 focus:border-accent-500/70"
                     disabled={saving}
                   >
                     <option value="rectangle">Rectangle</option>
                     <option value="circle">Circle</option>
-                  </select>
+                  </Select>
                 </div>
               </div>
             </div>
 
             <div className="flex gap-3 mt-6">
-              <button
+              <Button
                 onClick={closeModal}
                 disabled={saving}
-                className="flex-1 px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-zinc-800 disabled:opacity-50"
+                variant="outline" size="md" className="flex-1 px-4 py-2 border border-line-strong text-fg-dim hover:bg-surface-raised"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={handleSave}
                 disabled={saving}
-                className="flex-1 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 disabled:opacity-50 text-white rounded-lg flex items-center justify-center gap-2"
+                variant="accent" size="md" className="flex-1 px-4 py-2 bg-accent-600 hover:bg-accent-700 flex items-center justify-center gap-2"
               >
                 {saving ? (
-                  <div className="w-4 h-4 border-t-2 border-b-2 border-white rounded-full animate-spin" />
+                  <Spinner size="sm" className="text-fg" />
                 ) : (
                   <FiCheck size={16} />
                 )}
                 {editingTable ? "Save Changes" : "Add Table"}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

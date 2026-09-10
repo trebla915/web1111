@@ -2,17 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
-import { sendPushNotification, getNotificationHistory, sendPushNotificationToUsers } from "@/lib/services/notifications";
+import { sendPushNotification, getNotificationHistory, sendPushNotificationToUsers , type NotificationHistoryItem } from "@/lib/services/notifications";
 import { FiSend, FiUsers, FiClock, FiInfo, FiCheckCircle, FiX, FiBell, FiAlertTriangle, FiRefreshCw } from "react-icons/fi";
-
-interface NotificationHistoryItem {
-  id: string;
-  title: string;
-  message: string;
-  status: string;
-  sentAt: any;
-  targetedUsers?: string[];
-}
+import { Spinner } from "@/components/ui/spinner";
+import { Button } from "@/components/ui/button";
+import { Input, Textarea } from "@/components/ui/input";
+import { Label } from "@/components/ui/field";
+import { Card } from "@/components/ui/card";
 
 export default function PushNotificationsTab() {
   const [title, setTitle] = useState("");
@@ -158,20 +154,19 @@ export default function PushNotificationsTab() {
 
   return (
     <div className="p-4 lg:p-6">
-      <h2 className="text-2xl lg:text-3xl font-bold mb-6 text-cyan-300 digital-glow-soft">Send Push Notification</h2>
+      <h2 className="text-2xl lg:text-3xl font-bold mb-6 text-accent-300 digital-glow-soft">Send Push Notification</h2>
 
-      <div className="max-w-3xl mx-auto bg-zinc-900 border border-cyan-900/30 p-4 lg:p-6 rounded-lg mb-8 relative">
-        <div className="absolute inset-0 noise opacity-5 rounded-lg"></div>
+      <Card padding="lg" texture className="max-w-3xl mx-auto mb-8">
         <div className="relative z-10">
           <div className="mb-4">
-            <label htmlFor="notificationTitle" className="block text-sm font-medium mb-2 text-cyan-200">
-              Notification Title <span className="text-cyan-500">*</span>
-            </label>
+            <Label htmlFor="notificationTitle" className="mb-2 text-accent-200">
+              Notification Title <span className="text-accent-500">*</span>
+            </Label>
             <div className="relative">
-              <input
+              <Input
                 id="notificationTitle"
                 type="text"
-                className="w-full p-3 bg-zinc-800/80 rounded-lg text-white border border-cyan-900/50 focus:border-cyan-500/70 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 transition-all"
+                className="p-3 bg-surface-raised/80 border border-accent-900/50 focus:border-accent-500/70 focus:ring-1 focus:ring-accent-500/50"
                 placeholder="Enter notification title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -181,14 +176,14 @@ export default function PushNotificationsTab() {
           </div>
           
           <div className="mb-4">
-            <label htmlFor="notificationMessage" className="block text-sm font-medium mb-2 text-cyan-200">
-              Notification Message <span className="text-cyan-500">*</span>
-            </label>
+            <Label htmlFor="notificationMessage" className="mb-2 text-accent-200">
+              Notification Message <span className="text-accent-500">*</span>
+            </Label>
             <div className="relative">
-              <textarea
+              <Textarea
                 id="notificationMessage"
                 rows={5}
-                className="w-full p-3 bg-zinc-800/80 rounded-lg text-white border border-cyan-900/50 focus:border-cyan-500/70 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 transition-all resize-none"
+                className="p-3 bg-surface-raised/80 border border-accent-900/50 focus:border-accent-500/70 focus:ring-1 focus:ring-accent-500/50 resize-none"
                 placeholder="Enter notification message"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
@@ -202,25 +197,25 @@ export default function PushNotificationsTab() {
               <input
                 id="targetUsers"
                 type="checkbox"
-                className="mr-2 h-4 w-4 accent-cyan-500 bg-zinc-800 border border-cyan-900/50"
+                className="mr-2 h-4 w-4 accent-cyan-500 bg-surface-raised border border-accent-900/50"
                 checked={targetSpecificUsers}
                 onChange={(e) => setTargetSpecificUsers(e.target.checked)}
               />
-              <label htmlFor="targetUsers" className="text-sm font-medium text-cyan-200">
+              <Label htmlFor="targetUsers" className="text-accent-200">
                 Target specific users
-              </label>
+              </Label>
             </div>
             
             {targetSpecificUsers && (
-              <div className="ml-6 mb-4 bg-cyan-900/10 p-3 rounded-lg border border-cyan-900/30">
-                <label htmlFor="userIds" className="block text-sm font-medium mb-2 text-cyan-200">
+              <div className="ml-6 mb-4 bg-accent-900/10 p-3 rounded-lg border border-accent-900/30">
+                <Label htmlFor="userIds" className="mb-2 text-accent-200">
                   User IDs (comma-separated)
-                </label>
+                </Label>
                 <div className="relative">
-                  <textarea
+                  <Textarea
                     id="userIds"
                     rows={2}
-                    className="w-full p-3 bg-zinc-800/80 rounded-lg text-white border border-cyan-900/50 focus:border-cyan-500/70 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 transition-all resize-none"
+                    className="p-3 bg-surface-raised/80 border border-accent-900/50 focus:border-accent-500/70 focus:ring-1 focus:ring-accent-500/50 resize-none"
                     placeholder="user1, user2, user3"
                     value={targetUserIds}
                     onChange={(e) => setTargetUserIds(e.target.value)}
@@ -232,14 +227,14 @@ export default function PushNotificationsTab() {
           </div>
           
           <div className="mb-6">
-            <label htmlFor="additionalData" className="block text-sm font-medium mb-2 text-cyan-200">
+            <Label htmlFor="additionalData" className="mb-2 text-accent-200">
               Additional Data (JSON - optional)
-            </label>
+            </Label>
             <div className="relative">
-              <textarea
+              <Textarea
                 id="additionalData"
                 rows={3}
-                className="w-full p-3 bg-zinc-800/80 rounded-lg text-white border border-cyan-900/50 focus:border-cyan-500/70 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 transition-all resize-none font-mono text-sm"
+                className="p-3 bg-surface-raised/80 border border-accent-900/50 focus:border-accent-500/70 focus:ring-1 focus:ring-accent-500/50 resize-none font-display text-sm"
                 placeholder={`{\n  "key": "value",\n  "actionType": "open_event",\n  "eventId": "abc123"\n}`}
                 value={additionalData}
                 onChange={(e) => setAdditionalData(e.target.value)}
@@ -248,15 +243,15 @@ export default function PushNotificationsTab() {
             </div>
           </div>
           
-          <button
+          <Button
             onClick={handleSendNotification}
             disabled={loading}
-            className="w-full p-3 bg-gradient-to-r from-cyan-800 to-cyan-600 hover:from-cyan-700 hover:to-cyan-500 rounded-lg text-white font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center border border-cyan-500/50 relative overflow-hidden group"
+            variant="outline" size="md" full className="p-3 bg-gradient-to-r from-accent-800 to-accent-600 hover:from-accent-700 hover:to-accent-500 flex items-center justify-center border border-accent-500/50 relative overflow-hidden group"
           >
-            <div className="absolute inset-0 flex justify-center items-center bg-gradient-to-r from-cyan-600/0 via-cyan-600/30 to-cyan-600/0 opacity-0 group-hover:opacity-100 transform translate-y-full group-hover:translate-y-0 transition-all duration-500"></div>
+            <div className="absolute inset-0 flex justify-center items-center bg-gradient-to-r from-accent-600/0 via-accent-600/30 to-accent-600/0 opacity-0 group-hover:opacity-100 transform translate-y-full group-hover:translate-y-0 transition-all duration-500"></div>
             {loading ? (
               <span className="flex items-center justify-center relative z-10">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-fg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
@@ -268,72 +263,76 @@ export default function PushNotificationsTab() {
                 Send Notification
               </span>
             )}
-          </button>
+          </Button>
         </div>
-      </div>
+      </Card>
       
       {/* Notification History Toggle */}
       <div className="max-w-3xl mx-auto">
-        <button
-          className="flex items-center text-lg font-medium mb-4 text-cyan-400 hover:text-cyan-300 transition-colors"
+        <Button
+          variant="ghost" size="md" className="flex items-center text-lg mb-4 text-accent-400 hover:text-accent-300"
           onClick={() => setShowHistory(!showHistory)}
         >
           <FiClock className="mr-2" />
           {showHistory ? "Hide" : "Show"} Notification History
-        </button>
+        </Button>
         
         {/* Notification History Section */}
         {showHistory && (
-          <div className="bg-zinc-900 border border-cyan-900/30 rounded-lg p-4 relative">
-            <div className="absolute inset-0 noise opacity-5 rounded-lg"></div>
+          <Card padding="none" texture className="p-4">
             <div className="relative z-10">
-              <h3 className="text-xl font-semibold mb-4 flex items-center text-cyan-300">
+              <h3 className="text-xl font-semibold mb-4 flex items-center text-accent-300">
                 <FiClock className="mr-2" />
                 Recent Notifications
               </h3>
               
               {historyLoading ? (
                 <div className="flex flex-col items-center justify-center py-12">
-                  <div className="w-12 h-12 border-t-2 border-b-2 border-cyan-500 rounded-full animate-spin mb-4"></div>
-                  <p className="text-cyan-400">Loading history...</p>
+                  <Spinner size="lg" className="text-accent-500 mb-4" />
+                  <p className="text-accent-400">Loading history...</p>
                 </div>
               ) : notificationHistory.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-                  <FiAlertTriangle size={64} className="text-cyan-900/50 mb-4" />
+                <div className="flex flex-col items-center justify-center py-16 text-fg-muted">
+                  <FiAlertTriangle size={64} className="text-accent-900/50 mb-4" />
                   <p className="text-xl font-medium mb-6">No notifications sent yet</p>
-                  <button
+                  <Button
                     onClick={loadNotificationHistory}
-                    className="px-4 py-2 bg-gradient-to-r from-cyan-900/30 to-cyan-800/20 hover:from-cyan-800/30 hover:to-cyan-700/20 border border-cyan-600/30 rounded-lg transition-colors flex items-center gap-2"
+                    variant="outline" size="md" className="px-4 py-2 bg-gradient-to-r from-accent-900/30 to-accent-800/20 hover:from-accent-800/30 hover:to-accent-700/20 border border-accent-600/30 flex items-center gap-2"
                   >
                     <FiRefreshCw />
                     <span>Refresh</span>
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {notificationHistory.map((notification) => (
-                    <div key={notification.id} className="bg-zinc-800/80 p-5 rounded-lg border border-cyan-900/30 relative group hover:border-cyan-700/50 transition-all">
-                      <div className="absolute inset-0 noise opacity-5 rounded-lg"></div>
+                    <Card
+                      key={notification.id}
+                      padding="none"
+                      texture
+                      interactive
+                      className="group bg-surface-raised/80 p-5"
+                    >
                       <div className="relative z-10">
                         <div className="flex justify-between items-start mb-3">
-                          <h4 className="font-semibold text-cyan-200">{notification.title}</h4>
+                          <h4 className="font-semibold text-accent-200">{notification.title}</h4>
                           <span className={`px-2 py-1 rounded-full text-xs border ${
                             notification.status === 'sent' 
-                              ? 'bg-green-900/40 text-green-400 border-green-500/50' 
-                              : 'bg-yellow-900/40 text-yellow-400 border-yellow-500/50'
+                              ? 'bg-success-900/40 text-success-400 border-success-500/50' 
+                              : 'bg-warning-900/40 text-warning-400 border-warning-500/50'
                           }`}>
                             {notification.status.toUpperCase()}
                           </span>
                         </div>
-                        <p className="text-gray-300 mb-3 pb-3 border-b border-cyan-900/20">{notification.message}</p>
-                        <div className="text-sm text-gray-400">
+                        <p className="text-fg-dim mb-3 pb-3 border-b border-accent-900/20">{notification.message}</p>
+                        <div className="text-sm text-fg-muted">
                           <p className="flex items-center">
-                            <FiClock className="mr-2 text-gray-500" /> 
+                            <FiClock className="mr-2 text-fg-subtle" /> 
                             Sent: {formatTimestamp(notification.sentAt)}
                           </p>
                           {notification.targetedUsers && (
                             <p className="flex items-center mt-2">
-                              <FiUsers className="mr-2 text-gray-500" /> 
+                              <FiUsers className="mr-2 text-fg-subtle" /> 
                               Target: {notification.targetedUsers.length} specific users
                             </p>
                           )}
@@ -341,47 +340,46 @@ export default function PushNotificationsTab() {
                       </div>
                       
                       {/* Hover effect bottom gradient line */}
-                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500/0 via-cyan-500/40 to-cyan-500/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-                    </div>
+                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-accent-500/0 via-accent-500/40 to-accent-500/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+                    </Card>
                   ))}
                 </div>
               )}
             </div>
-          </div>
+          </Card>
         )}
       </div>
       
-      <div className="mt-8 max-w-3xl mx-auto bg-zinc-900 border border-cyan-900/30 p-4 lg:p-6 rounded-lg relative">
-        <div className="absolute inset-0 noise opacity-5 rounded-lg"></div>
+      <Card padding="lg" texture className="mt-8 max-w-3xl mx-auto">
         <div className="relative z-10">
-          <h3 className="text-xl font-semibold mb-4 flex items-center text-cyan-300">
+          <h3 className="text-xl font-semibold mb-4 flex items-center text-accent-300">
             <FiInfo className="mr-2" />
             Push Notification Tips
           </h3>
-          <ul className="space-y-3 text-gray-300">
-            <li className="flex items-start p-2 rounded-lg hover:bg-cyan-900/10 transition-colors">
-              <FiCheckCircle className="text-cyan-400 mt-1 mr-3 flex-shrink-0" />
+          <ul className="space-y-3 text-fg-dim">
+            <li className="flex items-start p-2 rounded-lg hover:bg-accent-900/10 transition-colors">
+              <FiCheckCircle className="text-accent-400 mt-1 mr-3 flex-shrink-0" />
               <span>Keep titles short and attention-grabbing (under 50 characters)</span>
             </li>
-            <li className="flex items-start p-2 rounded-lg hover:bg-cyan-900/10 transition-colors">
-              <FiCheckCircle className="text-cyan-400 mt-1 mr-3 flex-shrink-0" />
+            <li className="flex items-start p-2 rounded-lg hover:bg-accent-900/10 transition-colors">
+              <FiCheckCircle className="text-accent-400 mt-1 mr-3 flex-shrink-0" />
               <span>Make messages clear and actionable (under 150 characters)</span>
             </li>
-            <li className="flex items-start p-2 rounded-lg hover:bg-cyan-900/10 transition-colors">
-              <FiCheckCircle className="text-cyan-400 mt-1 mr-3 flex-shrink-0" />
+            <li className="flex items-start p-2 rounded-lg hover:bg-accent-900/10 transition-colors">
+              <FiCheckCircle className="text-accent-400 mt-1 mr-3 flex-shrink-0" />
               <span>Avoid sending too many notifications in a short period</span>
             </li>
-            <li className="flex items-start p-2 rounded-lg hover:bg-cyan-900/10 transition-colors">
-              <FiCheckCircle className="text-cyan-400 mt-1 mr-3 flex-shrink-0" />
+            <li className="flex items-start p-2 rounded-lg hover:bg-accent-900/10 transition-colors">
+              <FiCheckCircle className="text-accent-400 mt-1 mr-3 flex-shrink-0" />
               <span>Include additional data (like event IDs) to enable deep linking</span>
             </li>
-            <li className="flex items-start p-2 rounded-lg hover:bg-cyan-900/10 transition-colors">
-              <FiCheckCircle className="text-cyan-400 mt-1 mr-3 flex-shrink-0" />
+            <li className="flex items-start p-2 rounded-lg hover:bg-accent-900/10 transition-colors">
+              <FiCheckCircle className="text-accent-400 mt-1 mr-3 flex-shrink-0" />
               <span>Target specific user groups when relevant instead of sending to all users</span>
             </li>
           </ul>
         </div>
-      </div>
+      </Card>
     </div>
   );
 } 

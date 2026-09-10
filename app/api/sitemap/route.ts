@@ -25,8 +25,8 @@ export async function GET() {
       if (events && Array.isArray(events)) {
         dynamicRoutes = events.map(event => ({
           url: `/events/${event.id}`,
-          lastmod: (event.updated || event.created) 
-            ? new Date(event.updated || event.created).toISOString().split('T')[0] 
+          lastmod: (event.updatedAt || event.createdAt)
+            ? new Date(event.updatedAt || event.createdAt).toISOString().split('T')[0]
             : new Date().toISOString().split('T')[0],
           priority: 0.8,
           changefreq: 'weekly'

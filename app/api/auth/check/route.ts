@@ -1,29 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 
-export async function GET(request: NextRequest) {
-  const authToken = cookies().get('authToken')?.value;
-  
-  if (!authToken) {
-    return NextResponse.json({ 
-      authenticated: false,
-      message: 'Not authenticated' 
-    }, { status: 401 });
-  }
-  
-  try {
-    // In a real implementation, you would verify the token with Firebase Admin SDK
-    // This is a placeholder implementation
-    return NextResponse.json({ 
-      authenticated: true,
-      message: 'Authenticated'
-    });
-  } catch (error) {
-    return NextResponse.json({ 
-      authenticated: false,
-      message: 'Invalid token' 
-    }, { status: 401 });
-  }
-}
+import { getAuthedUser } from '@/lib/auth/server';
 
 export const dynamic = 'force-dynamic';
+
+/**
+ * GET /api/auth/check — is the caller signed in?
+ *
+ * The previous implementation returned `authenticated: true` for any non-empty
+ * `authToken` cookie without verifying it; its own comment said "this is a
+ * placeholder". The token is now actually verified.
+ */
+export async function GET(request: NextRequest) {
+  const user = await getAuthedUser(request);
+  if (!user) {
+    return NextResponse.json({ authenticated: false }, { status: 401 });
+  }
+  return NextResponse.json({ authenticated: true, uid: user.uid, role: user.role });
+}

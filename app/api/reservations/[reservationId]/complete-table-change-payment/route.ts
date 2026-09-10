@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { stripe } from '@/lib/stripe';
 import { adminFirestore } from '@/lib/firebase/admin';
-import Stripe from 'stripe';
+import { ADMIN_ROLES, STAFF_ROLES, authErrorResponse } from '@/lib/auth/server';
+import { loadAuthorizedReservation, NotFoundError } from '@/lib/auth/reservation';
 
 export const dynamic = 'force-dynamic';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-06-20',
-});
 
 /**
  * POST /api/reservations/[reservationId]/complete-table-change-payment
@@ -19,6 +17,8 @@ export async function POST(
   { params }: { params: { reservationId: string } }
 ) {
   try {
+    // Finalises a paid table change for the owner.
+    await loadAuthorizedReservation(request, params.reservationId, ADMIN_ROLES, { checkRevoked: true });
     const { reservationId } = params;
     const body = await request.json().catch(() => ({}));
     const paymentIntentId = body.paymentIntentId as string | undefined;

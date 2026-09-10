@@ -29,6 +29,9 @@ import {
   FiX,
 } from "react-icons/fi";
 import { BiTable } from "react-icons/bi";
+import { Spinner } from "@/components/ui/spinner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 /* ───── Types ─────────────────────────────────────────── */
 
@@ -329,8 +332,8 @@ export default function StaffHubPage() {
   // Loading / auth states
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-black flex items-center justify-center">
-        <div className="w-10 h-10 border-t-2 border-cyan-500 rounded-full animate-spin" />
+      <div className="fixed inset-0 bg-canvas flex items-center justify-center">
+        <Spinner size="md" className="text-accent-500 h-10 w-10" />
       </div>
     );
   }
@@ -340,7 +343,7 @@ export default function StaffHubPage() {
   }
 
   return (
-    <div className="fixed inset-0 bg-black text-white flex flex-col overflow-hidden select-none">
+    <div className="fixed inset-0 bg-canvas text-fg flex flex-col overflow-hidden select-none">
       {/* Hidden audio for check-in chime */}
       <audio
         ref={audioRef}
@@ -349,20 +352,20 @@ export default function StaffHubPage() {
       />
 
       {/* ─── Top Bar ─── */}
-      <div className="shrink-0 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-sm z-50 relative">
+      <div className="shrink-0 border-b border-line-subtle bg-surface-sunken/90 backdrop-blur-sm z-50 relative">
         <div className="flex items-center justify-between px-4 py-3">
           {/* Left: Branding + event picker */}
           <div className="flex items-center gap-4">
             <h1 className="text-xl font-bold tracking-wider font-display">
               11:11
             </h1>
-            <div className="h-6 w-px bg-zinc-700" />
+            <div className="h-6 w-px bg-surface-hover" />
 
             {/* Event selector */}
             <div ref={eventPickerRef} className="relative">
-              <button
+              <Button
                 onClick={() => setShowEventPicker(!showEventPicker)}
-                className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900 border border-zinc-700 rounded-lg text-sm hover:border-zinc-500 transition-colors"
+                variant="subtle" size="sm" className="flex items-center gap-2 px-3 py-1.5 bg-surface border text-sm hover:border-line-strong"
               >
                 <span className="max-w-[200px] truncate">
                   {selectedEvent?.title || "Select event"}
@@ -370,7 +373,7 @@ export default function StaffHubPage() {
                 <FiChevronDown
                   className={`w-4 h-4 transition-transform ${showEventPicker ? "rotate-180" : ""}`}
                 />
-              </button>
+              </Button>
 
               {showEventPicker && (
                 <>
@@ -379,7 +382,9 @@ export default function StaffHubPage() {
                     onClick={() => setShowEventPicker(false)}
                   />
                   <div
-                    className="fixed w-72 bg-zinc-900 border border-zinc-700 rounded-lg shadow-2xl z-50 max-h-64 overflow-y-auto"
+                    className="fixed w-72 bg-surface border border-line rounded-lg shadow-2xl z-50 max-h-64 overflow-y-auto"
+                    // Measured at open time from the trigger's viewport rect —
+                    // the only styling here that cannot be a class.
                     style={{
                       top: eventPickerRef.current
                         ? eventPickerRef.current.getBoundingClientRect().bottom + 4
@@ -390,37 +395,37 @@ export default function StaffHubPage() {
                     }}
                   >
                     {events.length === 0 && (
-                      <p className="p-3 text-sm text-gray-500">
+                      <p className="p-3 text-sm text-fg-subtle">
                         No upcoming events
                       </p>
                     )}
                     {events.map((evt) => (
-                      <button
+                      <Button unstyled
                         key={evt.id}
                         onClick={() => {
                           setSelectedEventId(evt.id);
                           setShowEventPicker(false);
                         }}
-                        className={`w-full text-left px-4 py-3 text-sm hover:bg-zinc-800 transition-colors border-b border-zinc-800 last:border-0 ${
+                        className={`w-full text-left px-4 py-3 text-sm hover:bg-surface-raised transition-colors border-b border-line-subtle last:border-0 ${
                           evt.id === selectedEventId
-                            ? "bg-zinc-800 text-cyan-400"
-                            : "text-gray-300"
+                            ? "bg-surface-raised text-accent-400"
+                            : "text-fg-dim"
                         }`}
                       >
                         <div className="font-medium">{evt.title}</div>
-                        <div className="text-xs text-gray-500 mt-0.5">
+                        <div className="text-xs text-fg-subtle mt-0.5">
                           {new Date(evt.date).toLocaleDateString("en-US", {
                             weekday: "short",
                             month: "short",
                             day: "numeric",
                           })}
                           {isToday(evt.date) && (
-                            <span className="ml-2 text-green-400 font-semibold">
+                            <span className="ml-2 text-success-400 font-semibold">
                               TONIGHT
                             </span>
                           )}
                         </div>
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 </>
@@ -428,7 +433,7 @@ export default function StaffHubPage() {
             </div>
 
             {selectedEvent && isToday(selectedEvent.date) && (
-              <span className="px-2 py-0.5 bg-green-900/40 border border-green-700/50 rounded text-xs text-green-400 font-bold uppercase">
+              <span className="px-2 py-0.5 bg-success-900/40 border border-success-700/50 rounded text-xs text-success-400 font-bold uppercase">
                 Live
               </span>
             )}
@@ -436,55 +441,57 @@ export default function StaffHubPage() {
 
           {/* Right: Actions */}
           <div className="flex items-center gap-2">
-            <button
+            <Button
               onClick={() => router.push("/staff/scanner")}
-              className="flex items-center gap-2 px-3 py-1.5 bg-cyan-700 hover:bg-cyan-600 rounded-lg text-sm font-medium transition-colors"
+              variant="accent" size="sm" className="flex items-center gap-2 px-3 py-1.5 bg-accent-700 hover:bg-accent-600 text-sm"
             >
               <FiCamera className="w-4 h-4" />
               <span className="hidden sm:inline">Scan QR</span>
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={logout}
-              className="p-2 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-red-700 text-gray-400 hover:text-red-400 transition-colors"
-              title="Logout"
+              variant="outline"
+              size="icon"
+              aria-label="Sign out"
+              className="text-fg-muted hover:border-danger-700 hover:text-danger-bright"
             >
-              <FiLogOut className="w-4 h-4" />
-            </button>
+              <FiLogOut aria-hidden="true" className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 
         {/* Stats strip */}
-        <div className="flex items-center gap-1 px-4 pb-3 overflow-x-auto">
+        <div className="flex flex-wrap items-center gap-1.5 px-4 pb-3">
           <StatPill
             icon={<FiUsers className="w-3.5 h-3.5" />}
             label="Expected"
             value={`${totalGuests}`}
-            color="text-blue-400"
+            color="text-info-400"
           />
           <StatPill
             icon={<FiCheckCircle className="w-3.5 h-3.5" />}
             label="Checked In"
             value={`${checkedInGuests}/${totalGuests}`}
-            color="text-green-400"
+            color="text-success-400"
           />
           <StatPill
             icon={<BiTable className="w-3.5 h-3.5" />}
             label="Tables"
             value={`${activeReservations.length}/${tables.length}`}
-            color="text-cyan-400"
+            color="text-accent-400"
           />
           <StatPill
             icon={<FiClock className="w-3.5 h-3.5" />}
             label="Pending"
             value={`${pendingCount}`}
-            color="text-yellow-400"
+            color="text-warning-400"
           />
           {user?.role === "admin" && (
             <StatPill
               icon={<FiDollarSign className="w-3.5 h-3.5" />}
               label="Revenue"
               value={formatCurrency(totalRevenue)}
-              color="text-emerald-400"
+              color="text-confirm-400"
             />
           )}
         </div>
@@ -493,20 +500,23 @@ export default function StaffHubPage() {
       {/* ─── Main Content (3-column on landscape iPad, stacked on portrait) ─── */}
       <div className="flex-1 min-h-0 flex flex-col lg:flex-row">
         {/* Left: Reservation List */}
-        <div className="flex-1 min-w-0 flex flex-col border-r border-zinc-800">
+        <div className="flex-1 min-w-0 flex flex-col border-r border-line-subtle">
           {/* Search + filter tabs */}
-          <div className="shrink-0 px-4 pt-3 pb-2 space-y-2 bg-zinc-950/50">
-            <div className="relative">
-              <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-              <input
-                type="text"
-                placeholder="Search name, email, phone, table..."
+          <div className="shrink-0 px-4 pt-3 pb-2 space-y-2 bg-surface-sunken/50">
+            <div>
+              <label htmlFor="staff-search" className="sr-only">
+                Search reservations
+              </label>
+              <Input
+                id="staff-search"
+                type="search"
+                leadingIcon={<FiSearch aria-hidden="true" className="h-4 w-4" />}
+                placeholder="Search name, email, phone, table…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-sm text-white placeholder-gray-500 focus:border-cyan-600 focus:outline-none"
               />
             </div>
-            <div className="flex gap-1 overflow-x-auto">
+            <div className="flex flex-wrap gap-1.5">
               {(
                 [
                   ["all", "All", null],
@@ -516,20 +526,21 @@ export default function StaffHubPage() {
                   ["cancelled", "Cancelled", cancelledCount],
                 ] as const
               ).map(([key, label, count]) => (
-                <button
+                <Button unstyled
                   key={key}
                   onClick={() => setActiveTab(key)}
-                  className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                  aria-pressed={activeTab === key}
+                  className={`min-h-[34px] whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                     activeTab === key
-                      ? "bg-white text-black"
-                      : "bg-zinc-800 text-gray-400 hover:bg-zinc-700"
+                      ? "bg-fg text-fg-inverse"
+                      : "bg-surface-raised text-fg-muted hover:bg-surface-hover"
                   }`}
                 >
                   {label}
                   {count !== null && (
                     <span className="ml-1 opacity-70">{count}</span>
                   )}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -537,9 +548,17 @@ export default function StaffHubPage() {
           {/* List */}
           <div className="flex-1 overflow-y-auto px-4 py-2 space-y-2">
             {filtered.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-full text-gray-500">
-                <FiUsers className="w-8 h-8 mb-2 opacity-50" />
-                <p className="text-sm">No reservations found</p>
+              <div className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center text-fg-subtle">
+                <FiUsers aria-hidden="true" className="h-8 w-8 opacity-50" />
+                <p className="text-sm text-fg-muted">
+                  {!selectedEventId
+                    ? "Pick an event above to see tonight's list."
+                    : search
+                      ? `Nothing matches “${search}”.`
+                      : activeTab !== "all"
+                        ? `No ${activeTab.replace("-", " ")} reservations for this event.`
+                        : "No reservations for this event yet."}
+                </p>
               </div>
             )}
             {filtered.map((r) => (
@@ -555,15 +574,15 @@ export default function StaffHubPage() {
         </div>
 
         {/* Center: Table Map */}
-        <div className="hidden lg:flex flex-col w-[340px] border-r border-zinc-800">
-          <div className="shrink-0 px-4 py-3 border-b border-zinc-800">
-            <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
+        <div className="hidden lg:flex flex-col w-[340px] border-r border-line-subtle">
+          <div className="shrink-0 px-4 py-3 border-b border-line-subtle">
+            <h2 className="text-sm font-semibold text-fg-muted uppercase tracking-wider">
               Table Map
             </h2>
           </div>
           <div className="flex-1 overflow-y-auto p-4">
             {tables.length === 0 ? (
-              <div className="flex items-center justify-center h-full text-gray-500 text-sm">
+              <div className="flex items-center justify-center h-full text-fg-subtle text-sm">
                 No tables configured
               </div>
             ) : (
@@ -583,17 +602,17 @@ export default function StaffHubPage() {
             )}
           </div>
           {/* Map legend */}
-          <div className="shrink-0 px-4 py-2 border-t border-zinc-800 flex gap-4 text-xs text-gray-500">
+          <div className="shrink-0 px-4 py-2 border-t border-line-subtle flex gap-4 text-xs text-fg-subtle">
             <span className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded bg-zinc-700 border border-zinc-600" />
+              <span className="w-3 h-3 rounded bg-surface-hover border border-line-strong" />
               Open
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded bg-cyan-900 border border-cyan-700" />
+              <span className="w-3 h-3 rounded bg-accent-900 border border-accent-700" />
               Reserved
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded bg-green-900 border border-green-600" />
+              <span className="w-3 h-3 rounded bg-success-900 border border-success-600" />
               Arrived
             </span>
           </div>
@@ -601,21 +620,21 @@ export default function StaffHubPage() {
 
         {/* Right: Check-In Feed */}
         <div className="hidden lg:flex flex-col w-[280px]">
-          <div className="shrink-0 px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
+          <div className="shrink-0 px-4 py-3 border-b border-line-subtle flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-fg-muted uppercase tracking-wider">
               Live Check-Ins
             </h2>
             <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              <span className="text-xs text-green-400">Live</span>
+              <span className="w-2 h-2 bg-success-500 rounded-full animate-pulse" />
+              <span className="text-xs text-success-400">Live</span>
             </div>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {checkInFeed.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-full text-gray-600">
+              <div className="flex flex-col items-center justify-center h-full text-fg-faint">
                 <FiCheckCircle className="w-8 h-8 mb-2 opacity-40" />
                 <p className="text-sm">Waiting for check-ins...</p>
-                <p className="text-xs mt-1 text-gray-700">
+                <p className="text-xs mt-1 text-fg-faint">
                   Guests will appear here in real-time
                 </p>
               </div>
@@ -623,17 +642,17 @@ export default function StaffHubPage() {
             {checkInFeed.map((entry, i) => (
               <div
                 key={`${entry.id}-${i}`}
-                className="bg-green-950/30 border border-green-900/40 rounded-lg p-3 animate-fadeIn"
+                className="bg-success-950/30 border border-success-900/40 rounded-lg p-3 animate-fadeIn"
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="font-medium text-green-300 text-sm">
+                  <span className="font-medium text-success-300 text-sm">
                     {entry.userName}
                   </span>
-                  <span className="text-xs text-green-600">
+                  <span className="text-xs text-success-600">
                     {formatTime(entry.checkedInAt)}
                   </span>
                 </div>
-                <div className="flex items-center gap-3 text-xs text-green-500/70">
+                <div className="flex items-center gap-3 text-xs text-success-500/70">
                   <span className="flex items-center gap-1">
                     <BiTable className="w-3 h-3" /> #{entry.tableNumber}
                   </span>
@@ -674,10 +693,10 @@ function StatPill({
   color: string;
 }) {
   return (
-    <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900/80 border border-zinc-800 rounded-lg whitespace-nowrap">
+    <div className="flex items-center gap-2 px-3 py-1.5 bg-surface/80 border border-line-subtle rounded-lg whitespace-nowrap">
       <span className={color}>{icon}</span>
       <div className="flex flex-col">
-        <span className="text-[10px] text-gray-500 leading-none">{label}</span>
+        <span className="text-[0.625rem] text-fg-subtle leading-none">{label}</span>
         <span className={`text-sm font-bold ${color} leading-tight`}>
           {value}
         </span>
@@ -702,28 +721,28 @@ function ReservationCard({
     { bg: string; text: string; label: string }
   > = {
     confirmed: {
-      bg: "bg-cyan-950/40 border-cyan-800/40",
-      text: "text-cyan-400",
+      bg: "bg-accent-950/40 border-accent-800/40",
+      text: "text-accent-400",
       label: "Confirmed",
     },
     "checked-in": {
-      bg: "bg-green-950/40 border-green-800/40",
-      text: "text-green-400",
+      bg: "bg-success-950/40 border-success-800/40",
+      text: "text-success-400",
       label: "Checked In",
     },
     pending: {
-      bg: "bg-yellow-950/40 border-yellow-800/40",
-      text: "text-yellow-400",
+      bg: "bg-warning-950/40 border-warning-800/40",
+      text: "text-warning-400",
       label: "Pending",
     },
     cancelled: {
-      bg: "bg-red-950/30 border-red-900/30",
-      text: "text-red-400",
+      bg: "bg-danger-950/30 border-danger-900/30",
+      text: "text-danger-400",
       label: "Cancelled",
     },
     completed: {
-      bg: "bg-zinc-900 border-zinc-700",
-      text: "text-gray-400",
+      bg: "bg-surface border-line",
+      text: "text-fg-muted",
       label: "Completed",
     },
   };
@@ -731,26 +750,26 @@ function ReservationCard({
   const cfg = statusConfig[reservation.status] || statusConfig.completed;
 
   return (
-    <button
+    <Button unstyled
       onClick={onSelect}
       className={`w-full text-left p-3 rounded-lg border transition-all hover:brightness-110 active:scale-[0.99] ${cfg.bg}`}
     >
       <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-white text-sm">
+          <span className="font-semibold text-fg text-sm">
             {reservation.userName || "Guest"}
           </span>
           <span
-            className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${cfg.text} bg-black/30`}
+            className={`text-[0.625rem] font-bold uppercase px-1.5 py-0.5 rounded ${cfg.text} bg-canvas/30`}
           >
             {cfg.label}
           </span>
         </div>
-        <span className="text-lg font-bold text-gray-300">
+        <span className="text-lg font-bold text-fg-dim">
           #{reservation.tableNumber}
         </span>
       </div>
-      <div className="flex items-center gap-4 text-xs text-gray-500">
+      <div className="flex items-center gap-4 text-xs text-fg-subtle">
         <span className="flex items-center gap-1">
           <FiUsers className="w-3 h-3" /> {reservation.guestCount} guests
         </span>
@@ -761,7 +780,7 @@ function ReservationCard({
           </span>
         )}
         {reservation.bottles && reservation.bottles.length > 0 && (
-          <span className="text-gray-600">
+          <span className="text-fg-faint">
             {reservation.bottles.length} bottle
             {reservation.bottles.length > 1 ? "s" : ""}
           </span>
@@ -769,18 +788,18 @@ function ReservationCard({
       </div>
       {reservation.status === "confirmed" && (
         <div className="mt-2">
-          <button
+          <Button
             onClick={(e) => {
               e.stopPropagation();
               onQuickCheckIn();
             }}
-            className="px-3 py-1 bg-green-700 hover:bg-green-600 text-white text-xs font-semibold rounded transition-colors"
+            variant="success" size="sm" className="px-3 py-1 bg-success-700 hover:bg-success-600 text-xs font-semibold rounded"
           >
             Check In
-          </button>
+          </Button>
         </div>
       )}
-    </button>
+    </Button>
   );
 }
 
@@ -803,10 +822,10 @@ function TableMap({
 
   const getTableColor = (table: HubTable) => {
     if (checkedInTableIds.has(table.id))
-      return "bg-green-900/60 border-green-600 shadow-green-900/50 shadow-lg";
+      return "bg-success-900/60 border-success-600 shadow-success-900/50 shadow-lg";
     if (reservedTableIds.has(table.id))
-      return "bg-cyan-900/40 border-cyan-700";
-    return "bg-zinc-800/60 border-zinc-600";
+      return "bg-accent-900/40 border-accent-700";
+    return "bg-surface-raised/60 border-line-strong";
   };
 
   const getGuestName = (table: HubTable) => {
@@ -819,21 +838,21 @@ function TableMap({
   const renderTable = (table: HubTable) => {
     const isCircle = table.location === "right";
     return (
-      <button
+      <Button unstyled
         key={table.id}
         onClick={() => onTableClick(table.id)}
         className={`relative flex flex-col items-center justify-center w-16 h-16 ${
           isCircle ? "rounded-full" : "rounded-lg"
         } border-2 transition-all hover:brightness-125 active:scale-95 ${getTableColor(table)}`}
       >
-        <span className="text-sm font-bold text-white">{table.number}</span>
-        <span className="text-[9px] text-gray-400">{table.capacity}p</span>
+        <span className="text-sm font-bold text-fg">{table.number}</span>
+        <span className="text-[0.625rem] text-fg-muted">{table.capacity}p</span>
         {getGuestName(table) && (
-          <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[8px] text-cyan-300 bg-black/80 px-1 rounded truncate max-w-[60px]">
+          <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[0.625rem] text-accent-300 bg-canvas/80 px-1 rounded truncate max-w-[60px]">
             {getGuestName(table)}
           </span>
         )}
-      </button>
+      </Button>
     );
   };
 
@@ -841,7 +860,7 @@ function TableMap({
     <div className="space-y-6">
       {/* Stage */}
       <div className="text-center">
-        <div className="inline-block px-8 py-1.5 bg-zinc-800 border border-zinc-600 rounded-full text-xs text-gray-400 uppercase tracking-widest">
+        <div className="inline-block px-8 py-1.5 bg-surface-raised border border-line-strong rounded-full text-xs text-fg-muted uppercase tracking-widest">
           Stage / DJ
         </div>
       </div>
@@ -850,7 +869,7 @@ function TableMap({
         {/* Left section */}
         {leftTables.length > 0 && (
           <div className="flex flex-col gap-2 items-center">
-            <span className="text-[10px] text-gray-600 uppercase">Left</span>
+            <span className="text-[0.625rem] text-fg-faint uppercase">Left</span>
             <div className="grid grid-cols-2 gap-2">
               {leftTables.map(renderTable)}
             </div>
@@ -860,7 +879,7 @@ function TableMap({
         {/* Center section */}
         {centerTables.length > 0 && (
           <div className="flex flex-col gap-2 items-center">
-            <span className="text-[10px] text-gray-600 uppercase">
+            <span className="text-[0.625rem] text-fg-faint uppercase">
               Center
             </span>
             <div className="grid grid-cols-2 gap-2">
@@ -872,7 +891,7 @@ function TableMap({
         {/* Right section */}
         {rightTables.length > 0 && (
           <div className="flex flex-col gap-2 items-center">
-            <span className="text-[10px] text-gray-600 uppercase">Right</span>
+            <span className="text-[0.625rem] text-fg-faint uppercase">Right</span>
             <div className="grid grid-cols-2 gap-2">
               {rightTables.map(renderTable)}
             </div>
@@ -891,7 +910,7 @@ function TableMap({
 
       {/* Dance floor */}
       <div className="text-center">
-        <div className="inline-block px-6 py-3 border border-zinc-800 border-dashed rounded-xl text-xs text-gray-600 uppercase tracking-widest">
+        <div className="inline-block px-6 py-3 border border-line-subtle border-dashed rounded-xl text-xs text-fg-faint uppercase tracking-widest">
           Dance Floor
         </div>
       </div>
@@ -914,21 +933,21 @@ function ReservationDrawer({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+        className="fixed inset-0 bg-canvas/60 backdrop-blur-sm z-50"
         onClick={onClose}
       />
 
       {/* Drawer */}
-      <div className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-zinc-950 border-l border-zinc-800 z-50 flex flex-col animate-slideInRight overflow-hidden">
+      <div className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-surface-sunken border-l border-line-subtle z-50 flex flex-col animate-slideInRight overflow-hidden">
         {/* Header */}
-        <div className="shrink-0 flex items-center justify-between px-5 py-4 border-b border-zinc-800">
-          <h2 className="text-lg font-bold text-white">Reservation Details</h2>
-          <button
+        <div className="shrink-0 flex items-center justify-between px-5 py-4 border-b border-line-subtle">
+          <h2 className="text-lg font-bold text-fg">Reservation Details</h2>
+          <Button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-zinc-800 transition-colors"
+            variant="ghost" size="md" className="p-2 hover:bg-surface-raised"
           >
-            <FiX className="w-5 h-5 text-gray-400" />
-          </button>
+            <FiX className="w-5 h-5 text-fg-muted" />
+          </Button>
         </div>
 
         {/* Content */}
@@ -937,27 +956,27 @@ function ReservationDrawer({
           <div
             className={`p-3 rounded-lg border ${
               reservation.status === "checked-in"
-                ? "bg-green-950/30 border-green-800/40"
+                ? "bg-success-950/30 border-success-800/40"
                 : reservation.status === "confirmed"
-                  ? "bg-cyan-950/30 border-cyan-800/40"
+                  ? "bg-accent-950/30 border-accent-800/40"
                   : reservation.status === "pending"
-                    ? "bg-yellow-950/30 border-yellow-800/40"
-                    : "bg-red-950/30 border-red-900/30"
+                    ? "bg-warning-950/30 border-warning-800/40"
+                    : "bg-danger-950/30 border-danger-900/30"
             }`}
           >
             <div className="flex items-center gap-2">
               {reservation.status === "checked-in" ? (
-                <FiCheckCircle className="w-5 h-5 text-green-400" />
+                <FiCheckCircle className="w-5 h-5 text-success-400" />
               ) : reservation.status === "cancelled" ? (
-                <FiXCircle className="w-5 h-5 text-red-400" />
+                <FiXCircle className="w-5 h-5 text-danger-400" />
               ) : (
-                <FiClock className="w-5 h-5 text-cyan-400" />
+                <FiClock className="w-5 h-5 text-accent-400" />
               )}
               <span className="font-semibold text-sm capitalize">
                 {reservation.status}
               </span>
               {reservation.checkedInAt && (
-                <span className="text-xs text-gray-500 ml-auto">
+                <span className="text-xs text-fg-subtle ml-auto">
                   {formatTime(reservation.checkedInAt)}
                 </span>
               )}
@@ -966,30 +985,30 @@ function ReservationDrawer({
 
           {/* Guest info */}
           <div className="space-y-3">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <h3 className="text-xs font-semibold text-fg-subtle uppercase tracking-wider">
               Guest
             </h3>
             <div className="space-y-2">
               <div className="flex items-center gap-3">
-                <FiUser className="w-4 h-4 text-gray-500" />
-                <span className="text-white">
+                <FiUser className="w-4 h-4 text-fg-subtle" />
+                <span className="text-fg">
                   {reservation.userName || "N/A"}
                 </span>
               </div>
               {reservation.userEmail && (
                 <div className="flex items-center gap-3">
-                  <FiMail className="w-4 h-4 text-gray-500" />
-                  <span className="text-gray-300 text-sm">
+                  <FiMail className="w-4 h-4 text-fg-subtle" />
+                  <span className="text-fg-dim text-sm">
                     {reservation.userEmail}
                   </span>
                 </div>
               )}
               {reservation.userPhone && (
                 <div className="flex items-center gap-3">
-                  <FiPhone className="w-4 h-4 text-gray-500" />
+                  <FiPhone className="w-4 h-4 text-fg-subtle" />
                   <a
                     href={`tel:${reservation.userPhone}`}
-                    className="text-cyan-400 text-sm underline"
+                    className="text-accent-400 text-sm underline"
                   >
                     {reservation.userPhone}
                   </a>
@@ -1000,22 +1019,22 @@ function ReservationDrawer({
 
           {/* Table info */}
           <div className="space-y-3">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <h3 className="text-xs font-semibold text-fg-subtle uppercase tracking-wider">
               Table
             </h3>
             <div className="flex items-center gap-6">
               <div>
-                <div className="text-3xl font-bold text-white">
+                <div className="text-3xl font-bold text-fg">
                   #{reservation.tableNumber}
                 </div>
               </div>
               <div className="space-y-1">
-                <div className="flex items-center gap-2 text-sm text-gray-300">
+                <div className="flex items-center gap-2 text-sm text-fg-dim">
                   <FiUsers className="w-4 h-4" />
                   {reservation.guestCount} guests
                 </div>
                 {isAdmin && reservation.totalAmount && (
-                  <div className="flex items-center gap-2 text-sm text-gray-300">
+                  <div className="flex items-center gap-2 text-sm text-fg-dim">
                     <FiDollarSign className="w-4 h-4" />
                     {formatCurrency(reservation.totalAmount)}
                   </div>
@@ -1027,14 +1046,14 @@ function ReservationDrawer({
           {/* Bottles */}
           {reservation.bottles && reservation.bottles.length > 0 && (
             <div className="space-y-3">
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <h3 className="text-xs font-semibold text-fg-subtle uppercase tracking-wider">
                 Bottles
               </h3>
               <div className="space-y-1">
                 {reservation.bottles.map((b, i) => (
                   <div
                     key={i}
-                    className="text-sm text-gray-300 py-1 border-b border-zinc-800 last:border-0"
+                    className="text-sm text-fg-dim py-1 border-b border-line-subtle last:border-0"
                   >
                     {b.name}
                   </div>
@@ -1045,26 +1064,26 @@ function ReservationDrawer({
 
           {/* Reservation meta */}
           <div className="space-y-3">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <h3 className="text-xs font-semibold text-fg-subtle uppercase tracking-wider">
               Details
             </h3>
-            <div className="text-xs text-gray-500 space-y-1">
+            <div className="text-xs text-fg-subtle space-y-1">
               <div>
                 ID:{" "}
-                <span className="font-mono text-gray-400">
+                <span className="font-display text-fg-muted">
                   {reservation.id}
                 </span>
               </div>
               <div>
                 Created:{" "}
-                <span className="text-gray-400">
+                <span className="text-fg-muted">
                   {new Date(reservation.createdAt).toLocaleString()}
                 </span>
               </div>
               {reservation.checkedInBy && (
                 <div>
                   Checked in by:{" "}
-                  <span className="text-gray-400">
+                  <span className="text-fg-muted">
                     {reservation.checkedInBy}
                   </span>
                 </div>
@@ -1074,30 +1093,30 @@ function ReservationDrawer({
         </div>
 
         {/* Footer actions */}
-        <div className="shrink-0 p-5 border-t border-zinc-800 space-y-2">
+        <div className="shrink-0 p-5 border-t border-line-subtle space-y-2">
           {reservation.status === "confirmed" && (
-            <button
+            <Button
               onClick={onCheckIn}
-              className="w-full py-3 bg-green-700 hover:bg-green-600 text-white font-bold rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
+              variant="success" size="lg" full className="py-3 bg-success-700 hover:bg-success-600 font-bold text-sm flex items-center justify-center gap-2"
             >
               <FiCheckCircle className="w-5 h-5" />
               Check In Guest
-            </button>
+            </Button>
           )}
           {reservation.userPhone && (
             <a
               href={`tel:${reservation.userPhone}`}
-              className="block w-full py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-medium rounded-lg text-sm transition-colors text-center"
+              className="block w-full py-3 bg-surface-raised hover:bg-surface-hover text-fg font-medium rounded-lg text-sm transition-colors text-center"
             >
               Call Guest
             </a>
           )}
-          <button
+          <Button
             onClick={onClose}
-            className="w-full py-3 bg-zinc-900 hover:bg-zinc-800 text-gray-400 font-medium rounded-lg text-sm transition-colors border border-zinc-700"
+            variant="subtle" size="lg" full className="py-3 bg-surface hover:bg-surface-raised text-fg-muted text-sm border"
           >
             Close
-          </button>
+          </Button>
         </div>
       </div>
     </>

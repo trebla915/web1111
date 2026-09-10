@@ -30,17 +30,31 @@ import {
   FiEdit2,
   FiExternalLink,
   FiCopy,
+  FiPhone,
+  FiMoreHorizontal,
 } from 'react-icons/fi';
 import { BiTable, BiWine } from 'react-icons/bi';
 import { Event } from '@/types/event';
 import { Reservation } from '@/types/reservation';
 import { User } from '@/types/user';
+import { Spinner } from "@/components/ui/spinner";
+import { Button } from "@/components/ui/button";
+import { Input, Select, Textarea } from "@/components/ui/input";
+import { Label } from "@/components/ui/field";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ReservationWithUser extends Reservation {
   userName?: string;
   userEmail?: string;
   userPhone?: string;
-  userId?: string;
+  /** Free-text note captured at booking; rendered in the detail panel. */
+  specialRequests?: string;
 }
 
 type ReservationsByEvent = {
@@ -382,6 +396,12 @@ export default function ManageReservationsTab() {
 
   const noReservations = Object.keys(filteredReservationsByEvent).length === 0;
   const totalReservations = Object.values(reservationsByEvent).reduce((total, reservations) => total + reservations.length, 0);
+  /** How many survive the search + status filter, so the count under the title
+      describes what is actually on screen rather than what exists. */
+  const visibleReservations = Object.values(filteredReservationsByEvent).reduce(
+    (total, reservations) => total + reservations.length,
+    0
+  );
 
   // Format currency
   const formatCurrency = (amount: number = 0) => {
@@ -435,94 +455,126 @@ export default function ManageReservationsTab() {
   const getStatusBadgeClasses = (status?: string) => {
     switch (status) {
       case 'confirmed':
-        return 'bg-green-900/40 text-green-400 border-green-500/50';
+        return 'bg-success-900/40 text-success-400 border-success-500/50';
       case 'pending':
-        return 'bg-yellow-900/40 text-yellow-400 border-yellow-500/50';
+        return 'bg-warning-900/40 text-warning-400 border-warning-500/50';
       case 'cancelled':
-        return 'bg-red-900/30 text-red-400 border-red-500/50';
+        return 'bg-danger-900/30 text-danger-400 border-danger-500/50';
       case 'completed':
       case 'checked-in':
-        return 'bg-cyan-900/30 text-cyan-400 border-cyan-500/50';
+        return 'bg-accent-900/30 text-accent-400 border-accent-500/50';
       default:
-        return 'bg-gray-800 text-gray-300 border-gray-600';
+        return 'bg-surface-raised text-fg-dim border-line-strong';
     }
   };
 
   return (
     <div className="space-y-6">
-      {/* Mobile Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* Header. The title carried `digital-glow-soft` — a white text-shadow
+          halo — which on an admin heading reads as a rendering fault rather
+          than as brand. The venue's glow belongs on the marketing surfaces. */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl lg:text-3xl font-bold text-white digital-glow-soft">Manage Reservations</h2>
-          <p className="text-sm text-gray-400 mt-1">Total reservations: {totalReservations}</p>
+          {/* The sticky admin bar above already names the open section, so a
+              second "Reservations" in 24px directly under it was the same word
+              twice. The count is what this line is actually for. */}
+          <h2 className="sr-only">Reservations</h2>
+          <p className="text-sm text-fg-muted">
+            {visibleReservations === totalReservations ? (
+              <>
+                <span className="tabular">{totalReservations}</span> total
+              </>
+            ) : (
+              <>
+                <span className="tabular">{visibleReservations}</span> of{' '}
+                <span className="tabular">{totalReservations}</span> shown
+              </>
+            )}
+          </p>
         </div>
-        <button
+        <Button
           onClick={fetchReservationsData}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-200 disabled:bg-gray-400 text-black rounded-lg transition-colors text-sm"
+          loading={loading}
+          variant="outline"
+          size="md"
         >
-          <FiRefreshCw className={loading ? 'animate-spin' : ''} />
+          {!loading && <FiRefreshCw aria-hidden="true" />}
           Refresh
-        </button>
+        </Button>
       </div>
 
-      {/* Search and Filter Bar - Mobile Optimized */}
-      <div className="bg-zinc-900/50 rounded-lg border border-gray-700/30 p-4">
-        <div className="space-y-4 sm:space-y-0 sm:flex sm:items-center sm:gap-4">
-          {/* Search */}
+      {/* Search and filter. Both controls were placeholder-only, so neither had
+          an accessible name; the labels are visible now, which also stops the
+          filter reading as an unlabelled dropdown once a value is chosen. */}
+      <div className="rounded-lg border border-line/30 bg-surface/50 p-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
           <div className="flex-1">
-            <div className="relative">
-              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search reservations..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-black/50 border border-gray-700/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 text-white placeholder-gray-500 text-sm"
-              />
-            </div>
+            <Label htmlFor="reservation-search" className="mb-1.5">
+              Search
+            </Label>
+            <Input
+              id="reservation-search"
+              type="search"
+              leadingIcon={<FiSearch aria-hidden="true" size={16} />}
+              placeholder="Name, email, phone or event"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
 
-          {/* Status Filter */}
-          <div className="sm:w-48">
-            <div className="relative">
-              <FiFilter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-black/50 border border-gray-700/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 text-white text-sm appearance-none"
-              >
-                <option value="all">All Status</option>
-                <option value="pending">Pending</option>
-                <option value="confirmed">Confirmed</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
-                <option value="checked-in">Checked-in</option>
-              </select>
-            </div>
+          <div className="sm:w-52">
+            <Label htmlFor="reservation-status" className="mb-1.5">
+              Status
+            </Label>
+            <Select
+              id="reservation-status"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="all">All statuses</option>
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="checked-in">Checked-in</option>
+            </Select>
           </div>
+
+          {(searchTerm || statusFilter !== 'all') && (
+            <Button
+              variant="ghost"
+              size="md"
+              onClick={() => {
+                setSearchTerm('');
+                setStatusFilter('all');
+              }}
+            >
+              Clear
+            </Button>
+          )}
         </div>
       </div>
       
       {loading ? (
         <div className="flex flex-col items-center justify-center py-12">
-          <div className="w-12 h-12 border-t-2 border-b-2 border-white rounded-full animate-spin mb-4"></div>
-          <p className="text-white">Loading reservations...</p>
+          <Spinner size="lg" className="text-fg mb-4" />
+          <p className="text-fg">Loading reservations...</p>
         </div>
       ) : error ? (
-        <div className="flex flex-col items-center justify-center py-12 text-red-400">
+        <div className="flex flex-col items-center justify-center py-12 text-danger-400">
           <FiAlertTriangle size={48} className="mb-4" />
           <p className="text-lg font-medium mb-4">{error}</p>
-          <button
+          <Button
             onClick={fetchReservationsData}
-            className="px-4 py-2 bg-red-900/20 hover:bg-red-900/40 border border-red-500/40 rounded-lg transition-colors flex items-center gap-2"
+            variant="ghost" size="md" className="px-4 py-2 bg-danger-900/20 hover:bg-danger-900/40 border border-danger-500/40 flex items-center gap-2"
           >
             <FiRefreshCw className="animate-pulse" />
             <span>Try Again</span>
-          </button>
+          </Button>
         </div>
       ) : noReservations ? (
-        <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+        <div className="flex flex-col items-center justify-center py-16 text-fg-muted">
           <FiUsers size={64} className="mb-4 opacity-50" />
           <h3 className="text-xl font-semibold mb-2">No reservations found</h3>
           <p className="text-center text-sm">
@@ -532,228 +584,275 @@ export default function ManageReservationsTab() {
             }
           </p>
           {(searchTerm || statusFilter !== 'all') && (
-            <button
+            <Button
               onClick={() => {
                 setSearchTerm('');
                 setStatusFilter('all');
               }}
-              className="mt-4 px-4 py-2 bg-white hover:bg-gray-200 text-black rounded-lg transition-colors text-sm"
+              variant="primary" size="md" className="mt-4 px-4 py-2 bg-fg hover:bg-fg-dim text-sm"
             >
               Clear Filters
-            </button>
+            </Button>
           )}
         </div>
       ) : (
         <div className="space-y-4">
           {Object.entries(filteredReservationsByEvent).map(([eventTitle, reservations]) => (
-            <div key={eventTitle} className="bg-zinc-900/50 rounded-lg border border-gray-700/30 overflow-hidden">
-              {/* Event Header - Mobile Optimized */}
-              <button
+            <div key={eventTitle} className="bg-surface/50 rounded-lg border border-line/30 overflow-hidden">
+              {/* Event header.
+                  This was `<Button variant="ghost" size="md" full>` wrapping a
+                  two-line block. `size="md"` is a fixed `h-11` and the variant
+                  centres its content, so the title sat in the middle of the row
+                  with the chevron jammed against it, and the meta line spilled
+                  out below the row's own background. `unstyled` gives the
+                  primitive's focus and disabled behaviour without its geometry. */}
+              <Button
+                unstyled
                 onClick={() => toggleEventExpand(eventTitle)}
-                className="w-full p-4 text-left hover:bg-zinc-800/50 transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
+                aria-expanded={expandedEventId === eventTitle}
+                className="flex w-full items-center justify-between gap-4 p-4 text-left hover:bg-surface-raised/50"
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-white text-base lg:text-lg truncate">{eventTitle}</h3>
-                    <div className="flex flex-wrap items-center gap-2 mt-1">
-                      <span className="text-sm text-gray-400 flex items-center gap-1">
-                        <FiUsers size={14} />
-                        {reservations.length} reservation{reservations.length !== 1 ? 's' : ''}
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-heading text-base tracking-wide text-fg lg:text-lg">
+                    {eventTitle}
+                  </span>
+                  <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-fg-muted">
+                    <span className="flex items-center gap-1">
+                      <FiUsers aria-hidden="true" size={14} />
+                      <span className="tabular">{reservations.length}</span>
+                      {reservations.length === 1 ? 'reservation' : 'reservations'}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <FiCalendar aria-hidden="true" size={14} />
+                      <span className="tabular">
+                        {reservations[0]?.eventDate ? formatDate(reservations[0].eventDate).split(',')[0] : 'Date TBA'}
                       </span>
-                      <span className="text-sm text-gray-400 flex items-center gap-1">
-                        <FiCalendar size={14} />
-                        {reservations[0]?.eventDate ? formatDate(reservations[0].eventDate).split(',')[0] : 'N/A'}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="ml-4 text-white">
-                    {expandedEventId === eventTitle ? 
-                      <FiChevronUp size={20} /> : 
-                      <FiChevronDown size={20} />
-                    }
-                  </div>
-                </div>
-              </button>
+                    </span>
+                  </span>
+                </span>
+                <span aria-hidden="true" className="shrink-0 text-fg-muted">
+                  {expandedEventId === eventTitle ? <FiChevronUp size={20} /> : <FiChevronDown size={20} />}
+                </span>
+              </Button>
 
               {/* Reservations List */}
               {expandedEventId === eventTitle && (
-                <div className="border-t border-gray-700/30">
-                  <div className="divide-y divide-gray-700/20">
+                <div className="border-t border-line/30">
+                  <div className="divide-y divide-line/20">
                     {reservations.map((reservation) => (
-                      <div key={reservation.id} className="p-4 hover:bg-zinc-800/30 transition-colors">
+                      <div key={reservation.id} className="p-4 hover:bg-surface-raised/30 transition-colors">
                         {/* Mobile Card Layout */}
                         <div className="space-y-4">
-                          {/* User Info Section */}
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-2">
-                                <FiUser className="text-gray-400 shrink-0" size={16} />
-                                <span className="font-medium text-white truncate">{reservation.userName}</span>
+                          {/* Guest and actions.
+                              Eight icon-only buttons sat in a row here, each a
+                              different hue, each named only by a `title` that
+                              appears on hover — so on a touch screen none of
+                              them had a name at all, and the two destructive
+                              ones (cancel-and-refund, delete) were adjacent and
+                              both red.
+
+                              Now: the one action an admin reaches for most
+                              stays inline, and the rest move into a labelled
+                              menu where each item reads as a sentence and
+                              deleting sits below a separator. */}
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0 flex-1">
+                              <div className="mb-2 flex items-center gap-2">
+                                <FiUser aria-hidden="true" className="shrink-0 text-fg-muted" size={16} />
+                                <span className="truncate font-medium text-fg">{reservation.userName}</span>
                               </div>
+                              {/* Emoji were standing in for icons in a file that
+                                  imports an icon set on the line above. */}
                               <div className="space-y-1 text-sm">
-                                <p className="text-gray-400 truncate">📧 {reservation.userEmail}</p>
-                                <p className="text-gray-400 truncate">📱 {reservation.userPhone}</p>
+                                <p className="flex items-center gap-2 text-fg-muted">
+                                  <FiMail aria-hidden="true" className="shrink-0" size={13} />
+                                  <span className="truncate">{reservation.userEmail}</span>
+                                </p>
+                                <p className="flex items-center gap-2 text-fg-muted">
+                                  <FiPhone aria-hidden="true" className="shrink-0" size={13} />
+                                  <span className="tabular truncate">{reservation.userPhone}</span>
+                                </p>
                               </div>
                             </div>
-                            <div className="flex flex-wrap items-center gap-1 shrink-0">
-                              {/* Resend confirmation email */}
-                              {reservation.status !== 'cancelled' && (
-                                <button
-                                  onClick={() => handleResendConfirmation(reservation)}
-                                  disabled={resendEmailLoadingId === reservation.id}
-                                  className="p-2 text-cyan-400 hover:bg-cyan-900/20 rounded-lg transition-colors disabled:opacity-50"
-                                  title="Resend confirmation email"
-                                >
-                                  {resendEmailLoadingId === reservation.id ? (
-                                    <div className="w-4 h-4 border-t-2 border-b-2 border-cyan-400 rounded-full animate-spin" />
-                                  ) : (
-                                    <FiMail size={16} />
-                                  )}
-                                </button>
-                              )}
-                              {/* Edit contact (email, name, phone) */}
-                              <button
-                                onClick={() => openEditContactModal(reservation)}
-                                className="p-2 text-gray-400 hover:bg-gray-700/30 rounded-lg transition-colors"
-                                title="Edit email / contact"
-                              >
-                                <FiEdit2 size={16} />
-                              </button>
-                              {/* Fix price difference (table was moved but refund/charge not applied) */}
+
+                            <div className="flex shrink-0 items-center gap-2">
                               {needsTableChangeFix(reservation) && (
-                                <button
+                                <Button
                                   onClick={() => handleFixTableChangePrice(reservation)}
                                   disabled={fixPriceLoadingId === reservation.id}
-                                  className="p-2 text-amber-400 hover:bg-amber-900/20 rounded-lg transition-colors disabled:opacity-50"
-                                  title="Refund or charge price difference and send email"
+                                  loading={fixPriceLoadingId === reservation.id}
+                                  variant="outline"
+                                  size="sm"
+                                  className="border-attention-600 text-attention-300 hover:bg-attention-900/20"
                                 >
-                                  {fixPriceLoadingId === reservation.id ? (
-                                    <div className="w-4 h-4 border-t-2 border-b-2 border-amber-400 rounded-full animate-spin" />
-                                  ) : (
-                                    <FiDollarSign size={16} />
+                                  {fixPriceLoadingId !== reservation.id && (
+                                    <FiDollarSign aria-hidden="true" size={14} />
                                   )}
-                                </button>
+                                  Settle difference
+                                </Button>
                               )}
-                              {/* Change table */}
+
                               {reservation.status !== 'cancelled' && reservation.status !== 'checked-in' && (
-                                <button
+                                <Button
                                   onClick={() => openChangeTableModal(reservation)}
-                                  className="p-2 text-emerald-400 hover:bg-emerald-900/20 rounded-lg transition-colors"
-                                  title="Change table (charge/refund difference)"
+                                  variant="outline"
+                                  size="sm"
+                                  className="hidden sm:inline-flex"
                                 >
-                                  <BiTable size={16} />
-                                </button>
+                                  <BiTable aria-hidden="true" size={14} />
+                                  Change table
+                                </Button>
                               )}
-                              {/* Copy change-table / manage link */}
-                              <button
-                                onClick={() => copyConfirmationLink(reservation)}
-                                className="p-2 text-gray-400 hover:bg-gray-700/30 rounded-lg transition-colors"
-                                title="Copy manage reservation link"
-                              >
-                                <FiCopy size={16} />
-                              </button>
-                              {/* Open change-table page in new tab */}
-                              <a
-                                href={`/reservation/${reservation.id}/change-table`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="p-2 text-gray-400 hover:bg-gray-700/30 rounded-lg transition-colors"
-                                title="Open change-table page (customer flow)"
-                              >
-                                <FiExternalLink size={16} />
-                              </a>
-                              {/* Cancel & Refund - Show for all active reservations */}
-                              {reservation.status !== 'cancelled' && (
-                                <button
-                                  onClick={() => openCancelModal(reservation)}
-                                  className="p-2 text-orange-400 hover:bg-orange-900/20 rounded-lg transition-colors"
-                                  title="Cancel & Refund"
-                                >
-                                  <FiX size={16} />
-                                </button>
-                              )}
-                              {/* Delete Button */}
-                              <button
-                                onClick={() => handleDeleteReservation(reservation.id, reservation.eventId)}
-                                className="p-2 text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
-                                title="Delete reservation"
-                              >
-                                <FiTrash2 size={16} />
-                              </button>
-                            </div>
-                          </div>
 
-                          {/* Reservation Details Grid */}
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-                            <div>
-                              <span className="text-gray-400 block">Table</span>
-                              <span className="text-white font-medium flex items-center gap-1">
-                                <BiTable size={14} />
-                                #{reservation.tableNumber}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="text-gray-400 block">Status</span>
-                              <span className={`inline-block px-2 py-1 rounded-full text-xs border ${getStatusBadgeClasses(reservation.status)}`}>
-                                {reservation.status || 'pending'}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="text-gray-400 block">Guests</span>
-                              <span className="text-white font-medium">{reservation.guestCount || 1}</span>
-                            </div>
-                            <div>
-                              <span className="text-gray-400 block">Total</span>
-                              <span className="text-white font-medium">{formatCurrency(reservation.totalAmount)}</span>
-                            </div>
-                          </div>
-
-                          {/* Event & Booking Dates */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                            <div>
-                              <span className="text-gray-400 block">Event Date</span>
-                              <span className="text-white font-medium flex items-center gap-1">
-                                <FiCalendar size={14} />
-                                {reservation.eventDate && reservation.eventDate !== 'Invalid Date' ? 
-                                  formatDate(reservation.eventDate) : 
-                                  (reservation.eventId ? `Event ID: ${reservation.eventId}` : 'N/A')
-                                }
-                              </span>
-                            </div>
-                            <div>
-                              <span className="text-gray-400 block">Booked On</span>
-                              <span className="text-white font-medium flex items-center gap-1">
-                                <FiCalendar size={14} />
-                                {formatDate(reservation.createdAt)}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Bottles Section */}
-                          {reservation.bottles && reservation.bottles.length > 0 && (
-                            <div className="bg-zinc-800/50 p-3 rounded-lg">
-                              <div className="flex items-center gap-2 mb-2">
-                                <BiWine className="text-gray-400" size={16} />
-                                <span className="text-gray-400 text-sm font-medium">Bottles Ordered:</span>
-                              </div>
-                              <div className="flex flex-wrap gap-2">
-                                {reservation.bottles.map((bottle, index) => (
-                                  <span 
-                                    key={index}
-                                    className="px-2 py-1 bg-gray-700 text-white rounded-full text-xs"
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    aria-label={`More actions for ${reservation.userName}'s reservation`}
                                   >
-                                    {bottle.name}
-                                  </span>
-                                ))}
-                              </div>
+                                    <FiMoreHorizontal aria-hidden="true" size={18} />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-60">
+                                  {reservation.status !== 'cancelled' && reservation.status !== 'checked-in' && (
+                                    <DropdownMenuItem
+                                      className="sm:hidden"
+                                      onClick={() => openChangeTableModal(reservation)}
+                                    >
+                                      <BiTable aria-hidden="true" className="mr-2" />
+                                      Change table
+                                    </DropdownMenuItem>
+                                  )}
+                                  {reservation.status !== 'cancelled' && (
+                                    <DropdownMenuItem
+                                      disabled={resendEmailLoadingId === reservation.id}
+                                      onClick={() => handleResendConfirmation(reservation)}
+                                    >
+                                      <FiMail aria-hidden="true" className="mr-2" />
+                                      {resendEmailLoadingId === reservation.id
+                                        ? 'Sending…'
+                                        : 'Resend confirmation email'}
+                                    </DropdownMenuItem>
+                                  )}
+                                  <DropdownMenuItem onClick={() => openEditContactModal(reservation)}>
+                                    <FiEdit2 aria-hidden="true" className="mr-2" />
+                                    Edit contact details
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => copyConfirmationLink(reservation)}>
+                                    <FiCopy aria-hidden="true" className="mr-2" />
+                                    Copy manage link
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem asChild>
+                                    <a
+                                      href={`/reservation/${reservation.id}/change-table`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="cursor-pointer"
+                                    >
+                                      <FiExternalLink aria-hidden="true" className="mr-2" />
+                                      Open guest view
+                                    </a>
+                                  </DropdownMenuItem>
+
+                                  <DropdownMenuSeparator />
+
+                                  {reservation.status !== 'cancelled' && (
+                                    <DropdownMenuItem
+                                      onClick={() => openCancelModal(reservation)}
+                                      className="text-revoke-400 focus:bg-revoke-900/30 focus:text-revoke-400"
+                                    >
+                                      <FiX aria-hidden="true" className="mr-2" />
+                                      Cancel &amp; refund…
+                                    </DropdownMenuItem>
+                                  )}
+                                  <DropdownMenuItem
+                                    onClick={() => handleDeleteReservation(reservation.id, reservation.eventId)}
+                                    className="text-danger-bright focus:bg-danger-900/30 focus:text-danger-bright"
+                                  >
+                                    <FiTrash2 aria-hidden="true" className="mr-2" />
+                                    Delete reservation
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          </div>
+
+                          {/* Reservation facts.
+                              These were two separate grids — a four-column one
+                              above a two-column one — so "Event date" started
+                              under "Table" and nothing lined up between the
+                              rows. One definition list, one column rhythm, and
+                              money in tabular figures so totals down a list of
+                              reservations align on the decimal. */}
+                          <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-3 lg:grid-cols-6">
+                            <div>
+                              <dt className="text-fg-muted">Table</dt>
+                              <dd className="mt-0.5 flex items-center gap-1 font-medium text-fg">
+                                <BiTable aria-hidden="true" size={14} />
+                                <span className="tabular">#{reservation.tableNumber}</span>
+                              </dd>
+                            </div>
+                            <div>
+                              <dt className="text-fg-muted">Status</dt>
+                              <dd className="mt-0.5">
+                                <span className={`inline-block rounded-full border px-2 py-0.5 text-xs ${getStatusBadgeClasses(reservation.status)}`}>
+                                  {reservation.status || 'pending'}
+                                </span>
+                              </dd>
+                            </div>
+                            <div>
+                              <dt className="text-fg-muted">Guests</dt>
+                              <dd className="tabular mt-0.5 font-medium text-fg">{reservation.guestCount || 1}</dd>
+                            </div>
+                            <div>
+                              <dt className="text-fg-muted">Total</dt>
+                              <dd className="tabular mt-0.5 font-medium text-fg">
+                                {formatCurrency(reservation.totalAmount)}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt className="text-fg-muted">Event date</dt>
+                              <dd className="tabular mt-0.5 font-medium text-fg">
+                                {reservation.eventDate && reservation.eventDate !== 'Invalid Date'
+                                  ? formatDate(reservation.eventDate).split(',').slice(0, 2).join(',')
+                                  : (reservation.eventId ? 'Unknown' : 'N/A')}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt className="text-fg-muted">Booked</dt>
+                              <dd className="tabular mt-0.5 font-medium text-fg">
+                                {formatDate(reservation.createdAt).split(',').slice(0, 2).join(',')}
+                              </dd>
+                            </div>
+                          </dl>
+
+                          {/* Bottles.
+                              A full-width filled panel with its own heading for
+                              what is usually two words. It reads as one line of
+                              the record now, alongside the facts above it. */}
+                          {reservation.bottles && reservation.bottles.length > 0 && (
+                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-sm">
+                              <span className="flex items-center gap-1.5 text-fg-muted">
+                                <BiWine aria-hidden="true" size={15} />
+                                Bottles
+                              </span>
+                              {reservation.bottles.map((bottle, index) => (
+                                <span
+                                  key={index}
+                                  className="rounded-full border border-line bg-surface-raised px-2 py-0.5 text-xs text-fg-dim"
+                                >
+                                  {bottle.name}
+                                </span>
+                              ))}
                             </div>
                           )}
 
                           {/* Special Requests */}
                           {reservation.specialRequests && (
-                            <div className="bg-zinc-800/50 p-3 rounded-lg">
-                              <span className="text-gray-400 text-sm block mb-1">Special Requests:</span>
-                              <span className="text-white text-sm">{reservation.specialRequests}</span>
+                            <div className="bg-surface-raised/50 p-3 rounded-lg">
+                              <span className="text-fg-muted text-sm block mb-1">Special Requests:</span>
+                              <span className="text-fg text-sm">{reservation.specialRequests}</span>
                             </div>
                           )}
                         </div>
@@ -769,68 +868,68 @@ export default function ManageReservationsTab() {
 
       {/* Edit contact modal */}
       {editContactModal.isOpen && editContactModal.reservation.id && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-zinc-900 rounded-lg border border-gray-700 w-full max-w-md">
+        <div className="fixed inset-0 bg-canvas bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-surface rounded-lg border border-line w-full max-w-md">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-white">Edit contact</h3>
-                <button onClick={closeEditContactModal} className="text-gray-400 hover:text-white">
+                <h3 className="text-xl font-bold text-fg">Edit contact</h3>
+                <Button onClick={closeEditContactModal} variant="ghost" size="md" className="text-fg-muted hover:text-fg">
                   <FiX size={20} />
-                </button>
+                </Button>
               </div>
-              <p className="text-sm text-gray-400 mb-4">
+              <p className="text-sm text-fg-muted mb-4">
                 Table #{editContactModal.reservation.tableNumber} · {editContactModal.reservation.userName}
               </p>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Email *</label>
-                  <input
+                  <Label className="mb-2">Email *</Label>
+                  <Input
                     type="email"
                     value={editContactForm.userEmail}
                     onChange={(e) => setEditContactForm((f) => ({ ...f, userEmail: e.target.value }))}
-                    className="w-full px-3 py-2 bg-zinc-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-cyan-500 focus:outline-none"
+                    className="px-3 py-2 bg-surface-raised border border-line-strong placeholder-fg-muted focus:border-accent-500"
                     placeholder="guest@example.com"
                     disabled={isSavingContact}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Name</label>
-                  <input
+                  <Label className="mb-2">Name</Label>
+                  <Input
                     type="text"
                     value={editContactForm.userName}
                     onChange={(e) => setEditContactForm((f) => ({ ...f, userName: e.target.value }))}
-                    className="w-full px-3 py-2 bg-zinc-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-cyan-500 focus:outline-none"
+                    className="px-3 py-2 bg-surface-raised border border-line-strong placeholder-fg-muted focus:border-accent-500"
                     placeholder="Guest name"
                     disabled={isSavingContact}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Phone</label>
-                  <input
+                  <Label className="mb-2">Phone</Label>
+                  <Input
                     type="tel"
                     value={editContactForm.userPhone}
                     onChange={(e) => setEditContactForm((f) => ({ ...f, userPhone: e.target.value }))}
-                    className="w-full px-3 py-2 bg-zinc-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-cyan-500 focus:outline-none"
+                    className="px-3 py-2 bg-surface-raised border border-line-strong placeholder-fg-muted focus:border-accent-500"
                     placeholder="Phone"
                     disabled={isSavingContact}
                   />
                 </div>
               </div>
               <div className="flex gap-3 mt-6">
-                <button
+                <Button
                   onClick={closeEditContactModal}
                   disabled={isSavingContact}
-                  className="flex-1 px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-zinc-800 disabled:opacity-50"
+                  variant="outline" size="md" className="flex-1 px-4 py-2 border border-line-strong text-fg-dim hover:bg-surface-raised"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={handleSaveContact}
                   disabled={isSavingContact || !editContactForm.userEmail.trim()}
-                  className="flex-1 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 disabled:opacity-50 text-white rounded-lg"
+                  variant="accent" size="md" className="flex-1 px-4 py-2 bg-accent-600 hover:bg-accent-700"
                 >
                   {isSavingContact ? 'Saving…' : 'Save'}
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -839,25 +938,25 @@ export default function ManageReservationsTab() {
 
       {/* Fix price difference – customer must pay (modal when upgrade fix) */}
       {fixPriceNeedsPayment && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-zinc-900 rounded-lg border border-gray-700 w-full max-w-md">
+        <div className="fixed inset-0 bg-canvas bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-surface rounded-lg border border-line w-full max-w-md">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-white">Customer must pay price difference</h3>
-                <button onClick={() => setFixPriceNeedsPayment(null)} className="text-gray-400 hover:text-white">
+                <h3 className="text-xl font-bold text-fg">Customer must pay price difference</h3>
+                <Button onClick={() => setFixPriceNeedsPayment(null)} variant="ghost" size="md" className="text-fg-muted hover:text-fg">
                   <FiX size={20} />
-                </button>
+                </Button>
               </div>
-              <p className="text-2xl font-bold text-cyan-400 mb-2">{formatCurrency(fixPriceNeedsPayment.amountDue)}</p>
-              <p className="text-sm text-gray-400 mb-4">An email was sent with the payment link. They can also use the link below.</p>
-              <a href={fixPriceNeedsPayment.paymentUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg font-medium mb-2">
+              <p className="text-2xl font-bold text-accent-400 mb-2">{formatCurrency(fixPriceNeedsPayment.amountDue)}</p>
+              <p className="text-sm text-fg-muted mb-4">An email was sent with the payment link. They can also use the link below.</p>
+              <a href={fixPriceNeedsPayment.paymentUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full py-3 bg-accent-600 hover:bg-accent-700 text-fg rounded-lg font-medium mb-2">
                 <FiExternalLink size={18} />
                 Open payment page
               </a>
-              <button type="button" onClick={() => { navigator.clipboard.writeText(fixPriceNeedsPayment.paymentUrl); toast.success('Link copied'); }} className="w-full py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-zinc-800 flex items-center justify-center gap-2">
+              <Button type="button" onClick={() => { navigator.clipboard.writeText(fixPriceNeedsPayment.paymentUrl); toast.success('Link copied'); }} variant="outline" size="md" full className="py-2 border border-line-strong text-fg-dim hover:bg-surface-raised flex items-center justify-center gap-2">
                 <FiCopy size={16} />
                 Copy link
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -865,56 +964,56 @@ export default function ManageReservationsTab() {
 
       {/* Change table modal – same charge/refund logic as customer */}
       {changeTableModal.isOpen && changeTableModal.reservation.id && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-zinc-900 rounded-lg border border-gray-700 w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-canvas bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-surface rounded-lg border border-line w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-white">Change table</h3>
-                <button onClick={closeChangeTableModal} className="text-gray-400 hover:text-white">
+                <h3 className="text-xl font-bold text-fg">Change table</h3>
+                <Button onClick={closeChangeTableModal} variant="ghost" size="md" className="text-fg-muted hover:text-fg">
                   <FiX size={20} />
-                </button>
+                </Button>
               </div>
-              <p className="text-sm text-gray-400 mb-4">
+              <p className="text-sm text-fg-muted mb-4">
                 {changeTableModal.reservation.userName} · Current: Table #{changeTableModal.reservation.tableNumber}. Upgrade = charge difference; downgrade = refund difference.
               </p>
 
               {changeTableNeedsPayment ? (
                 <div className="space-y-4">
-                  <div className="p-4 bg-amber-900/20 border border-amber-700/50 rounded-lg">
-                    <p className="text-amber-200 font-medium">Customer must pay price difference</p>
-                    <p className="text-2xl font-bold text-white mt-1">{formatCurrency(changeTableNeedsPayment.amountDue)}</p>
-                    <p className="text-sm text-gray-400 mt-2">An email was sent to the customer with the payment link. Once they pay, the table will change automatically.</p>
+                  <div className="p-4 bg-attention-900/20 border border-attention-700/50 rounded-lg">
+                    <p className="text-attention-200 font-medium">Customer must pay price difference</p>
+                    <p className="text-2xl font-bold text-fg mt-1">{formatCurrency(changeTableNeedsPayment.amountDue)}</p>
+                    <p className="text-sm text-fg-muted mt-2">An email was sent to the customer with the payment link. Once they pay, the table will change automatically.</p>
                   </div>
                   <a
                     href={changeTableNeedsPayment.paymentUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 w-full py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg font-medium"
+                    className="flex items-center justify-center gap-2 w-full py-3 bg-accent-600 hover:bg-accent-700 text-fg rounded-lg font-medium"
                   >
                     <FiExternalLink size={18} />
                     Open payment page for customer
                   </a>
-                  <button
+                  <Button
                     type="button"
                     onClick={() => {
                       navigator.clipboard.writeText(changeTableNeedsPayment.paymentUrl);
                       toast.success('Link copied');
                     }}
-                    className="w-full py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-zinc-800 flex items-center justify-center gap-2"
+                    variant="outline" size="md" full className="py-2 border border-line-strong text-fg-dim hover:bg-surface-raised flex items-center justify-center gap-2"
                   >
                     <FiCopy size={16} />
                     Copy link
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={closeChangeTableModal}
-                    className="w-full py-2 text-gray-400 hover:text-white"
+                    variant="ghost" size="md" full className="py-2 text-fg-muted hover:text-fg"
                   >
                     Close
-                  </button>
+                  </Button>
                 </div>
               ) : isLoadingTables ? (
                 <div className="flex justify-center py-8">
-                  <div className="w-8 h-8 border-t-2 border-b-2 border-cyan-500 rounded-full animate-spin" />
+                  <Spinner size="md" className="text-accent-500" />
                 </div>
               ) : (
                 <>
@@ -922,43 +1021,43 @@ export default function ManageReservationsTab() {
                     {availableTables.map((table) => {
                       const isCurrent = table.id === changeTableModal.reservation.tableId;
                       return (
-                        <button
+                        <Button unstyled
                           key={table.id}
                           type="button"
                           onClick={() => !isCurrent && setSelectedNewTableId(table.id)}
                           disabled={isCurrent}
                           className={`w-full text-left px-3 py-2 rounded-lg border transition-colors ${
                             selectedNewTableId === table.id
-                              ? 'border-cyan-500 bg-cyan-900/30'
+                              ? 'border-accent-500 bg-accent-900/30'
                               : isCurrent
-                                ? 'border-gray-700 bg-zinc-800/50 opacity-60 cursor-not-allowed'
-                                : 'border-gray-700 hover:border-gray-600'
+                                ? 'border-line bg-surface-raised/50 opacity-60 cursor-not-allowed'
+                                : 'border-line hover:border-line-strong'
                           }`}
                         >
-                          <span className="text-white font-medium">Table #{table.number}</span>
-                          <span className="text-gray-400 text-sm ml-2">
+                          <span className="text-fg font-medium">Table #{table.number}</span>
+                          <span className="text-fg-muted text-sm ml-2">
                             {formatCurrency(table.price)}
                             {isCurrent && ' (current)'}
                           </span>
-                        </button>
+                        </Button>
                       );
                     })}
                   </div>
                   <div className="flex gap-3 mt-6">
-                    <button
+                    <Button
                       onClick={closeChangeTableModal}
                       disabled={isChangingTable}
-                      className="flex-1 px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-zinc-800"
+                      variant="outline" size="md" className="flex-1 px-4 py-2 border border-line-strong text-fg-dim hover:bg-surface-raised"
                     >
                       Cancel
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       onClick={handleAdminChangeTable}
                       disabled={isChangingTable || !selectedNewTableId || selectedNewTableId === changeTableModal.reservation.tableId}
-                      className="flex-1 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg"
+                      variant="success" size="md" className="flex-1 px-4 py-2 bg-confirm-600 hover:bg-confirm-700"
                     >
                       {isChangingTable ? 'Changing…' : 'Change table'}
-                    </button>
+                    </Button>
                   </div>
                 </>
               )}
@@ -969,49 +1068,49 @@ export default function ManageReservationsTab() {
 
       {/* Cancel & Refund Modal */}
       {cancelModal.isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-zinc-900 rounded-lg border border-gray-700 w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-canvas bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-surface rounded-lg border border-line w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-white">Cancel & Refund Reservation</h3>
-                <button
+                <h3 className="text-xl font-bold text-fg">Cancel & Refund Reservation</h3>
+                <Button
                   onClick={closeCancelModal}
-                  className="text-gray-400 hover:text-white transition-colors"
+                  variant="ghost" size="md" className="text-fg-muted hover:text-fg"
                 >
                   <FiX size={20} />
-                </button>
+                </Button>
               </div>
 
-              <div className="mb-4 p-3 bg-zinc-800 rounded-lg">
-                <p className="text-sm text-gray-400">Customer</p>
-                <p className="text-white font-medium">{cancelModal.reservation.userName}</p>
-                <p className="text-sm text-gray-400 mt-1">
+              <div className="mb-4 p-3 bg-surface-raised rounded-lg">
+                <p className="text-sm text-fg-muted">Customer</p>
+                <p className="text-fg font-medium">{cancelModal.reservation.userName}</p>
+                <p className="text-sm text-fg-muted mt-1">
                   Table #{cancelModal.reservation.tableNumber} • {formatCurrency(cancelModal.reservation.totalAmount || 0)}
                 </p>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Staff Name <span className="text-red-400">*</span>
-                  </label>
-                  <input
+                  <Label className="mb-2">
+                    Staff Name <span className="text-danger-400">*</span>
+                  </Label>
+                  <Input
                     type="text"
                     value={cancelForm.staffName}
                     onChange={(e) => setCancelForm({ ...cancelForm, staffName: e.target.value })}
                     placeholder="Enter your name"
-                    className="w-full px-3 py-2 bg-zinc-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-cyan-500 focus:outline-none"
+                    className="px-3 py-2 bg-surface-raised border border-line-strong placeholder-fg-muted focus:border-accent-500"
                     disabled={isProcessingCancel}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Refund Amount <span className="text-red-400">*</span>
-                  </label>
+                  <Label className="mb-2">
+                    Refund Amount <span className="text-danger-400">*</span>
+                  </Label>
                   <div className="relative">
-                    <FiDollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-                    <input
+                    <FiDollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-fg-muted" size={16} />
+                    <Input
                       type="number"
                       step="0.01"
                       min="0"
@@ -1019,52 +1118,52 @@ export default function ManageReservationsTab() {
                       value={cancelForm.refundAmount}
                       onChange={(e) => setCancelForm({ ...cancelForm, refundAmount: e.target.value })}
                       placeholder="0.00"
-                      className="w-full pl-10 pr-3 py-2 bg-zinc-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-cyan-500 focus:outline-none"
+                      className="pl-10 pr-3 py-2 bg-surface-raised border border-line-strong placeholder-fg-muted focus:border-accent-500"
                       disabled={isProcessingCancel}
                     />
                   </div>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-xs text-fg-muted mt-1">
                     Maximum: {formatCurrency(cancelModal.reservation.totalAmount || 0)}
                   </p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <Label className="mb-2">
                     Cancellation Reason (Optional)
-                  </label>
-                  <textarea
+                  </Label>
+                  <Textarea
                     value={cancelForm.reason}
                     onChange={(e) => setCancelForm({ ...cancelForm, reason: e.target.value })}
                     placeholder="Reason for cancellation..."
                     rows={3}
-                    className="w-full px-3 py-2 bg-zinc-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-cyan-500 focus:outline-none resize-none"
+                    className="px-3 py-2 bg-surface-raised border border-line-strong placeholder-fg-muted focus:border-accent-500 resize-none"
                     disabled={isProcessingCancel}
                   />
                 </div>
               </div>
 
               <div className="flex gap-3 mt-6">
-                <button
+                <Button
                   onClick={closeCancelModal}
                   disabled={isProcessingCancel}
-                  className="flex-1 px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
+                  variant="outline" size="md" className="flex-1 px-4 py-2 border border-line-strong text-fg-dim hover:bg-surface-raised"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={handleCancelReservation}
                   disabled={isProcessingCancel || !cancelForm.staffName.trim()}
-                  className="flex-1 px-4 py-2 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+                  variant="subtle" size="md" className="flex-1 px-4 py-2 bg-revoke-600 hover:bg-revoke-700 disabled:bg-surface-lifted flex items-center justify-center gap-2"
                 >
                   {isProcessingCancel ? (
                     <>
-                      <div className="w-4 h-4 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
+                      <Spinner size="sm" className="text-fg" />
                       Processing...
                     </>
                   ) : (
                     'Cancel & Refund'
                   )}
-                </button>
+                </Button>
               </div>
             </div>
           </div>

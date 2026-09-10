@@ -5,10 +5,13 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { FiArrowRight } from 'react-icons/fi';
+import { FiArrowRight, FiCalendar } from 'react-icons/fi';
 import { getUpcomingEvents } from '@/lib/services/events';
 import { sortEventsByDate } from '@/lib/utils/dateFormatter';
 import SectionHeader from './SectionHeader';
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PanelError, PanelLoading } from "@/components/ui/page-state";
 
 interface EventsFestivalSectionProps {
   title?: string;
@@ -17,6 +20,8 @@ interface EventsFestivalSectionProps {
   /** Cap how many events render. Omit or pass null to show all upcoming events. */
   maxEvents?: number | null;
   id?: string;
+  /** Free-text filter over title and venue. Empty or omitted shows everything. */
+  query?: string;
 }
 
 export default function EventsFestivalSection({
@@ -24,7 +29,8 @@ export default function EventsFestivalSection({
   subtitle,
   className = "",
   maxEvents = null,
-  id = "events"
+  id = "events",
+  query = ""
 }: EventsFestivalSectionProps) {
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -94,37 +100,62 @@ export default function EventsFestivalSection({
     }
   };
 
+  const trimmedQuery = query.trim().toLowerCase();
+  const visibleEvents = trimmedQuery
+    ? events.filter((event) =>
+        [event.title, event.venue].some((field) =>
+          String(field ?? '').toLowerCase().includes(trimmedQuery)
+        )
+      )
+    : events;
+
   return (
-    <section id={id} className={`py-12 ${className} bg-black relative overflow-hidden`}>
+    <section id={id} className={`py-12 ${className} bg-canvas relative overflow-hidden`}>
       {/* Background effects */}
-      <div className="absolute inset-0 noise opacity-5"></div>
-      <div className="absolute inset-0 spotlight opacity-10"></div>
+      <div aria-hidden="true" className="noise pointer-events-none absolute inset-0 opacity-5" />
+      <div aria-hidden="true" className="spotlight opacity-10" />
       
       <div className="container mx-auto px-4 relative z-10">
         <SectionHeader title={title} subtitle={subtitle} />
 
         {loading ? (
-          <div className="flex justify-center py-20">
-            <div className="w-16 h-16 border-t-4 border-white border-solid rounded-full animate-spin"></div>
-          </div>
+          <PanelLoading message="Loading events…" />
         ) : error ? (
-          <div className="text-red-400 text-center py-10">
-            <p>{error}</p>
-            <button 
-              onClick={() => window.location.reload()} 
-              className="mt-4 px-4 py-2 bg-red-900/30 hover:bg-red-900/50 transition-colors"
-            >
-              Retry
-            </button>
-          </div>
-        ) : events.length === 0 ? (
-          <div className="text-center py-16 border border-white/20">
-            <h3 className="text-2xl font-bold text-white mb-2 digital-glow-soft">NO UPCOMING EVENTS</h3>
-            <p className="text-white/60">Check back soon for our upcoming schedule.</p>
-          </div>
+          <PanelError
+            title="We couldn't load the schedule"
+            description="Something went wrong on our end. Try again, or reach us on Instagram for tonight's line-up."
+            onRetry={() => window.location.reload()}
+            retryLabel="Reload"
+          />
+        ) : visibleEvents.length === 0 ? (
+          /* Was a square-cornered box in a rounded-corner system, holding a
+             glowing headline, a shrug, and no way forward. An empty schedule is
+             still a chance to keep someone. */
+          trimmedQuery ? (
+            <EmptyState
+              icon={<FiCalendar size={36} aria-hidden="true" />}
+              title={`No events match “${query.trim()}”`}
+              description="Try a different name, or clear the search to see everything coming up."
+            />
+          ) : (
+            <EmptyState
+              icon={<FiCalendar size={36} aria-hidden="true" />}
+              title="No events on sale right now"
+              description="New dates go up regularly. Join the list below or follow us and you'll hear first."
+              action={
+                <Button
+                  variant="outline"
+                  size="md"
+                  onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                >
+                  Get in touch
+                </Button>
+              }
+            />
+          )
         ) : (
           <div className="space-y-4">
-            {events.map((event, index) => (
+            {visibleEvents.map((event, index) => (
               <motion.div
                 key={event.id}
                 initial={{ opacity: 0.92, y: 16 }}
@@ -132,62 +163,57 @@ export default function EventsFestivalSection({
                 viewport={{ once: true, margin: '-20px 0px' }}
                 transition={{ duration: 0.4, delay: index * 0.06 }}
               >
-                <Link href={`/events/${event.id}`}>
-                <div className="group flex flex-row items-center border border-white/20 rounded-lg py-4 px-3 hover:bg-white/5 transition-all duration-300 relative overflow-hidden">
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-10 spotlight transition-opacity duration-300"></div>
-                  
-                  {/* Date column with stylized border */}
-                  <div className="w-1/4 md:w-1/6 flex flex-col items-center justify-center p-2 relative">
-                    <div className="absolute inset-0 border-2 border-white/50 rounded-lg group-hover:border-white/80 transition-all duration-300"></div>
-                    <div className="absolute inset-0 bg-white/5 rounded-lg group-hover:bg-white/10 transition-all duration-300"></div>
-                    <div className="absolute -inset-px bg-gradient-to-tr from-white/0 via-white/0 to-white/30 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
-                    
-                    <div className="text-5xl md:text-7xl font-bold text-white font-display group-hover:digital-glow-soft transition-all duration-300 relative z-10">
+                {/* Row geometry was three hard fractions (1/4, 2/4, auto) with
+                    the title `truncate`d, so a real title — "Sábado Sonoro con
+                    DJ Renata Villalobos" — was cut mid-word on a phone. The
+                    date block is a fixed column, the flyer a fixed thumbnail,
+                    and the title takes the space that remains and wraps.
+                    The three stacked absolutely-positioned border layers behind
+                    the date are one bordered box. */}
+                <Link
+                  href={`/events/${event.id}`}
+                  className="group relative flex items-center gap-3 overflow-hidden rounded-lg border border-fg/20 p-3 transition-colors duration-base hover:border-fg/40 hover:bg-fg/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:gap-5 sm:p-4"
+                >
+                  {/* Date */}
+                  <div className="flex w-16 shrink-0 flex-col items-center justify-center rounded-lg border-2 border-fg/40 bg-fg/5 py-2 transition-colors duration-base group-hover:border-fg/70 sm:w-24 sm:py-3">
+                    <span className="tabular font-heading text-3xl leading-none text-fg sm:text-5xl">
                       {event.date ? getEventDay(event.date) : "--"}
-                    </div>
-                    <div className="text-lg md:text-xl text-white/60 relative z-10">
+                    </span>
+                    <span className="mt-1 text-xs tracking-widest text-fg-muted sm:text-base">
                       {event.date ? getEventMonth(event.date) : "TBA"}
-                    </div>
+                    </span>
                   </div>
-                  
+
                   {/* Event name and details */}
-                  <div className="w-2/4 md:w-4/6 flex flex-col pl-2 md:pl-4">
-                    <h3 className="text-xl md:text-4xl font-bold text-white font-display tracking-wider group-hover:text-white/90 transition-all duration-300 truncate">
-                      {event.title.toUpperCase()}
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-heading text-base leading-tight tracking-wide text-fg sm:text-2xl md:text-3xl">
+                      {event.title}
                     </h3>
-                    {event.venue && (
-                      <p className="text-white/60 text-xs md:text-base mt-1 truncate">{event.venue}</p>
-                    )}
-                    {event.time && (
-                      <p className="text-white/40 text-xs md:text-sm mt-1">{event.time}</p>
-                    )}
-                    <div className="hidden md:flex items-center mt-2">
-                      <FiArrowRight className="text-white opacity-0 group-hover:opacity-100 transition-all duration-300" />
-                      <span className="ml-2 text-white/60 text-sm opacity-0 group-hover:opacity-100 transition-all duration-300">
-                        View Details
-                      </span>
+                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-fg-muted sm:text-sm">
+                      {event.venue && <span className="truncate">{event.venue}</span>}
+                      {event.time && <span className="tabular">{event.time}</span>}
                     </div>
+                    <span className="mt-2 hidden items-center gap-2 text-sm text-fg-muted opacity-0 transition-opacity duration-base group-hover:opacity-100 md:flex">
+                      <FiArrowRight aria-hidden="true" />
+                      View details
+                    </span>
                   </div>
-                  
+
                   {/* Event flyer thumbnail */}
-                  <div className="w-20 md:w-32 relative aspect-square ml-auto">
-                    <div className="absolute inset-0 rounded-md overflow-hidden border border-white/20 shadow-lg">
-                      <Image
-                        src={event.flyerUrl || '/placeholder-event.png'}
-                        alt={event.title}
-                        fill
-                        className="object-contain group-hover:scale-110 transition-transform duration-500"
-                        sizes="128px"
-                        placeholder="blur"
-                        blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAEggJ4YA0XfwAAAABJRU5ErkJggg=="
-                        loading="lazy"
-                        unoptimized={event.flyerUrl?.includes('firebasestorage.googleapis.com') || event.flyerUrl?.includes('storage.googleapis.com')}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-70"></div>
-                    </div>
+                  <div className="relative aspect-square w-16 shrink-0 overflow-hidden rounded-md border border-fg/20 sm:w-28">
+                    <Image
+                      src={event.flyerUrl || '/placeholder-event.png'}
+                      alt=""
+                      fill
+                      className="object-cover transition-transform duration-slow group-hover:scale-105"
+                      sizes="112px"
+                      placeholder="blur"
+                      blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAEggJ4YA0XfwAAAABJRU5ErkJggg=="
+                      loading="lazy"
+                      unoptimized={event.flyerUrl?.includes('firebasestorage.googleapis.com') || event.flyerUrl?.includes('storage.googleapis.com')}
+                    />
                   </div>
-                </div>
-              </Link>
+                </Link>
               </motion.div>
             ))}
           </div>

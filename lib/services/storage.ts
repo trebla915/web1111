@@ -187,14 +187,8 @@ export const uploadImageToStorage = async (file: File, path: string): Promise<st
     console.log(`[uploadImageToStorage] Created storage reference at path: ${path}`);
 
     // Check if we need to convert the file to a Blob
-    let fileBlob: Blob;
-    if (file instanceof Blob) {
-      fileBlob = file;
-    } else {
-      // Convert File to Blob to ensure compatibility
-      const arrayBuffer = await file.arrayBuffer();
-      fileBlob = new Blob([arrayBuffer], { type: file.type });
-    }
+    // File already extends Blob, so it can be uploaded directly.
+    const fileBlob: Blob = file;
     
     console.log(`[uploadImageToStorage] Prepared blob for upload. Size: ${fileBlob.size} bytes, Type: ${fileBlob.type || file.type}`);
 

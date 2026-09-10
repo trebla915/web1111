@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { stripe } from '@/lib/stripe';
 import { adminFirestore } from '@/lib/firebase/admin';
 import Stripe from 'stripe';
 
 export const dynamic = 'force-dynamic';
 import { sendTableChangeNotification, sendTableChangePaymentRequired } from '@/lib/utils/sendEmail';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-06-20',
-});
+import { ADMIN_ROLES, STAFF_ROLES, authErrorResponse } from '@/lib/auth/server';
+import { loadAuthorizedReservation, NotFoundError } from '@/lib/auth/reservation';
 
 const SERVICE_FEE_RATE = 0.1;
 
@@ -24,6 +23,8 @@ export async function POST(
   { params }: { params: { reservationId: string } }
 ) {
   try {
+    // Self-service table change for the owner; admins may act on any booking.
+    await loadAuthorizedReservation(request, params.reservationId, ADMIN_ROLES, { checkRevoked: true });
     const { reservationId } = params;
     const body = await request.json();
     const { newTableId, paymentIntentId, deferPaymentIntent } = body;

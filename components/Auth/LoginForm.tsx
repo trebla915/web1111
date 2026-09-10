@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { useAuth } from "@/components/providers/AuthProvider";
 import Link from 'next/link';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/field";
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -64,80 +67,81 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
-          Email Address
-        </label>
-        <input
+        <Label htmlFor="email" className="mb-1.5">
+          Email address
+        </Label>
+        {/* The two fields re-declared the input recipe with a focus ring in
+            `--fg`, where every other input on the site rings in `--accent`. */}
+        <Input
           id="email"
           type="email"
+          autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="w-full p-2 bg-gray-800 border border-gray-700 rounded text-white focus:ring-white focus:border-white"
-          placeholder="your@email.com"
+          placeholder="you@example.com"
         />
       </div>
-      
+
       <div>
-        <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">
-          Password
-        </label>
-        <input
+        <div className="mb-1.5 flex items-baseline justify-between gap-3">
+          <Label htmlFor="password">Password</Label>
+          {/* Was a plain white sentence sitting under the field, reading as
+              helper text rather than as the link out of a locked account. */}
+          {/* `-my-2 py-2` keeps the label baseline where it is while giving the
+              link a 36px box; the pointer-coarse bump takes it past 44px on a
+              touch screen without loosening the desktop row. */}
+          <Link
+            href="/auth/forgot-password"
+            className="-my-2 py-2 text-sm text-fg-muted underline transition-colors hover:text-fg [@media(pointer:coarse)]:py-3"
+          >
+            Forgot password?
+          </Link>
+        </div>
+        <Input
           id="password"
           type="password"
+          autoComplete="current-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          className="w-full p-2 bg-gray-800 border border-gray-700 rounded text-white focus:ring-white focus:border-white"
           placeholder="••••••••"
         />
       </div>
-      
-      <div className="flex items-center justify-between">
-        <div className="text-sm">
-          <Link href="/auth/forgot-password" className="text-white hover:text-white/80">
-            Forgot your password?
-          </Link>
-        </div>
-      </div>
-      
-      <div>
-        <button
-          type="submit"
-          disabled={isLoading}
-          className={`w-full py-2 px-4 bg-white hover:bg-white/90 text-black font-medium rounded transition duration-150 ease-in-out ${
-            isLoading ? 'opacity-70 cursor-not-allowed' : ''
-          }`}
+
+      <Button type="submit" disabled={isLoading} loading={isLoading} variant="primary" size="lg" full>
+        {isLoading ? 'Signing in' : 'Sign in'}
+      </Button>
+
+      <p className="text-center text-sm text-fg-muted">
+        Don&apos;t have an account?{' '}
+        <Link
+          href="/auth/register"
+          className="inline-flex min-h-[44px] items-center text-fg underline transition-colors hover:text-accent-bright"
         >
-          {isLoading ? 'Signing in...' : 'Sign In'}
-        </button>
-      </div>
-      
-      <div className="text-center mt-4">
-        <span className="text-gray-400">Don't have an account?</span>{' '}
-        <Link href="/auth/register" className="text-white hover:text-white/80">
-          Sign up
+          Create one
         </Link>
-      </div>
-      
-      <div className="relative mt-6">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-700"></div>
+      </p>
+
+      {/* "Or continue with" is the label for third-party sign-in providers; the
+          only thing under it was a button for browsing without an account. */}
+      <div className="relative pt-2">
+        <div aria-hidden="true" className="absolute inset-0 flex items-center pt-2">
+          <div className="w-full border-t border-line-subtle" />
         </div>
-        <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-gray-900 text-gray-400">Or continue with</span>
+        <div className="relative flex justify-center">
+          <span className="bg-surface px-2 text-xs uppercase tracking-wider text-fg-subtle">or</span>
         </div>
       </div>
-      
-      <div className="mt-6">
-        <button
-          type="button"
-          onClick={handleGuestMode}
-          className="w-full py-2 px-4 border border-gray-700 rounded bg-transparent text-white hover:bg-gray-800 transition duration-150 ease-in-out"
-        >
-          Guest Mode
-        </button>
+
+      <div>
+        <Button type="button" onClick={handleGuestMode} variant="outline" size="md" full>
+          Browse as a guest
+        </Button>
+        <p className="mt-2 text-center text-xs text-fg-subtle">
+          You&apos;ll need an account to reserve a table.
+        </p>
       </div>
     </form>
   );
-} 
+}
