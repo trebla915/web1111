@@ -1,0 +1,24 @@
+{
+  "name": "1111-phone-agent",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --env-file=.env.local src/agent.ts dev",
+    "build": "tsc",
+    "start": "node dist/agent.js start",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "@livekit/agents": "1.9.0",
+    "@livekit/agents-plugin-openai": "1.9.0",
+    "@livekit/rtc-node": "0.13.35",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
+  }
+}

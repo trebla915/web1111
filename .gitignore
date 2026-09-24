@@ -45,6 +45,7 @@ next-env.d.ts
 .env.local
 .env.development
 .env.production
+voice-agent/livekit-secrets.env
 
 # Env var reference (optional: remove this line to commit ENV_VARS.md)
 ENV_VARS.md
@@ -69,3 +70,6 @@ audit-report/
 # Platform-specific tool binary (12 MB, macOS-arm64 only). Regenerated on
 # first run by the skill launcher; no reason to carry it in git history.
 .claude/skills/*/scripts/bin/
+
+# Dependencies
+**/node_modules/

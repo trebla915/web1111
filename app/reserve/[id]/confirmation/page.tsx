@@ -23,6 +23,7 @@ export default function ConfirmationPage() {
   
   // Accept both ?paymentId= (our own redirect) and ?payment_intent= (Stripe redirect)
   const paymentId = searchParams.get('paymentId') || searchParams.get('payment_intent');
+  const checkoutSessionId = searchParams.get('checkout_session_id');
   const statusParam = searchParams.get('status');
 
   useEffect(() => {
@@ -32,6 +33,39 @@ export default function ConfirmationPage() {
 
     const checkReservationStatus = async () => {
       if (cancelled) return;
+
+      if (!paymentId && !checkoutSessionId) {
+        setReservationStatus('error');
+        return;
+      }
+
+      if (checkoutSessionId) {
+        try {
+          const response = await fetch('/api/voice-agent', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'checkout-status', sessionId: checkoutSessionId }),
+          });
+          if (!response.ok) throw new Error('Could not check checkout status.');
+          const result = await response.json();
+          if (cancelled) return;
+          if (result.paid && result.processed && result.reservation) {
+            setReservationData(result.reservation);
+            setReservationStatus('confirmed');
+            generateQRCodeForReservation(result.reservation);
+          } else if (result.paid && pollCount < MAX_POLLS) {
+            pollCount++;
+            setTimeout(checkReservationStatus, 2000);
+          } else if (result.paid) {
+            setReservationStatus('pending');
+          } else {
+            setReservationStatus('pending');
+          }
+        } catch (error) {
+          if (!cancelled) setReservationStatus('error');
+        }
+        return;
+      }
 
       if (!paymentId) {
         setReservationStatus('error');
@@ -108,7 +142,7 @@ export default function ConfirmationPage() {
 
     checkReservationStatus();
     return () => { cancelled = true; };
-  }, [paymentId, statusParam]);
+  }, [paymentId, checkoutSessionId, statusParam]);
 
   const generateQRCodeForReservation = async (reservation: any) => {
     if (!reservation?.id || qrCodeUrl) return;
@@ -131,6 +165,7 @@ export default function ConfirmationPage() {
   // Send confirmation email with QR code (fire-and-forget, idempotent on server)
   const sendConfirmationEmail = async (reservation: any) => {
     if (!reservation?.id || emailSent) return;
+    if (!user) return;
     try {
       const res = await fetch(`/api/reservations/${reservation.id}/send-confirmation`, {
         method: 'POST',

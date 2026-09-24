@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import Stripe from 'stripe';
 import { adminFirestore } from '@/lib/firebase/admin';
+import { FieldValue } from 'firebase-admin/firestore';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,12 +48,6 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
 
   const paymentDocRef = adminFirestore.collection('payments').doc(piId);
 
-  // Idempotency: skip if we already processed this payment
-  const existing = await paymentDocRef.get();
-  if (existing.exists && existing.data()?.reservationCreated) {
-    return;
-  }
-
   const eventId = meta.eventId;
   const tableId = meta.tableId;
   const userId = meta.userId;
@@ -97,42 +92,76 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
     userName: meta.name || '',
     userEmail: meta.email || '',
     userPhone: meta.phone || '',
+    eventDate: meta.eventDate || '',
   };
-
-  const batch = adminFirestore.batch();
-
-  batch.set(reservationRef, reservationData);
-
-  // Mirror under user subcollection so /dashboard/reservations works
   const userResRef = adminFirestore
     .collection('users')
     .doc(userId)
     .collection('reservations')
     .doc(reservationId);
-  batch.set(userResRef, reservationData);
-
-  // Mark the table reserved so it can't be double-booked
   const tableRef = adminFirestore
     .collection('events')
     .doc(eventId)
     .collection('tables')
     .doc(tableId);
-  batch.update(tableRef, { reserved: true, reservationId, updatedAt: now });
 
-  // Write payment tracking doc — this is what the poller is waiting for
-  batch.set(paymentDocRef, {
-    status: paymentIntent.status,
-    amount: paymentIntent.amount / 100,
-    reservationCreated: true,
-    reservationId,
-    // Recorded so /api/payments/[id]/status can authorize the polling customer
-    // without leaking payments to anyone who guesses a PaymentIntent id.
-    userId,
-    createdAt: now,
-    updatedAt: now,
+  const phoneHoldId = meta.phoneHoldId;
+  const claim = await adminFirestore.runTransaction(async (tx) => {
+    const [paymentSnap, tableSnap] = await Promise.all([tx.get(paymentDocRef), tx.get(tableRef)]);
+    if (paymentSnap.exists && paymentSnap.data()?.reservationCreated === true) {
+      return { created: true, duplicate: true };
+    }
+
+    const table = tableSnap.data();
+    const hold = table?.phoneReservationHold as { id?: string } | undefined;
+    const ownsHold = Boolean(phoneHoldId && hold?.id === phoneHoldId);
+    const unavailable = !tableSnap.exists || (table?.reserved === true && !ownsHold) || (Boolean(phoneHoldId) && !ownsHold);
+    if (unavailable) {
+      tx.set(paymentDocRef, {
+        status: paymentIntent.status,
+        amount: paymentIntent.amount / 100,
+        reservationCreated: false,
+        error: 'The selected table was no longer available when payment completed.',
+        userId,
+        createdAt: now,
+        updatedAt: now,
+      }, { merge: true });
+      return { created: false, duplicate: false };
+    }
+
+    tx.set(reservationRef, reservationData);
+    tx.set(userResRef, reservationData);
+    tx.update(tableRef, {
+      reserved: true,
+      reservationId,
+      phoneReservationHold: FieldValue.delete(),
+      updatedAt: now,
+    });
+    tx.set(paymentDocRef, {
+      status: paymentIntent.status,
+      amount: paymentIntent.amount / 100,
+      reservationCreated: true,
+      reservationId,
+      userId,
+      createdAt: now,
+      updatedAt: now,
+    }, { merge: true });
+    return { created: true, duplicate: false };
   });
 
-  await batch.commit();
+  if (!claim.created) {
+    // Payment has already succeeded. Refund automatically rather than leave a
+    // paid caller without a reservation if another channel won the table race.
+    const refund = await stripe.refunds.create(
+      { payment_intent: piId, reason: 'duplicate' },
+      { idempotencyKey: `reservation-table-conflict-${piId}` },
+    );
+    await paymentDocRef.set({ refunded: true, refundId: refund.id, updatedAt: new Date().toISOString() }, { merge: true });
+    console.error('Webhook: payment refunded because table was already claimed', { piId, eventId, tableId });
+    return;
+  }
+
+  if (claim.duplicate) return;
   console.log(`Webhook: reservation ${reservationId} created for payment ${piId}`);
 }
 
