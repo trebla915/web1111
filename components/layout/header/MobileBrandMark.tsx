@@ -41,7 +41,7 @@ export function MobileBrandMark({ overhang, onNavigate }: MobileBrandMarkProps) 
         data-overhang={overhang}
         className={cn(
           MARK_BOX,
-          "group/mark pointer-events-none origin-left transition-transform duration-slow ease-out-expo",
+          "group/mark pointer-events-none origin-center transition-transform duration-slow ease-out-expo",
           "data-[overhang=true]:translate-y-[var(--header-logo-drop)] data-[overhang=false]:scale-[0.72]"
         )}
       >

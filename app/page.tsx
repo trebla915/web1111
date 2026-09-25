@@ -46,6 +46,7 @@ export default function Home() {
         <EventsFestivalSection
           title=""
           className="min-h-dvh"
+          resetScrollOnLoad
         />
         <VenueSection />
         <FAQFestivalSection />

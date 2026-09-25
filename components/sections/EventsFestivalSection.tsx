@@ -29,6 +29,8 @@ interface EventsFestivalSectionProps {
   id?: string;
   /** Free-text filter over title and venue. Empty or omitted shows everything. */
   query?: string;
+  /** Begin at the first event instead of restoring an old page position. */
+  resetScrollOnLoad?: boolean;
 }
 
 export default function EventsFestivalSection({
@@ -37,7 +39,8 @@ export default function EventsFestivalSection({
   className = "",
   maxEvents = null,
   id = "events",
-  query = ""
+  query = "",
+  resetScrollOnLoad = false
 }: EventsFestivalSectionProps) {
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,6 +48,7 @@ export default function EventsFestivalSection({
   const [activeEventId, setActiveEventId] = useState<string | null>(null);
   const [selectedFlyer, setSelectedFlyer] = useState<FlyerSelection | null>(null);
   const eventListRef = useRef<HTMLDivElement>(null);
+  const didResetScroll = useRef(false);
 
   useEffect(() => {
     const loadEvents = async () => {
@@ -125,18 +129,27 @@ export default function EventsFestivalSection({
     const scrollRoot = document.getElementById('__scroll-root');
     if (!scrollRoot || cards.length === 0) return;
 
+    if (resetScrollOnLoad && !didResetScroll.current) {
+      didResetScroll.current = true;
+      scrollRoot.scrollTo({ top: 0, behavior: 'auto' });
+      setActiveEventId(visibleEvents[0].id);
+    }
+
     let frame = 0;
     const updateCenteredCard = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
         const rootRect = scrollRoot.getBoundingClientRect();
-        const viewportCenter = rootRect.top + rootRect.height / 2;
+        // A focus line below the fixed header makes the first visible card the
+        // first active card. Using the viewport midpoint selected card 3 or 4
+        // on tall phones before the visitor had scrolled at all.
+        const focusLine = rootRect.top + Math.min(190, rootRect.height * 0.2);
         const closest = cards.reduce<{ id: string; distance: number } | null>((best, card) => {
           const cardRect = card.getBoundingClientRect();
           const id = card.dataset.eventId;
           if (!id) return best;
 
-          const distance = Math.abs(cardRect.top + cardRect.height / 2 - viewportCenter);
+          const distance = Math.abs(cardRect.top + cardRect.height / 2 - focusLine);
           return !best || distance < best.distance ? { id, distance } : best;
         }, null);
 
@@ -153,7 +166,7 @@ export default function EventsFestivalSection({
       scrollRoot.removeEventListener('scroll', updateCenteredCard);
       window.removeEventListener('resize', updateCenteredCard);
     };
-  }, [visibleEvents.length, trimmedQuery]);
+  }, [visibleEvents.length, trimmedQuery, resetScrollOnLoad]);
 
   return (
     <section id={id} className={`py-12 ${className} bg-canvas relative overflow-hidden`}>
