@@ -38,6 +38,7 @@
     ".next",
     "out",
     "**/*.test.ts",
-    "**/*.spec.ts"
+    "**/*.spec.ts",
+    "voice-agent"
   ]
 }

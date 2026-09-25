@@ -3,6 +3,8 @@ import { stripe } from '@/lib/stripe';
 import Stripe from 'stripe';
 import { adminFirestore } from '@/lib/firebase/admin';
 import { FieldValue } from 'firebase-admin/firestore';
+import { deliverReservationConfirmation } from '@/lib/reservations/confirmation';
+import { sendText } from '@/lib/messaging/sms';
 
 export const dynamic = 'force-dynamic';
 
@@ -163,6 +165,53 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
 
   if (claim.duplicate) return;
   console.log(`Webhook: reservation ${reservationId} created for payment ${piId}`);
+
+  if (meta.source === '1111_phone') {
+    await confirmPhoneReservation(reservationId, {
+      phone: meta.phone,
+      email: meta.email,
+      eventName: meta.eventName,
+      tableNumber,
+    });
+  }
+}
+
+/**
+ * Web customers get their confirmation email from the confirmation page,
+ * which they reach signed in. Phone callers pay from a texted link and are
+ * never signed in, so the webhook confirms them itself: the email carries the
+ * door QR code, the text gives them the reference on the device they called
+ * from.
+ *
+ * Best-effort by design. The reservation already exists; throwing here would
+ * make Stripe retry, and the retry would stop at the duplicate check without
+ * resending. Failures are logged, and staff can resend from the admin
+ * dashboard.
+ */
+async function confirmPhoneReservation(
+  reservationId: string,
+  details: { phone?: string; email?: string; eventName?: string; tableNumber: number },
+) {
+  const emailed = await deliverReservationConfirmation(reservationId).catch((error) => ({
+    status: 'failed' as const,
+    error,
+  }));
+  if (emailed.status !== 'sent' && emailed.status !== 'already-sent') {
+    console.error('Webhook: phone reservation confirmation email not sent', { reservationId, emailed });
+  }
+
+  if (!details.phone) return;
+  const where = emailed.status === 'sent' || emailed.status === 'already-sent'
+    ? ` Your confirmation and door QR code were emailed to ${details.email}.`
+    : ' Show this text at the door.';
+  try {
+    await sendText(
+      details.phone,
+      `11:11 EPTX: you're confirmed. ${details.eventName || 'Your event'}, table ${details.tableNumber}. Reference ${reservationId}.${where}`,
+    );
+  } catch (error) {
+    console.error('Webhook: phone reservation confirmation text not sent', { reservationId, error });
+  }
 }
 
 // Parse "Name ($price), Name2 ($price2)" → [{name, price}]

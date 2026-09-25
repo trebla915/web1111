@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminFirestore } from '@/lib/firebase/admin';
-import { sendReservationConfirmation } from '@/lib/utils/sendEmail';
+import { deliverReservationConfirmation } from '@/lib/reservations/confirmation';
 import { ADMIN_ROLES, STAFF_ROLES, authErrorResponse } from '@/lib/auth/server';
 import { loadAuthorizedReservation, NotFoundError } from '@/lib/auth/reservation';
 
@@ -22,24 +21,16 @@ export async function POST(
       .catch(() => ({})) as { forceResend?: boolean } | undefined;
     const forceResend = !!body?.forceResend;
 
-    // Get reservation from Firestore
-    const reservationRef = adminFirestore
-      .collection('reservations')
-      .doc(reservationId);
+    const result = await deliverReservationConfirmation(reservationId, { forceResend });
 
-    const reservationDoc = await reservationRef.get();
-
-    if (!reservationDoc.exists) {
+    if (result.status === 'not-found') {
       return NextResponse.json(
         { error: 'Reservation not found' },
         { status: 404 }
       );
     }
 
-    const reservation = reservationDoc.data();
-
-    // Idempotency: skip if confirmation email was already sent (unless forceResend)
-    if (reservation?.confirmationEmailSent && !forceResend) {
+    if (result.status === 'already-sent') {
       return NextResponse.json({
         success: true,
         message: 'Confirmation email was already sent',
@@ -47,51 +38,14 @@ export async function POST(
       });
     }
 
-    // Require a customer email
-    const customerEmail = reservation?.userEmail;
-    if (!customerEmail) {
+    if (result.status === 'no-email') {
       return NextResponse.json(
         { error: 'No customer email on this reservation' },
         { status: 400 }
       );
     }
 
-    // Get event details for the email
-    let eventName = reservation?.eventName || 'Event';
-    let eventDate = '';
-
-    if (reservation?.eventId) {
-      try {
-        const eventDoc = await adminFirestore
-          .collection('events')
-          .doc(reservation.eventId)
-          .get();
-
-        if (eventDoc.exists) {
-          const eventData = eventDoc.data();
-          eventName = eventData?.title || eventName;
-          eventDate = eventData?.date || reservation?.createdAt || '';
-        }
-      } catch (eventErr) {
-        console.error('Error fetching event for email:', eventErr);
-        // Continue with whatever info we have
-      }
-    }
-
-    // Send the confirmation email
-    const result = await sendReservationConfirmation({
-      reservationId,
-      customerName: reservation?.userName || 'Guest',
-      customerEmail,
-      eventName,
-      eventDate,
-      tableNumber: reservation?.tableNumber || 0,
-      guestCount: reservation?.guestCount || 1,
-      totalAmount: reservation?.totalAmount,
-      bottles: reservation?.bottles,
-    });
-
-    if (!result.success) {
+    if (result.status === 'failed') {
       console.error(
         `Failed to send confirmation email for ${reservationId}:`,
         result.error
@@ -104,13 +58,6 @@ export async function POST(
         { status: 500 }
       );
     }
-
-    // Mark as sent so we don't send again
-    await reservationRef.update({
-      confirmationEmailSent: true,
-      confirmationEmailSentAt: new Date().toISOString(),
-      confirmationEmailId: result.emailId || null,
-    });
 
     return NextResponse.json({
       success: true,

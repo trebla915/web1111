@@ -13,7 +13,7 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, it } from "node:test";
 
-type Level = "PUBLIC" | "AUTHED" | "OWNER" | "SELF" | "STAFF" | "ADMIN" | "STRIPE_SIGNATURE";
+type Level = "PUBLIC" | "AUTHED" | "OWNER" | "SELF" | "STAFF" | "ADMIN" | "STRIPE_SIGNATURE" | "SHARED_SECRET";
 
 /**
  * PUBLIC is deliberate, not an oversight:
@@ -21,6 +21,9 @@ type Level = "PUBLIC" | "AUTHED" | "OWNER" | "SELF" | "STAFF" | "ADMIN" | "STRIP
  *  - contact + newsletter are unauthenticated forms (rate limiting is a
  *    separate finding, S-10, not an authorization gap)
  *  - sitemap is consumed by crawlers
+ *
+ * SHARED_SECRET is a server-to-server caller holding VOICE_AGENT_SHARED_SECRET
+ * (the LiveKit phone agent). It is not a user session.
  */
 const EXPECTED: Record<string, Partial<Record<string, Level>>> = {
   "auth/check":                                            { GET: "AUTHED" },
@@ -64,6 +67,9 @@ const EXPECTED: Record<string, Partial<Record<string, Level>>> = {
   // in the "privileged field protection" suite below.
   "users/[userId]":                                        { GET: "SELF", PATCH: "AUTHED" },
   "users/[userId]/reservations":                           { GET: "SELF" },
+  // Every action but checkout-status needs the agent secret; see the
+  // "phone reservation agent" suite below.
+  "voice-agent":                                           { POST: "SHARED_SECRET" },
 };
 
 const API_DIR = join(process.cwd(), "app", "api");
@@ -84,6 +90,7 @@ function classify(body: string): Level {
   if (/requireRole\(\s*request\s*,\s*ADMIN_ROLES/.test(body)) return "ADMIN";
   if (/requireRole\(\s*request\s*,\s*STAFF_ROLES/.test(body)) return "STAFF";
   if (/requireUser|getAuthedUser/.test(body)) return "AUTHED";
+  if (/!authorized\(request\)/.test(body)) return "SHARED_SECRET";
   return "PUBLIC";
 }
 

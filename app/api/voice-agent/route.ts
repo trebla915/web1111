@@ -3,12 +3,16 @@ import { timingSafeEqual, createHash } from 'node:crypto';
 import { FieldValue } from 'firebase-admin/firestore';
 import { adminFirestore } from '@/lib/firebase/admin';
 import { stripe } from '@/lib/stripe';
+import { sendText, twilioAuth } from '@/lib/messaging/sms';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 const HOLD_MS = 30 * 60 * 1000;
 const PHONE_RE = /^\+[1-9]\d{7,14}$/;
+// Same rules as the web contact step (app/reserve/[id]/contact/page.tsx).
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_SOURCE = '1111_phone';
 
 function authorized(request: NextRequest): boolean {
   const expected = process.env.VOICE_AGENT_SHARED_SECRET;
@@ -28,13 +32,6 @@ function e164(value: unknown): string {
 
 function secretHash(value: string): string {
   return createHash('sha256').update(value).digest('hex');
-}
-
-function twilioAuth(): string {
-  const sid = process.env.TWILIO_ACCOUNT_SID;
-  const token = process.env.TWILIO_AUTH_TOKEN;
-  if (!sid || !token) throw new Error('Phone messaging is not configured.');
-  return `Basic ${Buffer.from(`${sid}:${token}`).toString('base64')}`;
 }
 
 async function startVerification(phone: string): Promise<void> {
@@ -71,18 +68,6 @@ async function checkVerification(phone: string, code: string): Promise<boolean> 
   if (!response.ok) return false;
   const result = await response.json() as { status?: string };
   return result.status === 'approved';
-}
-
-async function sendText(phone: string, message: string): Promise<void> {
-  const sid = process.env.TWILIO_ACCOUNT_SID;
-  const from = process.env.TWILIO_FROM_NUMBER;
-  if (!sid || !from) throw new Error('Text messaging is not configured.');
-  const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
-    method: 'POST',
-    headers: { Authorization: twilioAuth(), 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ To: phone, From: from, Body: message }),
-  });
-  if (!response.ok) throw new Error('Could not send the payment link by text. Please call the venue.');
 }
 
 async function expireStaleHold(eventId: string, tableId: string): Promise<void> {
@@ -153,7 +138,7 @@ async function getQuote(input: {
   const total = Math.round((beforeCardFee + beforeCardFee * 0.029 + 0.30) * 100) / 100;
   if (!Number.isFinite(total) || total <= 0) throw new Error('Could not calculate a valid total.');
   const event = eventSnap.data()!;
-  return { eventRef, eventSnap, event, tableRef, table, selected, tablePrice, bottlesCost, tax, gratuity, total, ...input };
+  return { eventRef, eventSnap, event, tableRef, table, selected, tablePrice, bottlesCost, taxableSubtotal, tax, gratuity, total, ...input };
 }
 
 export async function POST(request: NextRequest) {
@@ -181,6 +166,11 @@ export async function POST(request: NextRequest) {
     if (action === 'availability' || action === 'bottles') {
       const eventId = typeof body.eventId === 'string' ? body.eventId : '';
       if (!eventId) return NextResponse.json({ error: 'Event is required.' }, { status: 400 });
+      // Same gate as the web flow: the bottle menu is shown only after the
+      // caller says they are 21 or older (lib/compliance/age-confirmation.ts).
+      if (action === 'bottles' && body.ageConfirmed !== true) {
+        return NextResponse.json({ error: 'The caller must confirm they are 21 or older before hearing the bottle menu.' }, { status: 400 });
+      }
       const eventRef = adminFirestore.collection('events').doc(eventId);
       const eventSnap = await eventRef.get();
       if (!eventSnap.exists || eventSnap.data()?.reservationsEnabled !== true) {
@@ -263,18 +253,24 @@ export async function POST(request: NextRequest) {
     if (action === 'create-checkout') {
       if (body.smsConsent !== true) return NextResponse.json({ error: 'The caller must agree to receive a text.' }, { status: 400 });
       if (body.callerConfirmed !== true) return NextResponse.json({ error: 'The caller must confirm the quoted booking before a payment link is sent.' }, { status: 400 });
+      if (body.ageConfirmed !== true) return NextResponse.json({ error: 'The caller must confirm they are 21 or older.' }, { status: 400 });
       const phone = e164(body.phone);
       const eventId = typeof body.eventId === 'string' ? body.eventId : '';
       const tableId = typeof body.tableId === 'string' ? body.tableId : '';
       const guestCount = Number(body.guestCount);
+      // The web contact step requires name, email and phone; so does the phone.
+      // The email is where the confirmation and door QR code are sent.
       const callerName = typeof body.name === 'string' ? body.name.trim().slice(0, 100) : '';
+      const callerEmail = typeof body.email === 'string' ? body.email.trim().toLowerCase().slice(0, 200) : '';
+      if (callerName.length < 2) return NextResponse.json({ error: 'The caller\'s full name is required.' }, { status: 400 });
+      if (!EMAIL_RE.test(callerEmail)) return NextResponse.json({ error: 'A valid email address is required for the confirmation.' }, { status: 400 });
       const bottleIds = Array.isArray(body.bottleIds) ? body.bottleIds.filter((id): id is string => typeof id === 'string') : [];
       if (!eventId || !tableId || !callerName || !Number.isInteger(guestCount) || guestCount < 1 || guestCount > 30) {
         return NextResponse.json({ error: 'Reservation details are incomplete.' }, { status: 400 });
       }
 
       const quote = await getQuote({ eventId, tableId, guestCount, bottleIds });
-      const { event, tableRef, table, selected, tablePrice, bottlesCost, tax, gratuity, total } = quote;
+      const { event, tableRef, table, selected, tablePrice, bottlesCost, taxableSubtotal, tax, gratuity, total } = quote;
       const quotedTotal = Number(body.quotedTotal);
       if (!Number.isFinite(quotedTotal) || Math.abs(quotedTotal - total) > 0.01) {
         return NextResponse.json({ error: 'The live price changed. Read the updated quote and ask for confirmation again.', quote: { total, tablePrice, bottlesCost, salesTax: tax, gratuity } }, { status: 409 });
@@ -316,7 +312,7 @@ export async function POST(request: NextRequest) {
         tablePrice: String(tablePrice),
         guests: String(guestCount),
         name: callerName,
-        email: typeof body.email === 'string' ? body.email.trim().slice(0, 200) : '',
+        email: callerEmail,
         phone,
         reservationTime,
         bottleCount: String(selected.length),
@@ -328,7 +324,7 @@ export async function POST(request: NextRequest) {
         subtotal: String(taxableSubtotal),
         totalAmount: String(total),
         platform: 'web',
-        source: '1111_phone',
+        source: PHONE_SOURCE,
         phoneHoldId: holdId,
       };
 
@@ -347,13 +343,20 @@ export async function POST(request: NextRequest) {
               product_data: { name: `11:11 EPTX table ${table.number} — ${event.title}`, description: `${guestCount} guests; ${selected.length} bottle(s); includes listed taxes and gratuity` },
             },
           }],
-          metadata: { eventId, tableId, phoneHoldId: holdId },
+          // `source` is read back by the checkout-status action; without it the
+          // confirmation page could never find a phone booking.
+          metadata: { eventId, tableId, phoneHoldId: holdId, source: PHONE_SOURCE },
+          customer_email: callerEmail,
           payment_intent_data: { metadata },
           success_url: `https://www.1111eptx.com/reserve/${encodeURIComponent(eventId)}/confirmation?checkout_session_id={CHECKOUT_SESSION_ID}`,
           cancel_url: `https://www.1111eptx.com/reserve/${encodeURIComponent(eventId)}`,
         });
         await tableRef.update({ 'phoneReservationHold.checkoutSessionId': checkout.id });
-        await sendText(phone, `11:11 EPTX reservation: ${String(event.title)} — table ${table.number}, ${formatMoney(total)}. Complete payment within 30 minutes to confirm: ${checkout.url}`);
+        await sendText(
+          phone,
+          `11:11 EPTX reservation: ${String(event.title)} — table ${table.number}, ${formatMoney(total)}. Complete payment within 30 minutes to confirm: ${checkout.url}`,
+          'Could not send the payment link by text. Please call the venue.',
+        );
       } catch (error) {
         if (checkout?.id) await stripe.checkout.sessions.expire(checkout.id).catch(() => undefined);
         await adminFirestore.runTransaction(async (tx) => {
@@ -378,7 +381,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Invalid checkout session.' }, { status: 400 });
       }
       const session = await stripe.checkout.sessions.retrieve(sessionId);
-      if (session.metadata?.source !== '1111_phone') return NextResponse.json({ error: 'Checkout session not found.' }, { status: 404 });
+      if (session.metadata?.source !== PHONE_SOURCE) return NextResponse.json({ error: 'Checkout session not found.' }, { status: 404 });
       if (session.payment_status !== 'paid' || !session.payment_intent) return NextResponse.json({ paid: false });
       const paymentId = typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent.id;
       const payment = await adminFirestore.collection('payments').doc(paymentId).get();
@@ -408,11 +411,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unknown action.' }, { status: 400 });
   } catch (error) {
     const rawMessage = error instanceof Error ? error.message : '';
-    const safeMessage = /^(Use a phone number|Phone messaging is not configured|Reservation verification is not configured|Too many verification texts|Could not send a verification text|Could not send the payment link by text|Text messaging is not configured|Reservations are not available|That table is not currently available|The group is larger than that table seats|One or more bottle selections are no longer available|This table requires at least|Reservation details are incomplete|The caller must agree to receive a text|The caller must confirm the quoted booking|Could not calculate a valid total|The selected table was no longer available)/i.test(rawMessage);
+    const safeMessage = /^(Use a phone number|Phone messaging is not configured|Reservation verification is not configured|Too many verification texts|Could not send a verification text|Could not send the payment link by text|Text messaging is not configured|Reservations are not available|That table is not currently available|The group is larger than that table seats|One or more bottle selections are no longer available|This table requires at least|Reservation details are incomplete|The caller must agree to receive a text|The caller must confirm the quoted booking|Could not calculate a valid total|The selected table was no longer available|The caller must confirm they are 21|The caller's full name is required|A valid email address is required)/i.test(rawMessage);
     const message = safeMessage ? rawMessage : 'The reservation service is temporarily unavailable. Please call the venue.';
     const status = /Reservations are not available/i.test(message) ? 404
       : /That table is not currently available|The selected table was no longer available/i.test(message) ? 409
-      : /Use a phone number|Too many|larger than|requires at least|no longer available|details are incomplete|must agree|must confirm/i.test(message) ? 400
+      : /Use a phone number|Too many|larger than|requires at least|no longer available|details are incomplete|must agree|must confirm|is required/i.test(message) ? 400
       : 500;
     return NextResponse.json({ error: message }, { status });
   }
