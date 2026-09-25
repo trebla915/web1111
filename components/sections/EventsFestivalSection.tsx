@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
@@ -12,6 +11,14 @@ import SectionHeader from './SectionHeader';
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PanelError, PanelLoading } from "@/components/ui/page-state";
+import { FlyerLightbox } from '@/components/events/FlyerLightbox';
+import { cn } from '@/lib/utils';
+
+interface FlyerSelection {
+  id: string;
+  title: string;
+  flyerUrl?: string;
+}
 
 interface EventsFestivalSectionProps {
   title?: string;
@@ -35,8 +42,9 @@ export default function EventsFestivalSection({
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
-  const router = useRouter();
+  const [activeEventId, setActiveEventId] = useState<string | null>(null);
+  const [selectedFlyer, setSelectedFlyer] = useState<FlyerSelection | null>(null);
+  const eventListRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const loadEvents = async () => {
@@ -109,6 +117,36 @@ export default function EventsFestivalSection({
       )
     : events;
 
+  useEffect(() => {
+    const list = eventListRef.current;
+    if (!list || visibleEvents.length === 0) return;
+
+    setActiveEventId(visibleEvents[0].id);
+    const cards = Array.from(list.querySelectorAll<HTMLElement>('[data-event-card]'));
+    const scrollRoot = document.getElementById('__scroll-root');
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const centered = entries
+          .filter((entry) => entry.isIntersecting)
+          .map((entry) => entry.target as HTMLElement)
+          .sort((a, b) => {
+            const viewportCenter = window.innerHeight / 2;
+            const aRect = a.getBoundingClientRect();
+            const bRect = b.getBoundingClientRect();
+            const aDistance = Math.abs(aRect.top + aRect.height / 2 - viewportCenter);
+            const bDistance = Math.abs(bRect.top + bRect.height / 2 - viewportCenter);
+            return aDistance - bDistance;
+          });
+
+        if (centered[0]?.dataset.eventId) setActiveEventId(centered[0].dataset.eventId);
+      },
+      { root: scrollRoot, rootMargin: '-28% 0px -28% 0px', threshold: [0, 0.5, 1] }
+    );
+
+    cards.forEach((card) => observer.observe(card));
+    return () => observer.disconnect();
+  }, [visibleEvents.length, trimmedQuery]);
+
   return (
     <section id={id} className={`py-12 ${className} bg-canvas relative overflow-hidden`}>
       {/* Background effects */}
@@ -154,14 +192,22 @@ export default function EventsFestivalSection({
             />
           )
         ) : (
-          <div className="space-y-4">
+          <div ref={eventListRef} className="space-y-4">
             {visibleEvents.map((event, index) => (
-              <motion.div
+              <motion.article
                 key={event.id}
+                data-event-card
+                data-event-id={event.id}
                 initial={{ opacity: 0.92, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-20px 0px' }}
                 transition={{ duration: 0.4, delay: index * 0.06 }}
+                className={cn(
+                  "group relative flex items-center gap-3 rounded-lg border p-3 transition-[transform,filter,opacity,border-color,background-color] duration-slow ease-out-expo sm:gap-5 sm:p-4",
+                  activeEventId === event.id
+                    ? "z-10 scale-[1.02] border-fg/70 bg-fg/5 md:scale-100"
+                    : "scale-[0.985] border-fg/20 opacity-55 blur-[1.25px] md:scale-100 md:opacity-100 md:blur-none"
+                )}
               >
                 {/* Row geometry was three hard fractions (1/4, 2/4, auto) with
                     the title `truncate`d, so a real title — "Sábado Sonoro con
@@ -172,10 +218,11 @@ export default function EventsFestivalSection({
                     the date are one bordered box. */}
                 <Link
                   href={`/events/${event.id}`}
-                  className="group relative flex items-center gap-3 overflow-hidden rounded-lg border border-fg/20 p-3 transition-colors duration-base hover:border-fg/40 hover:bg-fg/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:gap-5 sm:p-4"
-                >
+                  aria-label={`View details for ${event.title}`}
+                  className="absolute inset-0 z-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-fg"
+                ><span className="sr-only">View details for {event.title}</span></Link>
                   {/* Date */}
-                  <div className="flex w-16 shrink-0 flex-col items-center justify-center rounded-lg border-2 border-fg/40 bg-fg/5 py-2 transition-colors duration-base group-hover:border-fg/70 sm:w-24 sm:py-3">
+                  <div className="pointer-events-none relative z-[1] flex w-16 shrink-0 flex-col items-center justify-center rounded-lg border-2 border-fg/40 bg-fg/5 py-2 transition-colors duration-base group-hover:border-fg/70 sm:w-24 sm:py-3">
                     <span className="tabular font-heading text-3xl leading-none text-fg sm:text-5xl">
                       {event.date ? getEventDay(event.date) : "--"}
                     </span>
@@ -185,7 +232,7 @@ export default function EventsFestivalSection({
                   </div>
 
                   {/* Event name and details */}
-                  <div className="min-w-0 flex-1">
+                  <div className="pointer-events-none relative z-[1] min-w-0 flex-1">
                     <h3 className="font-heading text-base leading-tight tracking-wide text-fg sm:text-2xl md:text-3xl">
                       {event.title}
                     </h3>
@@ -200,25 +247,38 @@ export default function EventsFestivalSection({
                   </div>
 
                   {/* Event flyer thumbnail */}
-                  <div className="relative aspect-square w-16 shrink-0 overflow-hidden rounded-md border border-fg/20 sm:w-28">
+                  <Button
+                    unstyled
+                    type="button"
+                    aria-label={`View full flyer for ${event.title}`}
+                    onClick={() => setSelectedFlyer({ id: event.id, title: event.title, flyerUrl: event.flyerUrl })}
+                    className="relative z-20 aspect-square w-16 shrink-0 overflow-hidden rounded-md border border-fg/30 transition-[transform,border-color] duration-base hover:scale-105 hover:border-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fg sm:w-28"
+                  >
                     <Image
                       src={event.flyerUrl || '/placeholder-event.png'}
                       alt=""
                       fill
-                      className="object-cover transition-transform duration-slow group-hover:scale-105"
+                      className="object-cover transition-transform duration-slow hover:scale-105"
                       sizes="112px"
                       placeholder="blur"
                       blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAEggJ4YA0XfwAAAABJRU5ErkJggg=="
                       loading="lazy"
                       unoptimized={event.flyerUrl?.includes('firebasestorage.googleapis.com') || event.flyerUrl?.includes('storage.googleapis.com')}
                     />
-                  </div>
-                </Link>
-              </motion.div>
+                    <span className="sr-only">Open flyer</span>
+                  </Button>
+              </motion.article>
             ))}
           </div>
         )}
       </div>
+      <FlyerLightbox
+        open={selectedFlyer !== null}
+        onOpenChange={(open) => { if (!open) setSelectedFlyer(null); }}
+        title={selectedFlyer?.title || 'Event'}
+        flyerUrl={selectedFlyer?.flyerUrl}
+        detailsHref={selectedFlyer ? `/events/${selectedFlyer.id}` : undefined}
+      />
     </section>
   );
 }

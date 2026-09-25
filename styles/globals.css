@@ -241,7 +241,8 @@ a { text-underline-offset: 0.2em; text-decoration-thickness: from-font; }
 
   .touch-target { min-height: var(--touch-target-min); min-width: var(--touch-target-min); }
   .tap-highlight { -webkit-tap-highlight-color: rgb(var(--fg) / 0.2); }
-  .tap-highlight-none { -webkit-tap-highlight-color: transparent; }
+.tap-highlight-none { -webkit-tap-highlight-color: transparent; }
+  .touch-pinch-zoom { touch-action: pinch-zoom; }
 
   .no-select {
     -webkit-user-select: none;

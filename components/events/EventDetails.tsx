@@ -11,6 +11,7 @@ import { useAuth } from '@/lib/hooks/useAuth';
 import AgeVerificationModal from '../ui/AgeVerificationModal';
 import { recordAgeConfirmation } from '@/lib/compliance/age-confirmation';
 import { Button } from '@/components/ui/button';
+import { FlyerLightbox } from '@/components/events/FlyerLightbox';
 
 // Proper timezone handling for Mountain Time
 function adjustToMountainTime(dateStr: string): Date {
@@ -433,34 +434,12 @@ export default function EventDetails({ event }: EventDetailsProps) {
         </div>
       </div>
 
-      {/* Full screen image modal for mobile */}
-      {showFullImage && (
-        <div className="fixed inset-0 bg-canvas/95 z-[999] flex items-center justify-center" onClick={() => setShowFullImage(false)}>
-          <Button 
-            variant="subtle" size="icon" shape="pill" className="absolute top-4 right-4"
-            aria-label="Close image"
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowFullImage(false);
-            }}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </Button>
-          <div className="w-full h-full p-8 relative flex items-center justify-center">
-            <Image
-              src={event.flyerUrl || '/placeholder-event.png'}
-              alt={event.title}
-              fill
-              className="object-contain"
-              sizes="100vw"
-              priority
-              unoptimized={event.flyerUrl?.includes('firebasestorage.googleapis.com') || event.flyerUrl?.includes('storage.googleapis.com')}
-            />
-          </div>
-        </div>
-      )}
+      <FlyerLightbox
+        open={showFullImage}
+        onOpenChange={setShowFullImage}
+        title={event.title}
+        flyerUrl={event.flyerUrl}
+      />
       <AgeVerificationModal
         isOpen={showAgeVerification}
         onClose={() => setShowAgeVerification(false)}
@@ -469,4 +448,4 @@ export default function EventDetails({ event }: EventDetailsProps) {
       />
     </div>
   );
-} 
+}
