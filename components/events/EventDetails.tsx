@@ -294,7 +294,7 @@ export default function EventDetails({ event }: EventDetailsProps) {
               {/* Action buttons — hidden below md; the sticky bottom bar covers mobile so
                   there's only ever one set of these actions on screen at a time. */}
               <div className="hidden md:flex md:flex-row gap-4 w-full">
-                <Button onClick={handleTablePress} size="lg" className="font-bold">
+                <Button onClick={handleTablePress} size="lg">
                   <FiUsers className="mr-2" />
                   RESERVE A TABLE
                 </Button>
@@ -304,7 +304,6 @@ export default function EventDetails({ event }: EventDetailsProps) {
                   variant="outline"
                   size="lg"
                   disabled={!event.ticketLink}
-                  className="font-bold"
                 >
                   <FiTag className="mr-2" />
                   {event.ticketLink ? 'BUY TICKETS' : 'NO TICKETS AVAILABLE'}
@@ -355,33 +354,36 @@ export default function EventDetails({ event }: EventDetailsProps) {
                     Share this event with your friends!
                   </p>
                   <div className="flex gap-3 mt-2">
-                    <a 
-                      href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://www.1111eptx.com/events/${event.id}`)}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="w-10 h-10 flex items-center justify-center bg-social-facebook hover:bg-social-facebook-hover rounded-full transition-colors"
-                      aria-label="Share on Facebook"
-                    >
-                      <FaFacebook className="text-fg text-xl" />
-                    </a>
-                    <a 
-                      href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out ${event.title} at 11:11 EPTX!`)}&url=${encodeURIComponent(`https://www.1111eptx.com/events/${event.id}`)}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="w-10 h-10 flex items-center justify-center bg-social-twitter hover:bg-social-twitter-hover rounded-full transition-colors"
-                      aria-label="Share on Twitter"
-                    >
-                      <FaTwitter className="text-fg text-xl" />
-                    </a>
-                    <a 
-                      href={`https://wa.me/?text=${encodeURIComponent(`Check out ${event.title} at 11:11 EPTX! https://www.1111eptx.com/events/${event.id}`)}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="w-10 h-10 flex items-center justify-center bg-social-whatsapp hover:bg-social-whatsapp-hover rounded-full transition-colors sm:hidden"
-                      aria-label="Share on WhatsApp"
-                    >
-                      <FaWhatsapp className="text-fg text-xl" />
-                    </a>
+                    <Button asChild variant="subtle" size="icon" shape="pill">
+                      <a
+                        href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://www.1111eptx.com/events/${event.id}`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Share on Facebook"
+                      >
+                        <FaFacebook className="text-xl" aria-hidden />
+                      </a>
+                    </Button>
+                    <Button asChild variant="subtle" size="icon" shape="pill">
+                      <a
+                        href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out ${event.title} at 11:11 EPTX!`)}&url=${encodeURIComponent(`https://www.1111eptx.com/events/${event.id}`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Share on Twitter"
+                      >
+                        <FaTwitter className="text-xl" aria-hidden />
+                      </a>
+                    </Button>
+                    <Button asChild variant="subtle" size="icon" shape="pill" className="sm:hidden">
+                      <a
+                        href={`https://wa.me/?text=${encodeURIComponent(`Check out ${event.title} at 11:11 EPTX! https://www.1111eptx.com/events/${event.id}`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Share on WhatsApp"
+                      >
+                        <FaWhatsapp className="text-xl" aria-hidden />
+                      </a>
+                    </Button>
                     <Button 
                       onClick={() => {
                         if (navigator.share) {
@@ -396,10 +398,10 @@ export default function EventDetails({ event }: EventDetailsProps) {
                           toast.success('Link copied to clipboard!');
                         }
                       }}
-                      variant="ghost" size="md" className="w-10 h-10 flex items-center justify-center bg-fg/20 hover:bg-fg/30 rounded-full"
+                      variant="subtle" size="icon" shape="pill"
                       aria-label="Share"
                     >
-                      <FiShare2 className="text-fg text-xl" />
+                      <FiShare2 className="text-xl" aria-hidden />
                     </Button>
                   </div>
                 </div>
@@ -414,7 +416,7 @@ export default function EventDetails({ event }: EventDetailsProps) {
           this bar to just the two actions avoids cramming it full on a narrow screen.) */}
       <div className="md:hidden fixed bottom-0 inset-x-0 bg-canvas/95 backdrop-blur-md border-t border-fg/20 px-4 py-3 z-50 safe-area-bottom">
         <div className="flex items-center gap-3">
-          <Button onClick={handleTablePress} size="lg" className="flex-1 font-bold">
+          <Button onClick={handleTablePress} size="lg" className="flex-1">
             <FiUsers className="mr-2" />
             Reserve
           </Button>
@@ -423,7 +425,7 @@ export default function EventDetails({ event }: EventDetailsProps) {
             variant="outline"
             size="lg"
             disabled={!event.ticketLink}
-            className="flex-1 font-bold"
+            className="flex-1"
           >
             <FiTag className="mr-2" />
             Tickets
@@ -435,7 +437,8 @@ export default function EventDetails({ event }: EventDetailsProps) {
       {showFullImage && (
         <div className="fixed inset-0 bg-canvas/95 z-[999] flex items-center justify-center" onClick={() => setShowFullImage(false)}>
           <Button 
-            variant="ghost" size="md" className="absolute top-4 right-4 p-3 bg-canvas/50 rounded-full"
+            variant="subtle" size="icon" shape="pill" className="absolute top-4 right-4"
+            aria-label="Close image"
             onClick={(e) => {
               e.stopPropagation();
               setShowFullImage(false);

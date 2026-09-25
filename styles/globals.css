@@ -165,25 +165,6 @@ h1, h2, h3, .title {
 }
 .flash { animation: flash 7s infinite; }
 
-/* Chromatic-aberration text glitch. The pure red/green/blue offsets are the
-   effect itself — channel separation — not palette colours, so they are
-   intentionally not tokenised. */
-@keyframes glitch {
-  0%, 14% {
-    text-shadow: 0.05em 0 0 rgb(255 0 0 / 0.75), -0.05em -0.025em 0 rgb(0 255 0 / 0.75), -0.025em 0.05em 0 rgb(0 0 255 / 0.75);
-  }
-  15%, 49% {
-    text-shadow: -0.05em -0.025em 0 rgb(255 0 0 / 0.75), 0.025em 0.025em 0 rgb(0 255 0 / 0.75), -0.05em -0.05em 0 rgb(0 0 255 / 0.75);
-  }
-  50%, 99% {
-    text-shadow: 0.025em 0.05em 0 rgb(255 0 0 / 0.75), 0.05em 0 0 rgb(0 255 0 / 0.75), 0 -0.05em 0 rgb(0 0 255 / 0.75);
-  }
-  100% {
-    text-shadow: -0.025em 0 0 rgb(255 0 0 / 0.75), -0.025em -0.025em 0 rgb(0 255 0 / 0.75), -0.025em -0.05em 0 rgb(0 0 255 / 0.75);
-  }
-}
-.glitch { animation: glitch 2s infinite; position: relative; }
-
 @keyframes vibrate {
   0%   { transform: translate(0); }
   20%  { transform: translate(-2px, 2px); }
@@ -258,6 +239,27 @@ h1, h2, h3, .title {
   border-radius: 999px;
 }
 #__scroll-root::-webkit-scrollbar-thumb:hover { background-color: rgb(var(--line-strong)); }
+
+/* Browser autofill. Chrome and Safari paint a saved email or password on a
+   pale blue (#E8F0FE) field with black text — the loudest off-palette colour
+   on the login page. A long inset shadow is the only way to repaint it. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: rgb(var(--fg));
+  -webkit-box-shadow: 0 0 0 1000px rgb(var(--surface-raised)) inset;
+  caret-color: rgb(var(--accent-bright));
+  transition: background-color 9999s ease-out 0s;
+}
+
+/* Scroll parallax. useScrollParallax writes `--parallax-y` on the layer; the
+   transform lives here so no component carries an inline style. */
+.parallax-layer {
+  transform: translate3d(0, var(--parallax-y, 0px), 0);
+  will-change: transform;
+}
 
 /* Underlines that clear descenders instead of striking through them. */
 a { text-underline-offset: 0.2em; text-decoration-thickness: from-font; }
@@ -379,6 +381,6 @@ a { text-underline-offset: 0.2em; text-decoration-thickness: from-font; }
       scroll-behavior: auto !important;
     }
 
-    .spotlight::before, .flash, .glitch, .vibrate { animation: none !important; }
+    .spotlight::before, .flash, .vibrate { animation: none !important; }
   }
 }

@@ -236,7 +236,7 @@ export default function CreateEventTab() {
                 <Button
                   type="submit"
                   disabled={loading}
-                  variant="ghost" size="lg" full className="px-6 py-4 lg:py-3 bg-gradient-to-r from-accent-600 to-accent-700 text-base lg:text-sm hover:from-accent-500 hover:to-accent-600 flex items-center justify-center gap-2"
+                  variant="accent" size="lg" full
                 >
                   {loading ? (
                     <>
@@ -306,7 +306,7 @@ export default function CreateEventTab() {
                   <Button
                     type="button"
                     onClick={removeFlyerImage}
-                    variant="ghost" size="md" className="flex-1 px-4 py-2 bg-danger-900/20 hover:bg-danger-900/40 border border-danger-500/40 text-danger-400 flex items-center justify-center gap-2 text-sm"
+                    variant="danger-subtle" size="md" className="flex-1"
                   >
                     <FiTrash2 size={16} />
                     Remove

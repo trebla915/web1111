@@ -1,4 +1,5 @@
 import QRCode from 'qrcode';
+import { palette } from '@/lib/theme/palette';
 
 export interface QRCodeData {
   reservationId: string;
@@ -36,8 +37,9 @@ export async function generateReservationQRCode(
       width: 300,
       margin: 2,
       color: {
-        dark: '#000000',
-        light: '#FFFFFF'
+        // Dark modules on a light field so every scanner reads it.
+        dark: palette.canvas,
+        light: palette.fg
       }
     });
 

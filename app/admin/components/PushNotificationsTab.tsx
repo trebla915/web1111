@@ -197,7 +197,7 @@ export default function PushNotificationsTab() {
               <input
                 id="targetUsers"
                 type="checkbox"
-                className="mr-2 h-4 w-4 accent-cyan-500 bg-surface-raised border border-accent-900/50"
+                className="mr-2 h-4 w-4 bg-surface-raised border border-accent-900/50"
                 checked={targetSpecificUsers}
                 onChange={(e) => setTargetSpecificUsers(e.target.checked)}
               />
@@ -246,9 +246,8 @@ export default function PushNotificationsTab() {
           <Button
             onClick={handleSendNotification}
             disabled={loading}
-            variant="outline" size="md" full className="p-3 bg-gradient-to-r from-accent-800 to-accent-600 hover:from-accent-700 hover:to-accent-500 flex items-center justify-center border border-accent-500/50 relative overflow-hidden group"
+            variant="accent" size="md" full
           >
-            <div className="absolute inset-0 flex justify-center items-center bg-gradient-to-r from-accent-600/0 via-accent-600/30 to-accent-600/0 opacity-0 group-hover:opacity-100 transform translate-y-full group-hover:translate-y-0 transition-all duration-500"></div>
             {loading ? (
               <span className="flex items-center justify-center relative z-10">
                 <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-fg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -270,7 +269,7 @@ export default function PushNotificationsTab() {
       {/* Notification History Toggle */}
       <div className="max-w-3xl mx-auto">
         <Button
-          variant="ghost" size="md" className="flex items-center text-lg mb-4 text-accent-400 hover:text-accent-300"
+          variant="ghost" size="md" className="mb-4"
           onClick={() => setShowHistory(!showHistory)}
         >
           <FiClock className="mr-2" />
@@ -297,7 +296,7 @@ export default function PushNotificationsTab() {
                   <p className="text-xl font-medium mb-6">No notifications sent yet</p>
                   <Button
                     onClick={loadNotificationHistory}
-                    variant="outline" size="md" className="px-4 py-2 bg-gradient-to-r from-accent-900/30 to-accent-800/20 hover:from-accent-800/30 hover:to-accent-700/20 border border-accent-600/30 flex items-center gap-2"
+                    variant="outline" size="md"
                   >
                     <FiRefreshCw />
                     <span>Refresh</span>

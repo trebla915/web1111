@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "DISABLE_ESLINT_PLUGIN=false next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test": "node --import ./tests/security/alias-hook.mjs --test tests/security/ tests/design/",
+    "test:design": "node --import ./tests/security/alias-hook.mjs --test tests/design/"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.19",

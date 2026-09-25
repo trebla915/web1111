@@ -567,7 +567,7 @@ export default function ManageReservationsTab() {
           <p className="text-lg font-medium mb-4">{error}</p>
           <Button
             onClick={fetchReservationsData}
-            variant="ghost" size="md" className="px-4 py-2 bg-danger-900/20 hover:bg-danger-900/40 border border-danger-500/40 flex items-center gap-2"
+            variant="danger-subtle" size="md"
           >
             <FiRefreshCw className="animate-pulse" />
             <span>Try Again</span>
@@ -589,7 +589,7 @@ export default function ManageReservationsTab() {
                 setSearchTerm('');
                 setStatusFilter('all');
               }}
-              variant="primary" size="md" className="mt-4 px-4 py-2 bg-fg hover:bg-fg-dim text-sm"
+              variant="primary" size="md" className="mt-4"
             >
               Clear Filters
             </Button>
@@ -681,9 +681,8 @@ export default function ManageReservationsTab() {
                                   onClick={() => handleFixTableChangePrice(reservation)}
                                   disabled={fixPriceLoadingId === reservation.id}
                                   loading={fixPriceLoadingId === reservation.id}
-                                  variant="outline"
+                                  variant="attention"
                                   size="sm"
-                                  className="border-attention-600 text-attention-300 hover:bg-attention-900/20"
                                 >
                                   {fixPriceLoadingId !== reservation.id && (
                                     <FiDollarSign aria-hidden="true" size={14} />
@@ -873,7 +872,7 @@ export default function ManageReservationsTab() {
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold text-fg">Edit contact</h3>
-                <Button onClick={closeEditContactModal} variant="ghost" size="md" className="text-fg-muted hover:text-fg">
+                <Button onClick={closeEditContactModal} variant="ghost" size="icon" aria-label="Close">
                   <FiX size={20} />
                 </Button>
               </div>
@@ -919,14 +918,14 @@ export default function ManageReservationsTab() {
                 <Button
                   onClick={closeEditContactModal}
                   disabled={isSavingContact}
-                  variant="outline" size="md" className="flex-1 px-4 py-2 border border-line-strong text-fg-dim hover:bg-surface-raised"
+                  variant="outline" size="md" className="flex-1"
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleSaveContact}
                   disabled={isSavingContact || !editContactForm.userEmail.trim()}
-                  variant="accent" size="md" className="flex-1 px-4 py-2 bg-accent-600 hover:bg-accent-700"
+                  variant="accent" size="md" className="flex-1"
                 >
                   {isSavingContact ? 'Saving…' : 'Save'}
                 </Button>
@@ -943,17 +942,19 @@ export default function ManageReservationsTab() {
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold text-fg">Customer must pay price difference</h3>
-                <Button onClick={() => setFixPriceNeedsPayment(null)} variant="ghost" size="md" className="text-fg-muted hover:text-fg">
+                <Button onClick={() => setFixPriceNeedsPayment(null)} variant="ghost" size="icon" aria-label="Close">
                   <FiX size={20} />
                 </Button>
               </div>
               <p className="text-2xl font-bold text-accent-400 mb-2">{formatCurrency(fixPriceNeedsPayment.amountDue)}</p>
               <p className="text-sm text-fg-muted mb-4">An email was sent with the payment link. They can also use the link below.</p>
-              <a href={fixPriceNeedsPayment.paymentUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full py-3 bg-accent-600 hover:bg-accent-700 text-fg rounded-lg font-medium mb-2">
-                <FiExternalLink size={18} />
-                Open payment page
-              </a>
-              <Button type="button" onClick={() => { navigator.clipboard.writeText(fixPriceNeedsPayment.paymentUrl); toast.success('Link copied'); }} variant="outline" size="md" full className="py-2 border border-line-strong text-fg-dim hover:bg-surface-raised flex items-center justify-center gap-2">
+              <Button asChild variant="accent" size="lg" full className="mb-2">
+                <a href={fixPriceNeedsPayment.paymentUrl} target="_blank" rel="noopener noreferrer">
+                  <FiExternalLink size={18} />
+                  Open payment page
+                </a>
+              </Button>
+              <Button type="button" onClick={() => { navigator.clipboard.writeText(fixPriceNeedsPayment.paymentUrl); toast.success('Link copied'); }} variant="outline" size="md" full>
                 <FiCopy size={16} />
                 Copy link
               </Button>
@@ -969,7 +970,7 @@ export default function ManageReservationsTab() {
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold text-fg">Change table</h3>
-                <Button onClick={closeChangeTableModal} variant="ghost" size="md" className="text-fg-muted hover:text-fg">
+                <Button onClick={closeChangeTableModal} variant="ghost" size="icon" aria-label="Close">
                   <FiX size={20} />
                 </Button>
               </div>
@@ -984,29 +985,30 @@ export default function ManageReservationsTab() {
                     <p className="text-2xl font-bold text-fg mt-1">{formatCurrency(changeTableNeedsPayment.amountDue)}</p>
                     <p className="text-sm text-fg-muted mt-2">An email was sent to the customer with the payment link. Once they pay, the table will change automatically.</p>
                   </div>
-                  <a
-                    href={changeTableNeedsPayment.paymentUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 w-full py-3 bg-accent-600 hover:bg-accent-700 text-fg rounded-lg font-medium"
-                  >
-                    <FiExternalLink size={18} />
-                    Open payment page for customer
-                  </a>
+                  <Button asChild variant="accent" size="lg" full>
+                    <a
+                      href={changeTableNeedsPayment.paymentUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <FiExternalLink size={18} />
+                      Open payment page for customer
+                    </a>
+                  </Button>
                   <Button
                     type="button"
                     onClick={() => {
                       navigator.clipboard.writeText(changeTableNeedsPayment.paymentUrl);
                       toast.success('Link copied');
                     }}
-                    variant="outline" size="md" full className="py-2 border border-line-strong text-fg-dim hover:bg-surface-raised flex items-center justify-center gap-2"
+                    variant="outline" size="md" full
                   >
                     <FiCopy size={16} />
                     Copy link
                   </Button>
                   <Button
                     onClick={closeChangeTableModal}
-                    variant="ghost" size="md" full className="py-2 text-fg-muted hover:text-fg"
+                    variant="ghost" size="md" full
                   >
                     Close
                   </Button>
@@ -1047,14 +1049,14 @@ export default function ManageReservationsTab() {
                     <Button
                       onClick={closeChangeTableModal}
                       disabled={isChangingTable}
-                      variant="outline" size="md" className="flex-1 px-4 py-2 border border-line-strong text-fg-dim hover:bg-surface-raised"
+                      variant="outline" size="md" className="flex-1"
                     >
                       Cancel
                     </Button>
                     <Button
                       onClick={handleAdminChangeTable}
                       disabled={isChangingTable || !selectedNewTableId || selectedNewTableId === changeTableModal.reservation.tableId}
-                      variant="success" size="md" className="flex-1 px-4 py-2 bg-confirm-600 hover:bg-confirm-700"
+                      variant="confirm" size="md" className="flex-1"
                     >
                       {isChangingTable ? 'Changing…' : 'Change table'}
                     </Button>
@@ -1075,7 +1077,7 @@ export default function ManageReservationsTab() {
                 <h3 className="text-xl font-bold text-fg">Cancel & Refund Reservation</h3>
                 <Button
                   onClick={closeCancelModal}
-                  variant="ghost" size="md" className="text-fg-muted hover:text-fg"
+                  variant="ghost" size="icon" aria-label="Close"
                 >
                   <FiX size={20} />
                 </Button>
@@ -1146,14 +1148,14 @@ export default function ManageReservationsTab() {
                 <Button
                   onClick={closeCancelModal}
                   disabled={isProcessingCancel}
-                  variant="outline" size="md" className="flex-1 px-4 py-2 border border-line-strong text-fg-dim hover:bg-surface-raised"
+                  variant="outline" size="md" className="flex-1"
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleCancelReservation}
                   disabled={isProcessingCancel || !cancelForm.staffName.trim()}
-                  variant="subtle" size="md" className="flex-1 px-4 py-2 bg-revoke-600 hover:bg-revoke-700 disabled:bg-surface-lifted flex items-center justify-center gap-2"
+                  variant="revoke" size="md" className="flex-1"
                 >
                   {isProcessingCancel ? (
                     <>

@@ -163,7 +163,7 @@ export default function QRScannerPage() {
           {scanning && (
             <Button
               onClick={refreshScanner}
-              variant="subtle" size="md" className="p-2 bg-surface-raised active:bg-surface-hover"
+              variant="subtle" size="icon"
               aria-label="Refresh camera"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -173,7 +173,7 @@ export default function QRScannerPage() {
           )}
           <Button
             onClick={() => setShowManual(!showManual)}
-            variant="subtle" size="md" className="p-2 bg-surface-raised active:bg-surface-hover"
+            variant="subtle" size="icon"
             aria-label="Manual entry"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -202,7 +202,7 @@ export default function QRScannerPage() {
             <p className="text-danger-400 text-sm mb-4">{error}</p>
             <Button
               onClick={refreshScanner}
-              variant="accent" size="md" className="px-5 py-2.5 bg-accent-600 text-sm font-semibold active:bg-accent-700"
+              variant="accent"
             >
               Try Again
             </Button>
@@ -278,13 +278,13 @@ export default function QRScannerPage() {
                 <Button
                   type="button"
                   onClick={() => setShowManual(false)}
-                  variant="outline" size="lg" className="flex-1 px-4 py-3 border text-fg-dim rounded-xl active:bg-surface-raised"
+                  variant="outline" size="lg" className="flex-1"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
-                  variant="accent" size="lg" className="flex-1 px-4 py-3 bg-accent-600 rounded-xl font-bold active:bg-accent-700"
+                  variant="accent" size="lg" className="flex-1"
                 >
                   Check In
                 </Button>

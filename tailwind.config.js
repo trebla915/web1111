@@ -117,17 +117,6 @@ module.exports = {
           deep: 'rgb(var(--warning-deep) / <alpha-value>)',
           abyss: 'rgb(var(--warning-abyss) / <alpha-value>)',
         },
-        info: {
-          300: 'rgb(var(--info-300) / <alpha-value>)',
-          400: 'rgb(var(--info-400) / <alpha-value>)',
-          500: 'rgb(var(--info-500) / <alpha-value>)',
-          600: 'rgb(var(--info-600) / <alpha-value>)',
-          700: 'rgb(var(--info-700) / <alpha-value>)',
-          900: 'rgb(var(--info-900) / <alpha-value>)',
-          DEFAULT: 'rgb(var(--info) / <alpha-value>)',
-          bright: 'rgb(var(--info-bright) / <alpha-value>)',
-          deep: 'rgb(var(--info-deep) / <alpha-value>)',
-        },
 
         attention: {
           200: 'rgb(var(--attention-200) / <alpha-value>)',
@@ -148,18 +137,6 @@ module.exports = {
           600: 'rgb(var(--revoke-600) / <alpha-value>)',
           700: 'rgb(var(--revoke-700) / <alpha-value>)',
           900: 'rgb(var(--revoke-900) / <alpha-value>)',
-        },
-        profile: {
-          600: 'rgb(var(--profile-600) / <alpha-value>)',
-          700: 'rgb(var(--profile-700) / <alpha-value>)',
-        },
-        social: {
-          facebook:        'rgb(var(--social-facebook) / <alpha-value>)',
-          'facebook-hover':'rgb(var(--social-facebook-hover) / <alpha-value>)',
-          twitter:         'rgb(var(--social-twitter) / <alpha-value>)',
-          'twitter-hover': 'rgb(var(--social-twitter-hover) / <alpha-value>)',
-          whatsapp:        'rgb(var(--social-whatsapp) / <alpha-value>)',
-          'whatsapp-hover':'rgb(var(--social-whatsapp-hover) / <alpha-value>)',
         },
 
         /* ─── shadcn/ui class names ──────────────────────────────────────

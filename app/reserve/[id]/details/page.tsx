@@ -324,7 +324,7 @@ export default function ReservationDetailsPage() {
                 disabled={guestCount <= 1}
                 variant="outline"
                 size="icon"
-                className="rounded-full"
+                shape="pill"
                 aria-label="Remove one guest"
               >
                 <FiMinus aria-hidden="true" size={20} />
@@ -343,7 +343,7 @@ export default function ReservationDetailsPage() {
                 disabled={guestCount >= (reservationDetails.capacity ?? 99)}
                 variant="outline"
                 size="icon"
-                className="rounded-full"
+                shape="pill"
                 aria-label="Add one guest"
               >
                 <FiPlus aria-hidden="true" size={20} />
@@ -471,9 +471,8 @@ export default function ReservationDetailsPage() {
                       <span className="tabular text-sm text-fg-dim">{money(bottle.price)}</span>
                       <Button
                         onClick={() => handleRemoveBottle(bottle.id)}
-                        variant="ghost"
+                        variant="ghost-danger"
                         size="icon"
-                        className="text-fg-muted hover:text-danger-bright"
                         aria-label={`Remove ${bottle.name}`}
                       >
                         <FiX aria-hidden="true" size={18} />

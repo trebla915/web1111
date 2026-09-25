@@ -29,7 +29,6 @@ colors:
   success-bright: "rgb(74 222 128)"
   warning: "rgb(202 138 4)"
   warning-bright: "rgb(250 204 21)"
-  info: "rgb(37 99 235)"
   attention-400: "rgb(251 191 36)"
   confirm-400: "rgb(52 211 153)"
   revoke-400: "rgb(251 146 60)"
@@ -183,7 +182,8 @@ default, focus rings, the active item in navigation, money in a breakdown, and
 the selected table on the floor plan. It is never decoration.
 
 Status colours carry fixed meanings and are not interchangeable with the accent:
-`danger` destroys, `success` confirms, `warning` blocks, `info` informs.
+`danger` destroys, `success` confirms, `warning` blocks. There is no `info`
+status: an informational mark uses the accent or a neutral step.
 
 A separate **categorical action set** — `attention` (settle a price
 difference), `confirm` (move a booking), `revoke` (cancel and refund) — exists
@@ -196,6 +196,14 @@ Two rules that are load-bearing:
   account" button, not a link to the admin dashboard.
 - **Colour never carries a state alone.** Availability on the floor plan is fill
   *and* border *and* a word; a blocked bottle minimum is a tint *and* an icon.
+- **No blue, no purple.** Cyan is the only hue. The former `info` (blue),
+  `profile` (purple) and `social-*` (Facebook/Twitter blue) tokens are gone;
+  share buttons are neutral icon buttons. `tests/design/theme.test.ts` fails if
+  a token in the blue–violet band returns, and it also fails on raw palette
+  classes, hex/rgb literals, and inline `style` props in UI code.
+- **Where CSS variables can't reach** — HTML email, the QR canvas,
+  `<meta theme-color>` — colours come from `lib/theme/palette.ts`, a hex mirror
+  of the tokens that the same test keeps in sync.
 
 ## Typography
 
@@ -301,13 +309,21 @@ Safari does not zoom the viewport on focus.
 Every interactive component ships default, hover, focus, active, disabled and —
 where it does work — loading.
 
-- **Button** is the only clickable control. Variants map to *intent*, not
-  colour: `primary` (white, highest emphasis), `accent` (brand actions),
-  `danger` (destructive), `success` (confirm), `subtle`, `outline`, `ghost`.
+- **Button** is the only clickable control, and its look lives in exactly one
+  place: `components/ui/button.tsx`. Variants map to *intent*, not colour:
+  `primary` (white, highest emphasis), `accent` (brand actions), `danger`
+  (destructive), `danger-subtle` (destructive beside a primary), `success`
+  (confirm), `confirm` / `revoke` / `attention` (the three categorical admin
+  actions), `subtle`, `outline`, `ghost`, `ghost-danger` (quiet remove icons).
+  Sizes are `sm` / `md` / `lg` / `icon`; `shape="pill"` is the only other
+  radius. A call site's `className` is **placement only** — `flex-1`, width,
+  margins, positioning. If no variant fits, add one to the component; never
+  repaint a button on one page. A link that looks like a button is
+  `<Button asChild><Link/></Button>`.
   `unstyled` is the documented escape hatch for controls that bring their own
-  geometry — a stacked icon tile, a full-width list row — because the sized
-  variants clamp height and centre their content, which silently crops rich
-  children.
+  geometry — a floor-plan table tile, a full-width list row, the hero scroll
+  cue — because the sized variants clamp height and centre their content,
+  which silently crops rich children.
 - **Card** is the brand-tinted panel, with an optional clipped grain overlay.
   **Cards never nest.**
 - **Input / Textarea / Select** share one recipe, including a `leadingIcon`

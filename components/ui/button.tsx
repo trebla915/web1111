@@ -11,6 +11,11 @@ import { Spinner } from "@/components/ui/spinner"
  *
  * Variants map to intent, not colour: pick `danger` because the action
  * destroys something, not because you want red.
+ *
+ * `className` on a Button is for placement only — `flex-1`, `w-*`, margins,
+ * `self-*`, responsive `hidden`. Colour, height, padding, radius and type come
+ * from `variant` / `size` / `shape`; if none fits, add a variant here rather
+ * than repainting one page. tests/design/theme.test.ts enforces this.
  */
 /**
  * Behaviour every button shares regardless of look: one focus ring, one
@@ -24,24 +29,36 @@ const buttonBase =
 
 const buttonVariants = cva(
   // Layout + 44px minimum touch target on top of the shared behaviour.
-  buttonBase + " inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-medium",
+  buttonBase + " inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium",
   {
     variants: {
       variant: {
         /** Highest emphasis. White on black — the venue's primary CTA. */
         primary: "bg-fg text-fg-inverse hover:bg-fg-dim active:bg-fg-muted",
-        /** Brand action — reservations, confirmations. */
+        /** Brand action — reservations, confirmations, saves. */
         accent: "bg-accent-dim text-fg hover:bg-accent-deep active:bg-accent-deeper",
         /** Destructive: cancel, delete, remove. */
         danger: "bg-danger text-fg hover:bg-danger/85 active:bg-danger/75",
+        /** Destructive but secondary — sits beside a primary action (delete in
+         *  an edit form, sign out) where a solid red block would out-shout it. */
+        "danger-subtle":
+          "border border-danger-line/40 bg-danger-deep/20 text-danger-bright hover:bg-danger-deep/40 active:bg-danger-deep/50",
         /** Positive confirmation: check-in, approve, mark paid. */
         success: "bg-success text-fg hover:bg-success/85 active:bg-success/75",
+        /** Categorical admin actions. Three sit side by side in the reservation
+         *  toolbar and are told apart by hue, not severity (see DESIGN.md). */
+        confirm: "bg-confirm-600 text-fg hover:bg-confirm-700 active:bg-confirm-700/90",
+        revoke: "bg-revoke-600 text-fg hover:bg-revoke-700 active:bg-revoke-700/90",
+        attention:
+          "border border-attention-600 bg-transparent text-attention-200 hover:bg-attention-900/40",
         /** Secondary action sitting on a card. */
         subtle: "bg-surface-raised text-fg hover:bg-surface-hover active:bg-surface-hover/80",
         /** Bordered, transparent — pairs beside a primary. */
         outline: "border border-line bg-transparent text-fg hover:bg-surface-raised hover:border-line-strong",
         /** Lowest emphasis — icon buttons, toolbar actions. */
         ghost: "text-fg-muted hover:bg-surface-raised hover:text-fg",
+        /** Quiet until hovered — remove / delete icons in a list row. */
+        "ghost-danger": "text-fg-muted hover:bg-danger-deep/20 hover:text-danger-bright",
       },
       size: {
         sm: "h-9 px-3 text-xs",
@@ -49,9 +66,11 @@ const buttonVariants = cva(
         lg: "h-12 px-8 text-base",
         icon: "h-11 w-11 shrink-0",
       },
+      /** `pill` for chips and round icon buttons; everything else is `rounded-lg`. */
+      shape: { default: "rounded-lg", pill: "rounded-full" },
       full: { true: "w-full", false: "" },
     },
-    defaultVariants: { variant: "primary", size: "md", full: false },
+    defaultVariants: { variant: "primary", size: "md", shape: "default", full: false },
   }
 )
 
@@ -72,7 +91,7 @@ interface ButtonProps
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
-    { className, variant, size, full, asChild = false, loading = false, unstyled = false, children, disabled, ...props },
+    { className, variant, size, shape, full, asChild = false, loading = false, unstyled = false, children, disabled, ...props },
     ref
   ) => {
     const Comp = asChild ? Slot : "button"
@@ -88,7 +107,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <Comp
         className={
-          unstyled ? cn(buttonBase, className) : cn(buttonVariants({ variant, size, full, className }))
+          unstyled ? cn(buttonBase, className) : cn(buttonVariants({ variant, size, shape, full, className }))
         }
         ref={ref}
         disabled={disabled || loading}
@@ -102,4 +121,4 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 )
 Button.displayName = "Button"
 
-export { Button }
+export { Button, buttonVariants }

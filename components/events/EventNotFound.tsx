@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { FiArrowLeft } from 'react-icons/fi';
+import { Button } from '@/components/ui/button';
 
 export default function EventNotFound() {
   return (
@@ -13,9 +14,11 @@ export default function EventNotFound() {
       <div className="bg-danger-900/30 text-danger-200 p-8 rounded-lg text-center max-w-2xl mx-auto">
         <h1 className="text-2xl font-bold mb-4">Event not found</h1>
         <p>Sorry, we couldn't find the event you're looking for.</p>
-        <Link href="/events" className="inline-block mt-6 bg-fg hover:bg-fg/90 text-fg-inverse px-6 py-2 rounded-lg transition-colors">
-          VIEW ALL EVENTS
-        </Link>
+        <Button asChild variant="primary" className="mt-6">
+          <Link href="/events">
+            VIEW ALL EVENTS
+          </Link>
+        </Button>
       </div>
     </div>
   );

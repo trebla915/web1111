@@ -30,70 +30,68 @@ function useReducedMotion(): boolean {
 }
 
 /**
- * Returns a style object for scroll-based parallax. Mobile-friendly, throttled with rAF.
+ * Scroll-based parallax. Attach the returned `ref` to a layer that also carries
+ * the `.parallax-layer` class (styles/globals.css). The hook writes the offset
+ * to that layer's `--parallax-y` custom property each animation frame, so the
+ * component renders no inline style and does not re-render on scroll.
  * Use for hero content (content), venue/map background images (background).
  */
 export function useScrollParallax(options: UseScrollParallaxOptions = {}) {
   const { speed = 0.5, direction = "content", whenInView = false } = options;
   const reduced = useReducedMotion();
-  const [scrollY, setScrollY] = useState(0);
-  const rafId = useRef<number | null>(null);
-  const ticking = useRef(false);
   const elementRef = useRef<HTMLElement | null>(null);
-  const [inView, setInView] = useState(true);
+  const inView = useRef(true);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const scrollRoot = document.getElementById("__scroll-root");
     const getScrollY = () => (scrollRoot ? scrollRoot.scrollTop : window.scrollY);
-    const onScroll = () => {
-      if (ticking.current) return;
-      ticking.current = true;
-      rafId.current = requestAnimationFrame(() => {
-        setScrollY(getScrollY());
-        ticking.current = false;
-      });
+    let rafId: number | null = null;
+
+    const apply = () => {
+      rafId = null;
+      const el = elementRef.current;
+      if (!el) return;
+      const scrollY = getScrollY();
+      const active = !reduced && (whenInView ? inView.current : true);
+      const y = !active
+        ? 0
+        : direction === "content"
+          ? scrollY * (1 - speed) * 0.4
+          : -scrollY * (1 - speed) * 0.35;
+      el.style.setProperty("--parallax-y", `${y}px`);
     };
+    const onScroll = () => {
+      if (rafId == null) rafId = requestAnimationFrame(apply);
+    };
+
+    let io: IntersectionObserver | undefined;
+    if (whenInView && elementRef.current) {
+      io = new IntersectionObserver(
+        ([e]) => {
+          inView.current = e.isIntersecting;
+          onScroll();
+        },
+        { rootMargin: "20% 0px" }
+      );
+      io.observe(elementRef.current);
+    }
+
     const target = scrollRoot ?? window;
     target.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => {
       target.removeEventListener("scroll", onScroll);
-      if (rafId.current != null) cancelAnimationFrame(rafId.current);
+      io?.disconnect();
+      if (rafId != null) cancelAnimationFrame(rafId);
     };
-  }, []);
+  }, [reduced, speed, direction, whenInView]);
 
-  useEffect(() => {
-    if (!whenInView || typeof window === "undefined") return;
-    const el = elementRef.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      ([e]) => setInView(e.isIntersecting),
-      { rootMargin: "20% 0px" }
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [whenInView]);
-
-  const applyParallax = !reduced && (whenInView ? inView : true);
-
-  const y =
-    applyParallax && direction === "content"
-      ? scrollY * (1 - speed) * 0.4
-      : applyParallax && direction === "background"
-        ? -scrollY * (1 - speed) * 0.35
-        : 0;
-
-  const style =
-    y !== 0
-      ? { transform: `translate3d(0, ${y}px, 0)`, willChange: "transform" as const }
-      : undefined;
-
-  const setRef = useCallback((node: HTMLElement | null) => {
+  const ref = useCallback((node: HTMLElement | null) => {
     elementRef.current = node;
   }, []);
 
-  return { style, ref: whenInView ? setRef : undefined };
+  return { ref };
 }
 
 /**

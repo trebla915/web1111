@@ -31,6 +31,12 @@ import {
 import { BiTable } from "react-icons/bi";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 
 /* ───── Types ─────────────────────────────────────────── */
@@ -113,15 +119,12 @@ export default function StaffHubPage() {
 
   // UI
   const [search, setSearch] = useState("");
-  const [showEventPicker, setShowEventPicker] = useState(false);
   const [selectedReservation, setSelectedReservation] =
     useState<Reservation | null>(null);
   const [activeTab, setActiveTab] = useState<
     "all" | "confirmed" | "checked-in" | "pending" | "cancelled"
   >("all");
 
-  // Ref for positioning the event picker dropdown
-  const eventPickerRef = useRef<HTMLDivElement>(null);
 
   // Audio ref for check-in chime
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -362,75 +365,48 @@ export default function StaffHubPage() {
             <div className="h-6 w-px bg-surface-hover" />
 
             {/* Event selector */}
-            <div ref={eventPickerRef} className="relative">
-              <Button
-                onClick={() => setShowEventPicker(!showEventPicker)}
-                variant="subtle" size="sm" className="flex items-center gap-2 px-3 py-1.5 bg-surface border text-sm hover:border-line-strong"
-              >
-                <span className="max-w-[200px] truncate">
-                  {selectedEvent?.title || "Select event"}
-                </span>
-                <FiChevronDown
-                  className={`w-4 h-4 transition-transform ${showEventPicker ? "rotate-180" : ""}`}
-                />
-              </Button>
-
-              {showEventPicker && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setShowEventPicker(false)}
-                  />
-                  <div
-                    className="fixed w-72 bg-surface border border-line rounded-lg shadow-2xl z-50 max-h-64 overflow-y-auto"
-                    // Measured at open time from the trigger's viewport rect —
-                    // the only styling here that cannot be a class.
-                    style={{
-                      top: eventPickerRef.current
-                        ? eventPickerRef.current.getBoundingClientRect().bottom + 4
-                        : 0,
-                      left: eventPickerRef.current
-                        ? eventPickerRef.current.getBoundingClientRect().left
-                        : 0,
-                    }}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="group">
+                  <span className="max-w-[200px] truncate">
+                    {selectedEvent?.title || "Select event"}
+                  </span>
+                  <FiChevronDown className="w-4 h-4 transition-transform group-data-[state=open]:rotate-180" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-72 max-h-64 overflow-y-auto">
+                {events.length === 0 && (
+                  <p className="p-3 text-sm text-fg-subtle">
+                    No upcoming events
+                  </p>
+                )}
+                {events.map((evt) => (
+                  <DropdownMenuItem
+                    key={evt.id}
+                    onSelect={() => setSelectedEventId(evt.id)}
+                    className={`flex-col items-start gap-0.5 ${
+                      evt.id === selectedEventId
+                        ? "bg-surface-raised text-accent-bright"
+                        : "text-fg-dim"
+                    }`}
                   >
-                    {events.length === 0 && (
-                      <p className="p-3 text-sm text-fg-subtle">
-                        No upcoming events
-                      </p>
-                    )}
-                    {events.map((evt) => (
-                      <Button unstyled
-                        key={evt.id}
-                        onClick={() => {
-                          setSelectedEventId(evt.id);
-                          setShowEventPicker(false);
-                        }}
-                        className={`w-full text-left px-4 py-3 text-sm hover:bg-surface-raised transition-colors border-b border-line-subtle last:border-0 ${
-                          evt.id === selectedEventId
-                            ? "bg-surface-raised text-accent-400"
-                            : "text-fg-dim"
-                        }`}
-                      >
-                        <div className="font-medium">{evt.title}</div>
-                        <div className="text-xs text-fg-subtle mt-0.5">
-                          {new Date(evt.date).toLocaleDateString("en-US", {
-                            weekday: "short",
-                            month: "short",
-                            day: "numeric",
-                          })}
-                          {isToday(evt.date) && (
-                            <span className="ml-2 text-success-400 font-semibold">
-                              TONIGHT
-                            </span>
-                          )}
-                        </div>
-                      </Button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
+                    <div className="font-medium">{evt.title}</div>
+                    <div className="text-xs text-fg-subtle">
+                      {new Date(evt.date).toLocaleDateString("en-US", {
+                        weekday: "short",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                      {isToday(evt.date) && (
+                        <span className="ml-2 text-success-400 font-semibold">
+                          TONIGHT
+                        </span>
+                      )}
+                    </div>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             {selectedEvent && isToday(selectedEvent.date) && (
               <span className="px-2 py-0.5 bg-success-900/40 border border-success-700/50 rounded text-xs text-success-400 font-bold uppercase">
@@ -443,17 +419,16 @@ export default function StaffHubPage() {
           <div className="flex items-center gap-2">
             <Button
               onClick={() => router.push("/staff/scanner")}
-              variant="accent" size="sm" className="flex items-center gap-2 px-3 py-1.5 bg-accent-700 hover:bg-accent-600 text-sm"
+              variant="accent" size="sm"
             >
               <FiCamera className="w-4 h-4" />
               <span className="hidden sm:inline">Scan QR</span>
             </Button>
             <Button
               onClick={logout}
-              variant="outline"
+              variant="ghost-danger"
               size="icon"
               aria-label="Sign out"
-              className="text-fg-muted hover:border-danger-700 hover:text-danger-bright"
             >
               <FiLogOut aria-hidden="true" className="h-4 w-4" />
             </Button>
@@ -466,7 +441,7 @@ export default function StaffHubPage() {
             icon={<FiUsers className="w-3.5 h-3.5" />}
             label="Expected"
             value={`${totalGuests}`}
-            color="text-info-400"
+            color="text-accent-bright"
           />
           <StatPill
             icon={<FiCheckCircle className="w-3.5 h-3.5" />}
@@ -750,56 +725,54 @@ function ReservationCard({
   const cfg = statusConfig[reservation.status] || statusConfig.completed;
 
   return (
-    <Button unstyled
-      onClick={onSelect}
-      className={`w-full text-left p-3 rounded-lg border transition-all hover:brightness-110 active:scale-[0.99] ${cfg.bg}`}
-    >
-      <div className="flex items-center justify-between mb-1.5">
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-fg text-sm">
-            {reservation.userName || "Guest"}
-          </span>
-          <span
-            className={`text-[0.625rem] font-bold uppercase px-1.5 py-0.5 rounded ${cfg.text} bg-canvas/30`}
-          >
-            {cfg.label}
+    // The row and its quick "Check In" are siblings, not nested: a button
+    // inside a button is invalid HTML and breaks keyboard and screen readers.
+    <div className={`rounded-lg border transition-all hover:brightness-110 ${cfg.bg}`}>
+      <Button unstyled
+        onClick={onSelect}
+        className="block w-full rounded-lg p-3 text-left active:scale-[0.99]"
+      >
+        <div className="flex items-center justify-between mb-1.5">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-fg text-sm">
+              {reservation.userName || "Guest"}
+            </span>
+            <span
+              className={`text-[0.625rem] font-bold uppercase px-1.5 py-0.5 rounded ${cfg.text} bg-canvas/30`}
+            >
+              {cfg.label}
+            </span>
+          </div>
+          <span className="text-lg font-bold text-fg-dim">
+            #{reservation.tableNumber}
           </span>
         </div>
-        <span className="text-lg font-bold text-fg-dim">
-          #{reservation.tableNumber}
-        </span>
-      </div>
-      <div className="flex items-center gap-4 text-xs text-fg-subtle">
-        <span className="flex items-center gap-1">
-          <FiUsers className="w-3 h-3" /> {reservation.guestCount} guests
-        </span>
-        {isAdmin && reservation.totalAmount && (
+        <div className="flex items-center gap-4 text-xs text-fg-subtle">
           <span className="flex items-center gap-1">
-            <FiDollarSign className="w-3 h-3" />
-            {formatCurrency(reservation.totalAmount)}
+            <FiUsers className="w-3 h-3" /> {reservation.guestCount} guests
           </span>
-        )}
-        {reservation.bottles && reservation.bottles.length > 0 && (
-          <span className="text-fg-faint">
-            {reservation.bottles.length} bottle
-            {reservation.bottles.length > 1 ? "s" : ""}
-          </span>
-        )}
-      </div>
+          {isAdmin && reservation.totalAmount && (
+            <span className="flex items-center gap-1">
+              <FiDollarSign className="w-3 h-3" />
+              {formatCurrency(reservation.totalAmount)}
+            </span>
+          )}
+          {reservation.bottles && reservation.bottles.length > 0 && (
+            <span className="text-fg-faint">
+              {reservation.bottles.length} bottle
+              {reservation.bottles.length > 1 ? "s" : ""}
+            </span>
+          )}
+        </div>
+      </Button>
       {reservation.status === "confirmed" && (
-        <div className="mt-2">
-          <Button
-            onClick={(e) => {
-              e.stopPropagation();
-              onQuickCheckIn();
-            }}
-            variant="success" size="sm" className="px-3 py-1 bg-success-700 hover:bg-success-600 text-xs font-semibold rounded"
-          >
+        <div className="px-3 pb-3">
+          <Button onClick={onQuickCheckIn} variant="success" size="sm">
             Check In
           </Button>
         </div>
       )}
-    </Button>
+    </div>
   );
 }
 
@@ -944,9 +917,11 @@ function ReservationDrawer({
           <h2 className="text-lg font-bold text-fg">Reservation Details</h2>
           <Button
             onClick={onClose}
-            variant="ghost" size="md" className="p-2 hover:bg-surface-raised"
+            variant="ghost"
+            size="icon"
+            aria-label="Close"
           >
-            <FiX className="w-5 h-5 text-fg-muted" />
+            <FiX aria-hidden="true" className="w-5 h-5" />
           </Button>
         </div>
 
@@ -1097,23 +1072,20 @@ function ReservationDrawer({
           {reservation.status === "confirmed" && (
             <Button
               onClick={onCheckIn}
-              variant="success" size="lg" full className="py-3 bg-success-700 hover:bg-success-600 font-bold text-sm flex items-center justify-center gap-2"
+              variant="success" size="lg" full
             >
               <FiCheckCircle className="w-5 h-5" />
               Check In Guest
             </Button>
           )}
           {reservation.userPhone && (
-            <a
-              href={`tel:${reservation.userPhone}`}
-              className="block w-full py-3 bg-surface-raised hover:bg-surface-hover text-fg font-medium rounded-lg text-sm transition-colors text-center"
-            >
-              Call Guest
-            </a>
+            <Button asChild variant="subtle" size="lg" full>
+              <a href={`tel:${reservation.userPhone}`}>Call Guest</a>
+            </Button>
           )}
           <Button
             onClick={onClose}
-            variant="subtle" size="lg" full className="py-3 bg-surface hover:bg-surface-raised text-fg-muted text-sm border"
+            variant="outline" size="lg" full
           >
             Close
           </Button>

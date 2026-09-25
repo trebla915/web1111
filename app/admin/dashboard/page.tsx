@@ -328,10 +328,9 @@ export default function AdminDashboardPage() {
 
           <Button
             onClick={logout}
-            variant="ghost"
+            variant="ghost-danger"
             size="icon"
             aria-label="Sign out"
-            className="text-fg-muted hover:text-danger-bright"
           >
             <FiLogOut aria-hidden="true" size={18} />
           </Button>

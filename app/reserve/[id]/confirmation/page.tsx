@@ -310,7 +310,7 @@ export default function ConfirmationPage() {
                   </p>
                   <Button
                     onClick={downloadQRCode}
-                    variant="primary" size="md" className="items-center gap-2 px-4 py-2 bg-fg hover:bg-fg/90 text-sm"
+                    variant="primary" size="md"
                   >
                     <FiDownload className="w-4 h-4" />
                     Download QR Code
@@ -321,7 +321,7 @@ export default function ConfirmationPage() {
                   <p className="text-fg-muted text-sm mb-3">Unable to generate QR code</p>
                   <Button
                     onClick={() => reservationData && generateQRCodeForReservation(reservationData)}
-                    variant="subtle" size="md" className="items-center gap-2 px-4 py-2 bg-surface-lifted hover:bg-surface-hover text-sm"
+                    variant="subtle" size="md"
                   >
                     <BiQrScan className="w-4 h-4" />
                     Try Again

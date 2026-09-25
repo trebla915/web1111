@@ -6,6 +6,7 @@ import { ReservationProvider } from "@/components/providers/ReservationProvider"
 import { Toaster } from "react-hot-toast";
 import "../styles/globals.css";
 import ConditionalLayout from "@/components/layout/ConditionalLayout";
+import { palette } from "@/lib/theme/palette";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://www.1111eptx.com"),
@@ -68,7 +69,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#000000",
+  themeColor: palette.canvas,
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

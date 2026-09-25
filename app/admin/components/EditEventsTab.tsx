@@ -209,7 +209,7 @@ export default function EditEventsTab({ onManageTables }: EditEventsTabProps) {
                     onClick={() => handleEventSelection(event.id)}
                     className={`p-4 rounded-lg cursor-pointer transition-all
                       ${selectedEventId === event.id 
-                        ? 'bg-accent-900/20 border-l-2 border-l-cyan-500' 
+                        ? 'bg-accent-900/20 border-l-2 border-l-accent' 
                         : 'hover:bg-accent-900/10'}`}
                   >
                     <div className="flex justify-between items-start">
@@ -315,7 +315,7 @@ export default function EditEventsTab({ onManageTables }: EditEventsTabProps) {
                     <Button
                       type="button"
                       onClick={() => onManageTables(selectedEventId)}
-                      variant="subtle" size="lg" className="px-6 py-3 bg-surface-raised border border-accent-900/30 hover:border-accent-700/50 flex items-center justify-center gap-2"
+                      variant="subtle" size="lg"
                     >
                       <BiTable className="w-5 h-5" />
                       <span>Manage Tables</span>
@@ -325,7 +325,7 @@ export default function EditEventsTab({ onManageTables }: EditEventsTabProps) {
                     type="button"
                     onClick={handleUpdateEvent}
                     disabled={loading}
-                    variant="ghost" size="lg" className="flex-1 px-6 py-3 bg-gradient-to-r from-accent-600 to-accent-700 hover:from-accent-500 hover:to-accent-600 flex items-center justify-center gap-2"
+                    variant="accent" size="lg" className="flex-1"
                   >
                     {loading ? (
                       <>
@@ -340,15 +340,13 @@ export default function EditEventsTab({ onManageTables }: EditEventsTabProps) {
                     )}
                   </Button>
                   
-                  <Button unstyled
+                  <Button
                     type="button"
                     onClick={handleDeleteEvent}
                     disabled={loading}
-                    className={`flex-1 px-6 py-3 rounded-lg font-medium flex items-center justify-center gap-2
-                      ${confirmDelete === selectedEventId
-                        ? 'bg-danger-600 hover:bg-danger-700 text-fg'
-                        : 'bg-danger-900/10 text-danger-400 hover:bg-danger-900/20'
-                      } transition-colors`}
+                    variant={confirmDelete === selectedEventId ? "danger" : "danger-subtle"}
+                    size="lg"
+                    className="flex-1"
                   >
                     <FiTrash2 className="w-5 h-5" />
                     <span>

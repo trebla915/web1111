@@ -139,7 +139,7 @@ export default function AddBottlesToEventTab({ eventId: initialEventId }: AddBot
               </div>
               <Button
                 onClick={() => handleAddBottle(bottle)}
-                variant="accent" size="md" className="p-2 bg-accent-600 rounded-full hover:bg-accent-700"
+                variant="accent" size="icon" shape="pill" aria-label={`Add ${bottle.name}`}
               >
                 <FiPlus className="text-fg" size={20} />
               </Button>
@@ -174,7 +174,7 @@ export default function AddBottlesToEventTab({ eventId: initialEventId }: AddBot
                 </div>
                 <Button
                   onClick={() => handleRemoveBottle(bottle)}
-                  variant="danger" size="md" className="p-2 bg-danger-600 rounded-full hover:bg-danger-700"
+                  variant="danger" size="icon" shape="pill" aria-label={`Remove ${bottle.name}`}
                 >
                   <FiTrash2 className="text-fg" size={20} />
                 </Button>
@@ -184,7 +184,7 @@ export default function AddBottlesToEventTab({ eventId: initialEventId }: AddBot
           <div className="mt-6">
             <Button
               onClick={handleSave}
-              variant="accent" size="md" className="px-4 py-2 bg-accent-600 rounded-md hover:bg-accent-700 flex items-center space-x-2"
+              variant="accent" size="md"
             >
               <FiSave size={20} />
               <span>Save Changes</span>

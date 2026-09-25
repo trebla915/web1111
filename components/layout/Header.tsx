@@ -161,7 +161,7 @@ export default function Header() {
               <div className="md:hidden">
                 <Button
                   onClick={() => setMenuOpen(true)}
-                  variant="ghost" size="md" className="p-3 rounded-full hover:bg-fg/10"
+                  variant="ghost" size="icon" shape="pill"
                   aria-label="Open menu"
                 >
                   <HiOutlineMenu size={24} />
@@ -192,16 +192,16 @@ export default function Header() {
                   also gives them a real touch target on a hybrid laptop. */}
               <div className="flex items-center">
                 {SOCIAL_LINKS.map(({ href, label, Icon }) => (
-                  <a
-                    key={label}
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`${label} (opens in a new tab)`}
-                    className="flex h-11 w-11 items-center justify-center rounded-full text-fg-dim transition-colors hover:bg-fg/10 hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <Icon aria-hidden="true" size={19} />
-                  </a>
+                  <Button key={label} asChild variant="ghost" size="icon" shape="pill">
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`${label} (opens in a new tab)`}
+                    >
+                      <Icon aria-hidden="true" size={19} />
+                    </a>
+                  </Button>
                 ))}
               </div>
 
@@ -210,7 +210,7 @@ export default function Header() {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
-                      variant="ghost" size="sm" className="flex items-center gap-2 py-1.5 px-3 rounded-full bg-fg/10 hover:bg-fg/20 text-fg border border-fg/10 hover:border-fg/20"
+                      variant="subtle" size="sm" shape="pill"
                       aria-label="Profile menu"
                     >
                       <FaUserCircle className="text-fg text-xl" />
@@ -277,7 +277,7 @@ export default function Header() {
                     logout()
                     setMenuOpen(false)
                   }}
-                  variant="ghost" size="md" full className="flex items-center gap-2 p-2 text-danger-200 hover:bg-danger-900/20 rounded"
+                  variant="ghost-danger" size="md" full className="justify-start"
                 >
                   <FiLogOut />
                   <span className="text-base font-bold">SIGN OUT</span>
@@ -289,7 +289,7 @@ export default function Header() {
                   setShowLogin(true)
                   setMenuOpen(false)
                 }}
-                variant="ghost" size="md" full className="flex items-center gap-2 p-2 hover:bg-fg/10 rounded"
+                variant="ghost" size="md" full className="justify-start"
               >
                 <FiUser />
                 <span className="text-base font-bold">LOGIN</span>
@@ -299,16 +299,16 @@ export default function Header() {
             {/* Social links in mobile menu */}
             <div className="mt-3 flex items-center">
               {SOCIAL_LINKS.map(({ href, label, Icon }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`${label} (opens in a new tab)`}
-                  className="flex h-11 w-11 items-center justify-center rounded-full text-fg-dim transition-colors hover:bg-fg/10 hover:text-fg"
-                >
-                  <Icon aria-hidden="true" size={20} />
-                </a>
+                <Button key={label} asChild variant="ghost" size="icon" shape="pill">
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`${label} (opens in a new tab)`}
+                  >
+                    <Icon aria-hidden="true" size={20} />
+                  </a>
+                </Button>
               ))}
             </div>
           </div>

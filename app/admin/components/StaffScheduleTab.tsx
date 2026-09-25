@@ -119,7 +119,7 @@ export default function StaffScheduleTab() {
         </div>
         <Button
           onClick={() => setShowAddForm(!showAddForm)}
-          variant="primary" size="md" className="flex items-center gap-2 px-4 py-2 bg-fg text-sm hover:bg-fg-dim"
+          variant="primary" size="md"
         >
           <FiPlus />
           Add Shift
@@ -208,13 +208,13 @@ export default function StaffScheduleTab() {
           <div className="flex gap-2 mt-6">
             <Button
               onClick={handleAddShift}
-              variant="primary" size="md" className="px-4 py-2 bg-fg text-sm hover:bg-fg-dim"
+              variant="primary" size="md"
             >
               Add Shift
             </Button>
             <Button
               onClick={() => setShowAddForm(false)}
-              variant="subtle" size="md" className="px-4 py-2 bg-surface-lifted text-sm hover:bg-surface-hover"
+              variant="subtle" size="md"
             >
               Cancel
             </Button>
@@ -284,7 +284,7 @@ export default function StaffScheduleTab() {
                   </div>
                   <Button
                     onClick={() => handleDeleteShift(shift.id)}
-                    variant="ghost" size="md" className="p-2 text-danger-400 hover:bg-danger-900/20 shrink-0"
+                    variant="ghost-danger" size="icon" aria-label="Delete shift"
                     title="Delete shift"
                   >
                     <FiTrash2 size={16} />

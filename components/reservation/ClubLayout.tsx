@@ -38,6 +38,7 @@ import React from 'react';
 import { FiUsers } from 'react-icons/fi';
 import { Table } from '@/types/reservation';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 interface ClubLayoutProps {
   tables: Table[];
@@ -125,7 +126,8 @@ const ClubLayout: React.FC<ClubLayoutProps> = ({
   const renderRectTable = (table: Table) => {
     const isSelected = selectedTableId === table.id;
     return (
-      <button
+      <Button
+        unstyled
         key={table.id}
         type="button"
         disabled={table.reserved}
@@ -165,7 +167,7 @@ const ClubLayout: React.FC<ClubLayoutProps> = ({
             )}
           </span>
         )}
-      </button>
+      </Button>
     );
   };
 
@@ -173,7 +175,8 @@ const ClubLayout: React.FC<ClubLayoutProps> = ({
   const renderCircleTable = (table: Table) => {
     const isSelected = selectedTableId === table.id;
     return (
-      <button
+      <Button
+        unstyled
         key={table.id}
         type="button"
         disabled={table.reserved}
@@ -211,7 +214,7 @@ const ClubLayout: React.FC<ClubLayoutProps> = ({
             </span>
           </>
         )}
-      </button>
+      </Button>
     );
   };
 

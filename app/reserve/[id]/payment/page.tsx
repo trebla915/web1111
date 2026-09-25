@@ -586,9 +586,9 @@ export default function PaymentPage() {
                 onClick={handleTestModePayment}
                 disabled={isProcessing}
                 loading={isProcessing}
-                variant="outline"
+                variant="attention"
                 size="md"
-                className="shrink-0 border-attention-600 text-attention-200 hover:bg-attention-900/40"
+                className="shrink-0"
               >
                 {isProcessing ? 'Processing' : 'Test payment'}
               </Button>

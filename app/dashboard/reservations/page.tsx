@@ -3,6 +3,7 @@
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { LoadingScreen } from "@/components/ui/spinner";
 
@@ -31,12 +32,11 @@ export default function ReservationsPage() {
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold">My Reservations</h1>
-          <Link 
-            href="/dashboard" 
-            className="px-4 py-2 bg-surface-raised rounded-lg hover:bg-surface-hover transition-colors"
-          >
-            Back to Dashboard
-          </Link>
+          <Button asChild variant="subtle" size="md">
+            <Link href="/dashboard">
+              Back to Dashboard
+            </Link>
+          </Button>
         </div>
         
         <div className="bg-surface rounded-lg p-6 mb-8">
@@ -44,12 +44,11 @@ export default function ReservationsPage() {
             You don't have any reservations yet.
           </p>
           
-          <Link 
-            href="/reserve" 
-            className="inline-block px-6 py-3 bg-danger-600 hover:bg-danger-700 text-fg font-semibold rounded-md transition-colors"
-          >
-            Make a Reservation
-          </Link>
+          <Button asChild variant="primary" size="lg">
+            <Link href="/reserve">
+              Make a Reservation
+            </Link>
+          </Button>
         </div>
       </div>
     </div>

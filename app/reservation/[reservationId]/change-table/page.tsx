@@ -87,7 +87,7 @@ function PaymentStep({
       <Button
         type="submit"
         disabled={!stripe || isProcessing}
-        variant="primary" size="lg" full className="py-3 bg-fg font-semibold hover:bg-fg/90"
+        variant="primary" size="lg" full
       >
         {isProcessing ? "Processing…" : `Pay ${formatCurrency(amountDue)} & change table`}
       </Button>
@@ -154,7 +154,7 @@ function PendingFixPaymentStep({
       <Button
         type="submit"
         disabled={!stripe || isProcessing}
-        variant="primary" size="lg" full className="py-3 bg-fg font-semibold hover:bg-fg/90"
+        variant="primary" size="lg" full
       >
         {isProcessing ? "Processing…" : `Pay ${formatCurrency(amountDue)}`}
       </Button>
@@ -335,12 +335,11 @@ export default function ChangeTablePage() {
               A refund of {formatCurrency(success.refund.amount)} will be processed to your original payment method.
             </p>
           )}
-          <Link
-            href="/dashboard/reservations"
-            className="block w-full py-3 bg-fg text-fg-inverse font-semibold rounded-lg hover:bg-fg/90 text-center"
-          >
-            View my reservations
-          </Link>
+          <Button asChild variant="primary" size="lg" full>
+            <Link href="/dashboard/reservations">
+              View my reservations
+            </Link>
+          </Button>
           <Link href="/events" className="block mt-3 text-fg-muted hover:text-fg text-sm">
             Browse events
           </Link>
@@ -356,7 +355,7 @@ export default function ChangeTablePage() {
           <Button
             type="button"
             onClick={() => setPaymentStep(null)}
-            variant="ghost" size="md" className="flex items-center gap-2 text-fg-muted hover:text-fg mb-6"
+            variant="ghost" size="md" className="mb-6"
           >
             <FiArrowLeft /> Back
           </Button>
@@ -460,7 +459,7 @@ export default function ChangeTablePage() {
               type="button"
               onClick={handleSelectTable}
               disabled={submitting}
-              variant="primary" size="lg" full className="py-3 bg-fg font-semibold hover:bg-fg/90 flex items-center justify-center gap-2"
+              variant="primary" size="lg" full
             >
               {submitting ? (
                 "Processing…"

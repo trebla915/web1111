@@ -6,14 +6,14 @@ import { useScrollParallax } from "@/lib/hooks/useScrollParallax"
 import { Button } from "@/components/ui/button"
 
 export default function HeroSection() {
-  const { style: parallaxStyle } = useScrollParallax({ speed: 0.5, direction: "content" })
+  const { ref: parallaxRef } = useScrollParallax({ speed: 0.5, direction: "content" })
 
   return (
     <section className="relative w-full min-h-dvh flex items-center justify-center text-center overflow-hidden bg-canvas border-t border-fg safe-area-insets">
       {/* Main Content — parallax: moves slower on scroll (mobile-first) */}
       <div
-        className="relative z-[60] flex flex-col items-center justify-center flex-grow pb-12 md:pb-16"
-        style={parallaxStyle}
+        ref={parallaxRef}
+        className="parallax-layer relative z-[60] flex flex-col items-center justify-center flex-grow pb-12 md:pb-16"
       >
         {/* Logo container */}
         <div className="relative w-full max-w-xs sm:max-w-sm md:max-w-2xl mx-auto px-4">
@@ -76,9 +76,10 @@ export default function HeroSection() {
       {/* Scroll indicator — respect safe area on iPhone */}
       {/* Was a `<div onClick>`: it looked like a control, but a keyboard could
           not reach it and a screen reader announced nothing. */}
-      <button
+      <Button
+        unstyled
         type="button"
-        className="pb-safe pl-safe pr-safe absolute bottom-4 left-1/2 z-[60] flex -translate-x-1/2 flex-col items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:bottom-8"
+        className="pb-safe pl-safe pr-safe absolute bottom-4 left-1/2 z-[60] flex -translate-x-1/2 flex-col items-center rounded-full md:bottom-8"
         onClick={() => document.getElementById('events')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
       >
         <span className="mb-2 rounded-full border border-fg/30 bg-canvas/30 px-4 py-2 text-xs backdrop-blur-sm transition-colors hover:bg-fg/10 sm:py-1 sm:text-sm">
@@ -87,7 +88,7 @@ export default function HeroSection() {
         <span aria-hidden="true" className="relative mt-1 h-6 w-0.5 overflow-hidden bg-fg/50 md:h-8">
           <span className="animate-drift absolute top-0 h-1/2 w-full bg-fg" />
         </span>
-      </button>
+      </Button>
     </section>
   )
 }

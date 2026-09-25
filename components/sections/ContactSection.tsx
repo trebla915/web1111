@@ -11,7 +11,7 @@ import { Input, Textarea } from "@/components/ui/input";
 import { Label } from "@/components/ui/field";
 
 export default function ContactSection() {
-  const { style: bgParallaxStyle, ref: bgParallaxRef } = useScrollParallax({
+  const { ref: bgParallaxRef } = useScrollParallax({
     speed: 0.8,
     direction: 'background',
     whenInView: true,
@@ -54,7 +54,7 @@ export default function ContactSection() {
     >
       {/* Background effects — parallax depth */}
       <div aria-hidden="true" className="noise pointer-events-none absolute inset-0 opacity-5" />
-      <div ref={bgParallaxRef} className="absolute inset-0 spotlight opacity-10" style={bgParallaxStyle} />
+      <div ref={bgParallaxRef} className="parallax-layer absolute inset-0 spotlight opacity-10" />
 
       <div className="container mx-auto px-4 relative z-10">
         <SectionHeader title="CONTACT US" subtitle="REACH OUT FOR RESERVATIONS OR INQUIRIES" />

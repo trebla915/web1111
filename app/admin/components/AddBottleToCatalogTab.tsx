@@ -275,13 +275,10 @@ export default function AddBottleToCatalogTab() {
               
               <Button
                 onClick={handleAddNewBottle}
-                variant="outline" size="md" full className="p-3 bg-gradient-to-r from-accent-800 to-accent-600 hover:from-accent-700 hover:to-accent-500 border border-accent-500/50 relative overflow-hidden group"
+                variant="accent" size="md" full
               >
-                <div className="absolute inset-0 flex justify-center items-center bg-gradient-to-r from-accent-600/0 via-accent-600/30 to-accent-600/0 opacity-0 group-hover:opacity-100 transform translate-y-full group-hover:translate-y-0 transition-all duration-500"></div>
-                <span className="relative z-10 flex items-center justify-center">
-                  <FiPlus className="mr-2" />
-                  Add Bottle
-                </span>
+                <FiPlus />
+                Add Bottle
               </Button>
             </div>
             
@@ -300,7 +297,7 @@ export default function AddBottleToCatalogTab() {
                       setNewBottleImagePreview(null);
                       setNewBottleImage(null);
                     }}
-                    variant="ghost" size="md" className="absolute top-2 right-2 bg-danger-500/80 rounded-full p-1 hover:bg-danger-600"
+                    variant="danger" size="icon" shape="pill" aria-label="Remove image" className="absolute top-2 right-2"
                   >
                     <FiX className="text-fg" />
                   </Button>
@@ -391,7 +388,7 @@ export default function AddBottleToCatalogTab() {
                 <h3 className="text-xl font-semibold text-accent-300">Edit Bottle</h3>
                 <Button 
                   onClick={handleCloseModal}
-                  variant="subtle" size="md" className="text-fg-muted hover:text-fg bg-surface-raised/80 p-2 rounded-full hover:bg-surface-hover"
+                  variant="subtle" size="icon" shape="pill" aria-label="Close"
                 >
                   <FiX size={20} />
                 </Button>
@@ -456,16 +453,15 @@ export default function AddBottleToCatalogTab() {
               <div className="flex space-x-3">
                 <Button
                   onClick={handleSaveBottle}
-                  variant="outline" size="md" className="flex-1 p-3 bg-gradient-to-r from-accent-800 to-accent-600 hover:from-accent-700 hover:to-accent-500 border border-accent-500/50 relative overflow-hidden group"
+                  variant="accent" size="md" className="flex-1"
                 >
-                  <div className="absolute inset-0 flex justify-center items-center bg-gradient-to-r from-accent-600/0 via-accent-600/30 to-accent-600/0 opacity-0 group-hover:opacity-100 transform translate-y-full group-hover:translate-y-0 transition-all duration-500"></div>
-                  <span className="relative z-10">Save Changes</span>
+                  Save Changes
                 </Button>
                 <Button
                   onClick={handleDeleteBottle}
-                  variant="outline" size="md" className="flex-1 p-3 bg-gradient-to-r from-danger-900/80 to-danger-700/80 hover:from-danger-800 hover:to-danger-600 border border-danger-500/50 flex items-center justify-center"
+                  variant="danger-subtle" size="md" className="flex-1"
                 >
-                  <FiTrash2 className="mr-2" />
+                  <FiTrash2 />
                   Delete
                 </Button>
               </div>

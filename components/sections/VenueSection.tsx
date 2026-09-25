@@ -7,7 +7,7 @@ import { useScrollParallax } from '@/lib/hooks/useScrollParallax';
 import SectionHeader from './SectionHeader';
 
 export default function VenueSection() {
-  const { style: imageParallaxStyle, ref: imageParallaxRef } = useScrollParallax({
+  const { ref: imageParallaxRef } = useScrollParallax({
     speed: 0.6,
     direction: 'background',
     whenInView: true,
@@ -32,12 +32,11 @@ export default function VenueSection() {
               supplied it covers them, and until then the block still reads as a
               deliberate panel rather than a hole. */}
           <div
-            ref={imageParallaxRef}
             className="relative h-72 overflow-hidden rounded-lg border border-fg/20 bg-surface sm:h-80 md:h-auto md:min-h-[22rem]"
           >
             <div aria-hidden="true" className="noise absolute inset-0 opacity-10" />
             <div aria-hidden="true" className="spotlight opacity-20" />
-            <div className="absolute inset-0 scale-110" style={imageParallaxStyle}>
+            <div ref={imageParallaxRef} className="parallax-layer absolute inset-0 scale-110">
               <Image
                 src="/images/venue.jpg"
                 alt=""

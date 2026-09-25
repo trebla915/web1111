@@ -151,7 +151,7 @@ export default function StaffCheckInPage() {
           <p className="text-danger-400 mb-6">{error}</p>
           <Button
             onClick={() => router.push('/staff')}
-            variant="accent" size="lg" className="px-6 py-3 bg-accent-600 hover:bg-accent-700"
+            variant="accent" size="lg"
           >
             Back to Staff Dashboard
           </Button>

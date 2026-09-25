@@ -191,7 +191,7 @@ export default function ManageTablesTab({ initialEventId }: ManageTablesTabProps
           <div className="flex justify-end">
             <Button
               onClick={openAddModal}
-              variant="accent" size="lg" className="flex items-center gap-2 px-4 py-3 lg:py-2 bg-accent-600 hover:bg-accent-700 text-sm"
+              variant="accent" size="md"
             >
               <FiPlus />
               Add Table
@@ -234,19 +234,17 @@ export default function ManageTablesTab({ initialEventId }: ManageTablesTabProps
                     <div className="flex gap-1">
                       <Button
                         onClick={() => openEditModal(table)}
-                        variant="ghost" size="md" className="p-2 text-fg-muted hover:bg-surface-hover/30"
+                        variant="ghost" size="icon" aria-label="Edit table"
                         title="Edit table"
                       >
                         <FiEdit2 size={16} />
                       </Button>
-                      <Button unstyled
+                      <Button
                         onClick={() => handleDelete(table)}
                         disabled={table.reserved || deletingId === table.id}
-                        className={`p-2 rounded-lg transition-colors ${
-                          confirmDeleteId === table.id
-                            ? "text-fg bg-danger-600 hover:bg-danger-700"
-                            : "text-danger-400 hover:bg-danger-900/20"
-                        } disabled:opacity-40 disabled:cursor-not-allowed`}
+                        variant={confirmDeleteId === table.id ? "danger" : "ghost-danger"}
+                        size="icon"
+                        aria-label={confirmDeleteId === table.id ? "Confirm delete table" : "Delete table"}
                         title={table.reserved ? "Cancel the reservation first to delete this table" : confirmDeleteId === table.id ? "Click again to confirm delete" : "Delete table"}
                       >
                         {table.reserved ? <FiLock size={16} /> : <FiTrash2 size={16} />}
@@ -287,7 +285,7 @@ export default function ManageTablesTab({ initialEventId }: ManageTablesTabProps
               <h3 className="text-xl font-semibold text-accent-300">
                 {editingTable ? "Edit Table" : "Add Table"}
               </h3>
-              <Button onClick={closeModal} variant="ghost" size="md" className="text-fg-muted hover:text-fg">
+              <Button onClick={closeModal} variant="ghost" size="icon" aria-label="Close">
                 <FiX size={20} />
               </Button>
             </div>
@@ -376,14 +374,14 @@ export default function ManageTablesTab({ initialEventId }: ManageTablesTabProps
               <Button
                 onClick={closeModal}
                 disabled={saving}
-                variant="outline" size="md" className="flex-1 px-4 py-2 border border-line-strong text-fg-dim hover:bg-surface-raised"
+                variant="outline" size="md" className="flex-1"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSave}
                 disabled={saving}
-                variant="accent" size="md" className="flex-1 px-4 py-2 bg-accent-600 hover:bg-accent-700 flex items-center justify-center gap-2"
+                variant="accent" size="md" className="flex-1"
               >
                 {saving ? (
                   <Spinner size="sm" className="text-fg" />

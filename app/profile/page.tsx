@@ -249,20 +249,18 @@ export default function ProfilePage() {
           <div className="flex items-center gap-4">
             {/* Icon-only link with no text and no label: announced as a bare
                 "link" and only 24px tall. */}
-            <Link
-              href="/dashboard"
-              aria-label="Back to dashboard"
-              className="-ml-2 flex h-11 w-11 items-center justify-center rounded-full text-fg transition-colors hover:bg-fg/10 hover:text-accent-bright focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <FiArrowLeft aria-hidden="true" size={22} />
-            </Link>
+            <Button asChild variant="ghost" size="icon" shape="pill" className="-ml-2">
+              <Link href="/dashboard" aria-label="Back to dashboard">
+                <FiArrowLeft aria-hidden="true" size={22} />
+              </Link>
+            </Button>
             <h1 className="text-3xl font-bold text-fg">My Profile</h1>
           </div>
           
           {!isEditing && (
             <Button
               onClick={() => setIsEditing(true)}
-              variant="accent" size="md" className="flex items-center gap-2 px-4 py-2 bg-accent-600 hover:bg-accent-700"
+              variant="accent"
             >
               <FiEdit2 size={18} />
               Edit Profile
@@ -273,7 +271,7 @@ export default function ProfilePage() {
         <div className="max-w-2xl mx-auto">
           <div className="bg-surface/50 backdrop-blur-sm rounded-xl border border-line-subtle overflow-hidden">
             {/* Profile Header */}
-            <div className="bg-gradient-to-r from-accent-600/20 to-profile-600/20 p-8 border-b border-line-subtle">
+            <div className="bg-gradient-to-r from-accent-600/20 to-transparent p-8 border-b border-line-subtle">
               <div className="flex items-center gap-6">
                 {/* Avatar */}
                 <div className="relative">
@@ -297,9 +295,13 @@ export default function ProfilePage() {
                   {isEditing && (
                     <Button
                       onClick={() => fileInputRef.current?.click()}
-                      variant="accent" size="md" className="absolute bottom-0 right-0 p-2 bg-accent-600 hover:bg-accent-700 rounded-full"
+                      variant="accent"
+                      size="icon"
+                      shape="pill"
+                      aria-label="Change profile photo"
+                      className="absolute bottom-0 right-0"
                     >
-                      <FiCamera size={14} />
+                      <FiCamera aria-hidden="true" size={14} />
                     </Button>
                   )}
                   
@@ -424,7 +426,7 @@ export default function ProfilePage() {
                   <Button
                     onClick={handleUpdateProfile}
                     disabled={isUpdating}
-                    variant="accent" size="lg" className="flex items-center gap-2 px-6 py-3 bg-accent-600 hover:bg-accent-700 disabled:bg-accent-600/50"
+                    variant="accent" size="lg"
                   >
                     <FiSave size={18} />
                     {isUpdating ? 'Saving...' : 'Save Changes'}
@@ -442,7 +444,7 @@ export default function ProfilePage() {
                         lastName: user.lastName || ''
                       });
                     }}
-                    variant="subtle" size="lg" className="flex items-center gap-2 px-6 py-3 bg-surface-hover hover:bg-surface-lifted"
+                    variant="outline" size="lg"
                   >
                     <FiX size={18} />
                     Cancel
@@ -457,7 +459,7 @@ export default function ProfilePage() {
                   {!showPasswordForm && (
                     <Button
                       onClick={() => setShowPasswordForm(true)}
-                      variant="subtle" size="md" className="flex items-center gap-2 px-4 py-2 bg-profile-600 hover:bg-profile-700"
+                      variant="outline"
                     >
                       <FiLock size={18} />
                       Change Password
@@ -517,7 +519,7 @@ export default function ProfilePage() {
                       <Button
                         onClick={handlePasswordChange}
                         disabled={isChangingPassword}
-                        variant="subtle" size="lg" className="flex items-center gap-2 px-6 py-3 bg-profile-600 hover:bg-profile-700 disabled:bg-profile-600/50"
+                        variant="accent" size="lg"
                       >
                         <FiLock size={18} />
                         {isChangingPassword ? 'Updating...' : 'Update Password'}
@@ -532,7 +534,7 @@ export default function ProfilePage() {
                             confirmPassword: ''
                           });
                         }}
-                        variant="subtle" size="lg" className="flex items-center gap-2 px-6 py-3 bg-surface-lifted hover:bg-fg-subtle"
+                        variant="outline" size="lg"
                       >
                         <FiX size={18} />
                         Cancel
