@@ -46,24 +46,31 @@ const sheetVariants = cva(
 
 interface SheetContentProps
   extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>,
-    VariantProps<typeof sheetVariants> {}
+    VariantProps<typeof sheetVariants> {
+  /** Placement for the backdrop, e.g. a z-index that clears a fixed header. */
+  overlayClassName?: string
+  /** Set false when the content renders its own `SheetClose` control. */
+  showClose?: boolean
+}
 
 const SheetContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   SheetContentProps
->(({ side = "left", className, children, ...props }, ref) => (
+>(({ side = "left", className, overlayClassName, showClose = true, children, ...props }, ref) => (
   <SheetPortal>
-    <SheetOverlay />
+    <SheetOverlay className={overlayClassName} />
     <DialogPrimitive.Content
       ref={ref}
       className={cn(sheetVariants({ side }), className)}
       {...props}
     >
       {children}
-      <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
-        <FiX className="h-5 w-5" />
-        <span className="sr-only">Close</span>
-      </DialogPrimitive.Close>
+      {showClose && (
+        <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
+          <FiX className="h-5 w-5" />
+          <span className="sr-only">Close</span>
+        </DialogPrimitive.Close>
+      )}
     </DialogPrimitive.Content>
   </SheetPortal>
 ))
