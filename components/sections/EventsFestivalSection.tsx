@@ -121,30 +121,38 @@ export default function EventsFestivalSection({
     const list = eventListRef.current;
     if (!list || visibleEvents.length === 0) return;
 
-    setActiveEventId(visibleEvents[0].id);
     const cards = Array.from(list.querySelectorAll<HTMLElement>('[data-event-card]'));
     const scrollRoot = document.getElementById('__scroll-root');
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const centered = entries
-          .filter((entry) => entry.isIntersecting)
-          .map((entry) => entry.target as HTMLElement)
-          .sort((a, b) => {
-            const viewportCenter = window.innerHeight / 2;
-            const aRect = a.getBoundingClientRect();
-            const bRect = b.getBoundingClientRect();
-            const aDistance = Math.abs(aRect.top + aRect.height / 2 - viewportCenter);
-            const bDistance = Math.abs(bRect.top + bRect.height / 2 - viewportCenter);
-            return aDistance - bDistance;
-          });
+    if (!scrollRoot || cards.length === 0) return;
 
-        if (centered[0]?.dataset.eventId) setActiveEventId(centered[0].dataset.eventId);
-      },
-      { root: scrollRoot, rootMargin: '-28% 0px -28% 0px', threshold: [0, 0.5, 1] }
-    );
+    let frame = 0;
+    const updateCenteredCard = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const rootRect = scrollRoot.getBoundingClientRect();
+        const viewportCenter = rootRect.top + rootRect.height / 2;
+        const closest = cards.reduce<{ id: string; distance: number } | null>((best, card) => {
+          const cardRect = card.getBoundingClientRect();
+          const id = card.dataset.eventId;
+          if (!id) return best;
 
-    cards.forEach((card) => observer.observe(card));
-    return () => observer.disconnect();
+          const distance = Math.abs(cardRect.top + cardRect.height / 2 - viewportCenter);
+          return !best || distance < best.distance ? { id, distance } : best;
+        }, null);
+
+        if (closest) setActiveEventId((current) => current === closest.id ? current : closest.id);
+      });
+    };
+
+    updateCenteredCard();
+    scrollRoot.addEventListener('scroll', updateCenteredCard, { passive: true });
+    window.addEventListener('resize', updateCenteredCard);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      scrollRoot.removeEventListener('scroll', updateCenteredCard);
+      window.removeEventListener('resize', updateCenteredCard);
+    };
   }, [visibleEvents.length, trimmedQuery]);
 
   return (
