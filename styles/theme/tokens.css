@@ -191,5 +191,8 @@
 
   /* ─── Layout ─────────────────────────────────────────────────────────── */
   --touch-target-min: 44px;
+  /* How far the mobile logo drops out of the header into the homepage hero.
+     The header's hide-on-scroll travel adds it so no sliver is left behind. */
+  --header-logo-drop: 1.25rem;
   --scrollbar-thumb: rgb(var(--accent) / 0.3);
 }

@@ -3,18 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { FiInstagram, FiFacebook, FiTwitter } from "react-icons/fi";
 import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/field";
-
-/** Mirrors the header's list; both point at the venue's real accounts. */
-const FOOTER_SOCIAL = [
-  { href: "https://www.instagram.com/1111eptx/", label: "11:11 on Instagram", Icon: FiInstagram },
-  { href: "https://www.facebook.com/1111eptx/", label: "11:11 on Facebook", Icon: FiFacebook },
-  { href: "https://twitter.com", label: "11:11 on Twitter", Icon: FiTwitter },
-] as const;
+import { SocialLinks } from "@/components/layout/SocialLinks";
 
 export default function Footer() {
   const [email, setEmail] = useState("");
@@ -106,20 +99,7 @@ export default function Footer() {
           {/* Right: social + links */}
           <div className="flex flex-col items-center gap-3 md:items-end">
             <h2 className="font-heading text-lg tracking-wider text-fg">Follow us</h2>
-            <div className="flex items-center">
-              {FOOTER_SOCIAL.map(({ href, label, Icon }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`${label} (opens in a new tab)`}
-                  className="flex h-11 w-11 items-center justify-center rounded-full text-fg-muted transition-colors hover:bg-fg/10 hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <Icon aria-hidden="true" size={20} />
-                </a>
-              ))}
-            </div>
+            <SocialLinks />
             <nav aria-label="Footer" className="mt-1">
               {/* Was a 20px-tall text link. It gets a real target now. */}
               <Link
