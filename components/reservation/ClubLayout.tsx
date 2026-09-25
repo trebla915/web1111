@@ -220,7 +220,7 @@ const ClubLayout: React.FC<ClubLayoutProps> = ({
 
   return (
     <div className="mx-auto w-full max-w-5xl">
-      <div className="relative overflow-hidden rounded-xl border border-fg/20 bg-gradient-to-b from-canvas to-surface/95 text-fg shadow-[0_0_30px_rgb(var(--fg)/0.08)]">
+      <div className="relative overflow-hidden rounded-xl border border-fg/20 bg-gradient-to-b from-canvas to-surface/95 text-fg shadow-panel">
         {/* Background noise texture */}
         <div aria-hidden="true" className="noise pointer-events-none absolute inset-0 opacity-5" />
 
@@ -268,7 +268,7 @@ const ClubLayout: React.FC<ClubLayoutProps> = ({
           </div>
 
           {/* Stage area */}
-          <div className="relative mx-auto mb-4 w-2/3 overflow-hidden rounded-md bg-gradient-to-r from-fg/5 via-fg/10 to-fg/5 py-2 shadow-[0_0_15px_rgb(var(--fg)/0.1)] sm:mb-6 sm:w-1/3 sm:py-5">
+          <div className="relative mx-auto mb-4 w-2/3 overflow-hidden rounded-md bg-gradient-to-r from-fg/5 via-fg/10 to-fg/5 py-2 shadow-stage sm:mb-6 sm:w-1/3 sm:py-5">
             <div aria-hidden="true" className="spotlight opacity-20" />
             <div aria-hidden="true" className="noise absolute inset-0 opacity-10" />
             <h3 className="relative text-center font-heading text-sm tracking-[0.2em] text-fg sm:text-xl">

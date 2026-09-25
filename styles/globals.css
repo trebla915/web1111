@@ -1,14 +1,6 @@
 /* ─── Single source of truth: styles/theme/tokens.css ─────────────────────── */
 @import './theme/tokens.css';
 
-/* Typeface loading.
-   Only the three faces the design actually uses. Excon, Bungee Shade,
-   Rubik Glitch and Monoton were imported here but referenced nowhere — four
-   render-blocking font downloads for glyphs that never painted. */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Anta&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -77,8 +69,8 @@ a, button { -webkit-tap-highlight-color: transparent; }
 .h-dvh { height: 100vh; height: 100dvh; }
 
 /* ─── Headings ──────────────────────────────────────────────────────────────
-   The condensed display face, uppercase, applied once here rather than
-   re-declared per page. */
+   Typography comes from one family. Headings differ through weight and
+   spacing, rather than switching to an unrelated condensed face. */
 h1, h2, h3, .title {
   font-family: var(--font-heading);
   font-weight: 600;
@@ -134,29 +126,6 @@ h1, h2, h3, .title {
   object-fit: cover;
   z-index: -1;
 }
-
-/* ─── Glow treatments ───────────────────────────────────────────────────────
-   Three intensities, all sourced from tokens so the signature can be retuned
-   in one place. */
-.neon-text {
-  color: rgb(var(--fg));
-  text-shadow: var(--shadow-glow-white);
-}
-
-.digital-glow {
-  text-shadow:
-    0 0 2px  rgb(var(--fg)),
-    0 0 4px  rgb(var(--fg)),
-    0 0 8px  rgb(var(--fg)),
-    0 0 12px rgb(var(--fg)),
-    0 0 16px rgb(var(--fg)),
-    0 0 22px rgb(var(--fg)),
-    0 0 30px rgb(var(--fg));
-}
-
-.digital-glow-soft { text-shadow: var(--shadow-glow-soft); }
-.digital-glow-soft-right { box-shadow: 2px 0 10px rgb(var(--accent) / 0.3); }
-.shadow-glow { box-shadow: 0 0 8px 1px rgb(var(--fg) / 0.7); }
 
 /* ─── Animation ─────────────────────────────────────────────────────────── */
 @keyframes flash {
@@ -226,7 +195,7 @@ h1, h2, h3, .title {
 /* ─── Browser surfaces ──────────────────────────────────────────────────────
    The parts of the page the app does not draw: selection, caret, the default
    scrollbar and the focus ring. Left alone they ship the platform's own blue,
-   which belongs to no design system on a black-and-cyan page. */
+   which does not belong on the monochrome site. */
 ::selection {
   background-color: rgb(var(--accent) / 0.35);
   color: rgb(var(--fg));

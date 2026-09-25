@@ -202,6 +202,12 @@ module.exports = {
         'glow-soft':   'var(--shadow-glow-soft)',
         'glow-accent': 'var(--shadow-glow-accent)',
         'card-hover':  'var(--shadow-card-hover)',
+        'panel':       'var(--shadow-panel)',
+        'stage':       'var(--shadow-stage)',
+      },
+
+      dropShadow: {
+        'mark': 'var(--shadow-mark)',
       },
 
       animation: {

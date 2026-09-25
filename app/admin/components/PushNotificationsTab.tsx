@@ -154,7 +154,7 @@ export default function PushNotificationsTab() {
 
   return (
     <div className="p-4 lg:p-6">
-      <h2 className="text-2xl lg:text-3xl font-bold mb-6 text-accent-300 digital-glow-soft">Send Push Notification</h2>
+      <h2 className="mb-6 text-2xl font-bold text-accent-300 lg:text-3xl">Send Push Notification</h2>
 
       <Card padding="lg" texture className="max-w-3xl mx-auto mb-8">
         <div className="relative z-10">

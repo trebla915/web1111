@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Public_Sans } from "next/font/google";
 import { ReactNode } from "react";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import StripeProvider from "@/components/providers/StripeProvider";
@@ -7,6 +8,14 @@ import { Toaster } from "react-hot-toast";
 import "../styles/globals.css";
 import ConditionalLayout from "@/components/layout/ConditionalLayout";
 import { palette } from "@/lib/theme/palette";
+
+/** One font declaration for the entire product. Typography tokens map every
+ * role—body, heading and display—back to this variable. */
+const brandFont = Public_Sans({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-brand",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://www.1111eptx.com"),
@@ -74,7 +83,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="min-h-full">
+    <html lang="en" className={`${brandFont.variable} min-h-full`}>
       <head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />

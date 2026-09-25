@@ -17,12 +17,12 @@
  * One neutral ramp only: zinc. The site previously mixed Tailwind `gray-*`
  * (blue-tinted) and `zinc-*` (neutral) for identical roles — often in the same
  * file — which read as a subtle colour cast that drifted screen to screen.
- * Brand colours (black, white, cyan) and status colours are unchanged.
+ * The customer-facing palette is monochrome. Status colours remain available
+ * where meaning—not decoration—requires them.
  *
- * NO BLUE, NO PURPLE
- * Cyan is the only hue. Blue (`info`, Facebook/Twitter share buttons) and
- * purple (`profile`) tokens were removed; tests/design/theme.test.ts fails
- * the build if a token in the blue–violet hue band comes back.
+ * MONOCHROME BRAND
+ * Accent aliases are neutral so a component cannot accidentally reintroduce
+ * blue/cyan. tests/design/theme.test.ts fails if any brand accent gains hue.
  */
 
 :root {
@@ -49,27 +49,26 @@
   --fg-inverse:      0 0 0;        /* black    — text on light surfaces  */
 
   /* ─── Lines ──────────────────────────────────────────────────────────────
-     `line-accent` is the cyan hairline used to tint card edges. */
+     `line-accent` is a stronger neutral hairline for selected card edges. */
   --line:            63 63 70;     /* zinc-700 — default borders         */
   --line-subtle:     39 39 42;     /* zinc-800 — dividers, quiet edges   */
   --line-strong:     82 82 91;     /* zinc-600 — emphasised borders      */
-  --line-accent:     22 78 99;     /* cyan-900 — brand-tinted card edge  */
+  --line-accent:     82 82 82;     /* neutral — selected card edge       */
 
-  /* ─── Accent — brand cyan ramp (values unchanged) ────────────────────────
-     A numeric ramp, not a set of semantic guesses: cyan is used across ten
-     steps for text, fills, gradients and hairlines, so naming each step by
-     position keeps the mapping lossless. The semantic aliases below cover the
-     common roles — reach for those first. */
-  --accent-100: 207 250 254;
-  --accent-200: 165 243 252;
-  --accent-300: 103 232 249;
-  --accent-400: 34 211 238;
-  --accent-500: 6 182 212;
-  --accent-600: 8 145 178;
-  --accent-700: 14 116 144;
-  --accent-800: 21 94 117;
-  --accent-900: 22 78 99;
-  --accent-950: 8 51 68;
+  /* ─── Accent — monochrome interaction ramp ──────────────────────────────
+     Existing semantic utilities keep working, but every accent now resolves
+     to neutral ink. This is the one switch that removes decorative cyan from
+     the entire site, emails and generated UI. */
+  --accent-100: 250 250 250;
+  --accent-200: 228 228 228;
+  --accent-300: 212 212 212;
+  --accent-400: 212 212 212;
+  --accent-500: 161 161 161;
+  --accent-600: 113 113 113;
+  --accent-700: 82 82 82;
+  --accent-800: 63 63 63;
+  --accent-900: 39 39 39;
+  --accent-950: 24 24 24;
 
   --accent:        var(--accent-500);  /* interactive default, focus ring */
   --accent-bright: var(--accent-400);  /* accent text on dark             */
@@ -129,8 +128,8 @@
   --warning-deep:   var(--warning-900);
   --warning-abyss:  var(--warning-950);
 
-  /* There is no `info` ramp. It was Tailwind blue, and the site has one hue:
-     cyan. Informational marks use the accent or a neutral step. */
+  /* There is no decorative `info` ramp. Informational marks use the neutral
+     accent ladder; status hues are reserved for actual state. */
 
   /* ─── Categorical action palette ─────────────────────────────────────────
      Three admin actions sit side by side in the reservations toolbar and are
@@ -166,11 +165,11 @@
   --radius: 0.5rem;
 
   /* ─── Typography ─────────────────────────────────────────────────────────
-     `heading` is the condensed display face used for h1–h3 and titles;
-     `display` is the monospace used for numerals, codes and timestamps. */
-  --font-sans:    'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-heading: 'Anton', 'Anta', 'Arial Narrow', sans-serif;
-  --font-display: ui-monospace, 'SF Mono', 'Menlo', 'Consolas', monospace;
+     Public Sans is loaded once by next/font in app/layout.tsx. All semantic
+     roles resolve to it, so components cannot drift into another typeface. */
+  --font-sans:    var(--font-brand), system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-heading: var(--font-sans);
+  --font-display: var(--font-sans);
 
   /* ─── Motion ─────────────────────────────────────────────────────────────
      Exponential easing only. Bounce/elastic easing reads as dated and was
@@ -182,12 +181,14 @@
   --duration-slow: 400ms;
 
   /* ─── Effects ────────────────────────────────────────────────────────────
-     Glow is the venue's signature; keep it to these three intensities so it
-     stays a deliberate accent rather than ambient noise. */
+     Shadows are structural only; typography never glows. */
   --shadow-glow-white: 0 0 5px rgb(var(--fg) / 0.7), 0 0 10px rgb(var(--fg) / 0.5), 0 0 15px rgb(var(--fg) / 0.3);
   --shadow-glow-soft:  0 0 2px rgb(var(--fg) / 0.5), 0 0 8px rgb(var(--fg) / 0.3), 0 0 12px rgb(var(--fg) / 0.2);
   --shadow-glow-accent: 0 0 10px rgb(var(--accent) / 0.5);
   --shadow-card-hover:  0 4px 12px rgb(var(--accent) / 0.1);
+  --shadow-panel:       0 0 30px rgb(var(--fg) / 0.08);
+  --shadow-stage:       0 0 15px rgb(var(--fg) / 0.1);
+  --shadow-mark:        0 0 4px rgb(var(--fg) / 0.25);
 
   /* ─── Layout ─────────────────────────────────────────────────────────── */
   --touch-target-min: 44px;

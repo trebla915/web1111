@@ -29,9 +29,9 @@ export const palette = {
   // --line-subtle
   lineSubtle: "#27272a",
   // --accent-400
-  accentBright: "#22d3ee",
+  accentBright: "#d4d4d4",
   // --accent-600
-  accentDim: "#0891b2",
+  accentDim: "#717171",
 } as const;
 
 export type PaletteColor = keyof typeof palette;

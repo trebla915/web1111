@@ -6,7 +6,7 @@
  * suite fails when a page routes around either one, so drift is caught in CI
  * instead of in a screenshot:
  *
- *   - no blue or violet token (cyan is the only hue)
+ *   - no hue in the brand accent ramp
  *   - no raw Tailwind palette class, hex or rgb() literal in UI code
  *   - no inline `style` prop
  *   - no raw <button> outside components/ui
@@ -69,15 +69,11 @@ function hueSat([r, g, b]: [number, number, number]) {
 }
 
 describe("tokens", () => {
-  it("contain no blue or violet hue (cyan is the only accent)", () => {
-    // Brand cyan sits at 186–197°. Tailwind blue starts ~213°, sky ~199°.
+  it("keep the brand accent ramp monochrome", () => {
     const hits = tokenTriplets
-      .filter(({ rgb }) => {
-        const { hue, sat } = hueSat(rgb);
-        return sat > 0.25 && hue >= 199 && hue <= 300;
-      })
+      .filter(({ name, rgb }) => name.startsWith("accent-") && hueSat(rgb).sat > 0.05)
       .map(({ name, rgb }) => `--${name}: ${rgb.join(" ")} (hue ${Math.round(hueSat(rgb).hue)}°)`);
-    report(hits, "blue/violet tokens in styles/theme/tokens.css");
+    report(hits, "colored brand accents in styles/theme/tokens.css");
   });
 
   it("are mirrored exactly by lib/theme/palette.ts", () => {

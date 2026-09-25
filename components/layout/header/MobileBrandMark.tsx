@@ -15,7 +15,7 @@ const MARK_BOX = "relative aspect-[922/392] w-32"
 const MARK_IMAGE = "absolute -left-[53.5%] -top-[90.5%] w-[208.2%] max-w-none"
 
 /** A soft white halo keeps the hairline outline legible at header size. */
-const MARK_GLOW = "drop-shadow-[0_0_4px_rgb(var(--fg)/0.25)]"
+const MARK_GLOW = "drop-shadow-mark"
 
 interface MobileBrandMarkProps {
   /** Drop the mark out of the bar into the hero (top of the homepage only). */

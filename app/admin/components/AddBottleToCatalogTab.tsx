@@ -200,7 +200,7 @@ export default function AddBottleToCatalogTab() {
 
   return (
     <div className="p-4 lg:p-6">
-      <h2 className="text-2xl lg:text-3xl font-bold mb-6 text-accent-300 digital-glow-soft">Add Bottle to Catalog</h2>
+      <h2 className="mb-6 text-2xl font-bold text-accent-300 lg:text-3xl">Add Bottle to Catalog</h2>
       
       {/* Loading Overlay */}
       {loading && (

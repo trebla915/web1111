@@ -270,7 +270,7 @@ export default function EventDetails({ event }: EventDetailsProps) {
                   <div className="text-sm sm:text-base text-fg/60 mb-0">
                     {formatDate(event.date || '')}
                   </div>
-                  <h1 className="text-2xl sm:text-3xl font-bold text-fg digital-glow-soft">
+                  <h1 className="text-2xl font-bold text-fg sm:text-3xl">
                     {event.title}
                   </h1>
                 </div>
