@@ -1,3 +1,6 @@
+/** El Paso observes Mountain Time. */
+export const VENUE_TIME_ZONE = 'America/Denver';
+
 /**
  * Convert UTC date string to Mountain Time
  * @param dateStr Date string in ISO format
@@ -5,7 +8,15 @@
  */
 export function convertToMountainTime(dateStr: string): Date {
   const utcDate = new Date(dateStr);
-  return new Date(utcDate.toLocaleString('en-US', { timeZone: 'America/Denver' }));
+  return new Date(utcDate.toLocaleString('en-US', { timeZone: VENUE_TIME_ZONE }));
+}
+
+/**
+ * Today's date at the venue as YYYY-MM-DD, comparable with stored event dates.
+ * UTC would roll over to tomorrow at 5–6 pm local, hiding that night's event.
+ */
+export function venueDateKey(now: Date = new Date()): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: VENUE_TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
 }
 
 /**

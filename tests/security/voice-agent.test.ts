@@ -18,7 +18,7 @@ import { describe, it } from "node:test";
 const read = (p: string) => readFileSync(join(process.cwd(), p), "utf8");
 const route = read("app/api/voice-agent/route.ts");
 const webhook = read("app/api/stripe/webhook/route.ts");
-const agent = read("voice-agent/src/agent.ts");
+const agent = read("voice-agent/src/venue_agent.ts");
 
 /** The body of `if (action === '<name>') { … }` up to the next action. */
 function actionBlock(name: string): string {
@@ -95,5 +95,43 @@ describe("phone reservation agent: the caller is confirmed", () => {
     const fn = webhook.slice(webhook.indexOf("async function confirmPhoneReservation"));
     assert.match(fn, /deliverReservationConfirmation\(reservationId\)\.catch/);
     assert.match(fn, /try \{\s*await sendText/);
+  });
+});
+
+describe("phone reservation agent: discovery never unlocks booking", () => {
+  it("lists events without filtering on reservationsEnabled", () => {
+    const events = actionBlock("events");
+    assert.doesNotMatch(events, /reservationsEnabled\s*[!=]==/);
+    assert.match(events, /toVoiceEvents\(/);
+  });
+
+  it("availability, bottles and quotes still refuse events without reservations", () => {
+    assert.match(route, /if \(!eventSnap\.exists \|\| eventSnap\.data\(\)\?\.reservationsEnabled !== true\) \{\s*return NextResponse\.json\(\{ error: 'Reservations are not available for that event\.' \}, \{ status: 404 \}\)/);
+    const quote = route.slice(route.indexOf("async function getQuote"), route.indexOf("export async function POST"));
+    assert.match(quote, /eventSnap\.data\(\)\?\.reservationsEnabled !== true\) throw new Error\('Reservations are not available/);
+  });
+
+  it("holds and payment links only follow a quote", () => {
+    const checkout = actionBlock("create-checkout");
+    assert.ok(checkout.indexOf("await getQuote(") < checkout.indexOf("runTransaction"), "the quote gate must run before the hold");
+    assert.ok(checkout.indexOf("await getQuote(") < checkout.indexOf("checkout.sessions.create"), "the quote gate must run before Stripe");
+  });
+});
+
+describe("phone reservation agent: caller ID is only a hint", () => {
+  const lookup = actionBlock("caller-lookup");
+
+  it("answers yes or no and nothing else", () => {
+    assert.match(lookup, /return NextResponse\.json\(\{ hasPossibleReservation \}\)/);
+    assert.equal(lookup.match(/NextResponse\.json/g)?.length, 1);
+  });
+
+  it("logs nothing about the caller", () => {
+    assert.doesNotMatch(lookup, /console\.|log\(/);
+  });
+
+  it("reservation details still need an SMS code", () => {
+    const verify = actionBlock("verify-lookup-code");
+    assert.ok(verify.indexOf("checkVerification(") < verify.indexOf("reservationsByPhone("), "details are read only after the code checks out");
   });
 });

@@ -1,7 +1,6 @@
 ARG NODE_VERSION=24
 FROM node:${NODE_VERSION}-slim
 
-ENV NODE_ENV=production
 WORKDIR /app
 
 RUN apt-get update -qq \
@@ -10,9 +9,13 @@ RUN apt-get update -qq \
 
 COPY package.json ./
 RUN npm install
+
 COPY tsconfig.json ./
 COPY src ./src
+
 RUN npm run build && npm prune --omit=dev
+
+ENV NODE_ENV=production
 
 USER node
 CMD ["npm", "start"]

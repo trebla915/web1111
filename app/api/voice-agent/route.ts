@@ -4,12 +4,14 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { adminFirestore } from '@/lib/firebase/admin';
 import { stripe } from '@/lib/stripe';
 import { sendText, twilioAuth } from '@/lib/messaging/sms';
+import { normalizePhone, phoneLookupVariants } from '@/lib/utils/phone';
+import { venueDateKey } from '@/lib/utils/dateFormatter';
+import { hasPossibleUpcomingReservation, toVoiceEvents, type ReservationsByPhone } from '@/lib/voice-agent/data';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 const HOLD_MS = 30 * 60 * 1000;
-const PHONE_RE = /^\+[1-9]\d{7,14}$/;
 // Same rules as the web contact step (app/reserve/[id]/contact/page.tsx).
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_SOURCE = '1111_phone';
@@ -24,11 +26,15 @@ function authorized(request: NextRequest): boolean {
 }
 
 function e164(value: unknown): string {
-  if (typeof value !== 'string' || !PHONE_RE.test(value)) {
-    throw new Error('Use a phone number in international format, such as +19152463945.');
-  }
-  return value;
+  const phone = normalizePhone(value);
+  if (!phone) throw new Error('Use a phone number in international format, such as +19152463945.');
+  return phone;
 }
+
+const reservationsByPhone: ReservationsByPhone = async (values, limit) => {
+  const snap = await adminFirestore.collection('reservations').where('userPhone', 'in', values).limit(limit).get();
+  return snap.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
+};
 
 function secretHash(value: string): string {
   return createHash('sha256').update(value).digest('hex');
@@ -152,15 +158,17 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === 'events') {
+      // Discovery lists every active upcoming event; the booking actions below
+      // still refuse any event without reservationsEnabled.
       const snapshot = await adminFirestore.collection('events').get();
-      const today = new Date().toISOString().slice(0, 10);
-      const events = snapshot.docs.flatMap((doc) => {
-        const event = doc.data();
-        const date = String(event.date ?? '');
-        if ((event.status && event.status !== 'active') || event.reservationsEnabled !== true || (date && date.slice(0, 10) < today)) return [];
-        return [{ id: doc.id, title: String(event.title ?? 'Event'), date, description: String(event.description ?? '') }];
-      }).sort((a, b) => a.date.localeCompare(b.date));
+      const events = toVoiceEvents(snapshot.docs.map((doc) => ({ id: doc.id, data: doc.data() })), venueDateKey());
       return NextResponse.json({ events });
+    }
+
+    if (action === 'caller-lookup') {
+      // Caller ID is an unverified hint: answer yes/no only, never details.
+      const hasPossibleReservation = await hasPossibleUpcomingReservation(body.phone, reservationsByPhone, venueDateKey());
+      return NextResponse.json({ hasPossibleReservation });
     }
 
     if (action === 'availability' || action === 'bottles') {
@@ -235,11 +243,10 @@ export async function POST(request: NextRequest) {
       if (!/^\d{4,10}$/.test(code)) return NextResponse.json({ verified: false });
       const verified = await checkVerification(phone, code);
       if (!verified) return NextResponse.json({ verified: false });
-      const snap = await adminFirestore.collection('reservations').where('userPhone', '==', phone).limit(20).get();
-      const reservations = snap.docs.map((doc) => {
-        const item = doc.data();
+      const rows = await reservationsByPhone(phoneLookupVariants(phone), 20);
+      const reservations = rows.map((item) => {
         return {
-          reference: doc.id,
+          reference: String(item.id),
           eventName: String(item.eventName ?? 'Event'),
           eventDate: String(item.eventDate ?? ''),
           tableNumber: Number(item.tableNumber ?? 0),
