@@ -19,13 +19,13 @@ const DRAWER_BAR = "relative box-content flex h-16 items-center justify-between 
 
 /**
  * A row is the label and a diagonal stroke from the menu glyph. The stroke
- * draws in on hover or focus and stays on the current item, which also turns
- * cyan and carries `aria-current`, so colour never marks it alone.
+ * draws in on hover or focus and stays on the current item. The drawer is
+ * deliberately monochrome; motion and the marker identify the active row.
  */
 const NAV_ROW =
   "group/link relative flex min-h-14 items-center border-b border-line-subtle py-2 font-heading text-3xl uppercase leading-none tracking-wider text-fg " +
-  "transition-colors duration-base hover:text-fg data-[active=true]:text-accent-bright " +
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+  "transition-colors duration-base hover:text-fg data-[active=true]:text-fg " +
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-fg"
 const NAV_STROKE =
   "absolute left-1 h-0.5 w-5 origin-center -rotate-[60deg] scale-x-0 rounded-full bg-current transition-transform duration-base ease-out-expo " +
   "group-hover/link:scale-x-100 group-focus-visible/link:scale-x-100 group-data-[active=true]/link:scale-x-100"
@@ -82,7 +82,7 @@ function DrawerNavLink({ item, linkProps }: { item: NavItem; linkProps: ReturnTy
     <Link {...linkProps} className={NAV_ROW}>
       <span aria-hidden="true" className={NAV_STROKE} />
       <span className={NAV_LABEL}>{item.label}</span>
-      {item.primary && <FiArrowRight aria-hidden="true" size={22} className="ml-auto text-accent-bright" />}
+      {item.primary && <FiArrowRight aria-hidden="true" size={22} className="ml-auto text-fg" />}
     </Link>
   )
 }

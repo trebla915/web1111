@@ -1,4 +1,3 @@
-import HeroSection from "@/components/sections/HeroSection"
 import EventsFestivalSection from "@/components/sections/EventsFestivalSection"
 import VenueSection from "@/components/sections/VenueSection"
 import FAQFestivalSection from "@/components/sections/FAQFestivalSection"
@@ -43,9 +42,12 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <HeroSection />
-      <div className="flex flex-col gap-16">
-        <EventsFestivalSection />
+      <div className="flex flex-col gap-16 pt-[calc(4rem+env(safe-area-inset-top))] md:pt-20">
+        <EventsFestivalSection
+          title="WHAT'S ON"
+          subtitle="UPCOMING NIGHTS AT 11:11"
+          className="min-h-dvh"
+        />
         <VenueSection />
         <FAQFestivalSection />
         <ContactSection />

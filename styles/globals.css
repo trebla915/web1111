@@ -194,6 +194,15 @@ h1, h2, h3, .title {
 .animate-scan-line { animation: scan-line 2.5s var(--ease-in-out) infinite; }
 
 /* ─── Header navigation ─────────────────────────────────────────────────── */
+.segmented-menu-stroke {
+  background: linear-gradient(
+    to right,
+    currentColor 0 42%,
+    transparent 42% 58%,
+    currentColor 58% 100%
+  );
+}
+
 .active-nav { position: relative; }
 .active-nav span { animation: glow 2s var(--ease-in-out) infinite; }
 
