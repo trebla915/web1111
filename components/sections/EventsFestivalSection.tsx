@@ -116,7 +116,7 @@ export default function EventsFestivalSection({
       <div aria-hidden="true" className="spotlight opacity-10" />
       
       <div className="container mx-auto px-4 relative z-10">
-        <SectionHeader title={title} subtitle={subtitle} />
+        {title && <SectionHeader title={title} subtitle={subtitle} />}
 
         {loading ? (
           <PanelLoading message="Loading events…" />
@@ -221,4 +221,4 @@ export default function EventsFestivalSection({
       </div>
     </section>
   );
-} 
+}

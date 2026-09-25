@@ -44,8 +44,7 @@ export default function Home() {
       />
       <div className="flex flex-col gap-16 pt-[calc(4rem+env(safe-area-inset-top))] md:pt-20">
         <EventsFestivalSection
-          title="WHAT'S ON"
-          subtitle="UPCOMING NIGHTS AT 11:11"
+          title=""
           className="min-h-dvh"
         />
         <VenueSection />
