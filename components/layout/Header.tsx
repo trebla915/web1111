@@ -55,11 +55,11 @@ export default function Header() {
         <div className="mx-auto flex h-full max-w-screen-xl items-center justify-between px-4 md:px-6">
           <div className="relative flex w-full items-center justify-between gap-4">
             {/* Mobile: the mark leads the bar, the menu button closes it. */}
-            <div className="md:hidden">
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 md:hidden">
               <MobileBrandMark overhang={nav.logoOverhang} onNavigate={nav.followNavItem(HOME_NAV_ITEM)} />
             </div>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" shape="pill" aria-label="Open menu" className="group md:hidden">
+              <Button variant="ghost" size="icon" shape="pill" aria-label="Open menu" className="group ml-auto md:hidden">
                 <DiagonalMenuIcon open={nav.menuOpen} />
               </Button>
             </SheetTrigger>

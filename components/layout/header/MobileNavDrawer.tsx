@@ -54,9 +54,11 @@ export function MobileNavDrawer({ open, nav, account }: MobileNavDrawerProps) {
 
       <div className={DRAWER_BAR}>
         <SheetTitle className="sr-only">Site menu</SheetTitle>
-        <MobileBrandMark overhang={false} onNavigate={nav.followNavItem(HOME_NAV_ITEM)} />
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+          <MobileBrandMark overhang={false} onNavigate={nav.followNavItem(HOME_NAV_ITEM)} />
+        </div>
         <SheetClose asChild>
-          <Button variant="ghost" size="icon" shape="pill" aria-label="Close menu" className="group">
+          <Button variant="ghost" size="icon" shape="pill" aria-label="Close menu" className="group ml-auto">
             <DiagonalMenuIcon open={open} />
           </Button>
         </SheetClose>
